@@ -29,6 +29,9 @@ dependencies {
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'com.google.firebase:firebase-admin:9.0.0'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.11'
+    implementation group: 'com.auth0', name: 'java-jwt', version: '4.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 }
 
 tasks.named('test') {

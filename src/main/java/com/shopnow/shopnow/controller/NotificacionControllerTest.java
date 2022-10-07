@@ -18,6 +18,6 @@ public class NotificacionControllerTest {
     @PostMapping
     @ResponseBody
     public String enviarNotificacion(@RequestBody Note note) throws FirebaseMessagingException, FirebaseAuthException {
-        return firebaseService.enviarNotificacion(note, note.getToken());
+         return firebaseService.enviarNotificacion(note, note.getToken());
     }
 }
