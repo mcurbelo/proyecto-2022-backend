@@ -6,5 +6,5 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DtUsuario {
    public String correo;
-   public String contrasena;
+   public String password;
 }

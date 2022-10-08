@@ -27,7 +27,7 @@ public class AuthController {
 
     @PostMapping("/iniciarSesion")
     public Map<String, String> loginHandler(@RequestBody DtDatosLogin datos){
-        return authService.iniciarSesion(datos.getCorreo(), datos.getContrasena());
+        return authService.iniciarSesion(datos.getCorreo(), datos.getPassword());
     }
 
 

@@ -10,6 +10,6 @@ import lombok.*;
 @ToString
 public class DtDatosLogin {
     private String correo;
-    private String contrasena;
+    private String password;
 
 }

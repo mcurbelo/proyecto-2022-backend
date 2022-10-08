@@ -28,7 +28,7 @@ public class AuthService {
 
     public Map<String, String> registrarUsuario(DtUsuario datosUsuario)  {
         //validaciones
-        String encodedPass = passwordEncoder.encode(datosUsuario.getContrasena());
+        String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Usuario usuario = new Usuario(null,datosUsuario.getCorreo(), encodedPass); //Usuario generico falta
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo());
