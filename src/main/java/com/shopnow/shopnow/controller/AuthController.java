@@ -2,6 +2,7 @@ package com.shopnow.shopnow.controller;
 
 
 
+import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.datatypes.DtDatosLogin;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.service.AuthService;
@@ -21,7 +22,7 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/registrarse")
-    public Map<String, String> registerHandler(@RequestBody DtUsuario datosUsuario){
+    public RegistrarUsuarioResponse registerHandler(@RequestBody DtUsuario datosUsuario){
          return authService.registrarUsuario(datosUsuario);
     }
 

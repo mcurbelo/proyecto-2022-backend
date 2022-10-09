@@ -35,7 +35,7 @@ public abstract class Usuario {
     @Column(nullable = false)
     private String apellido;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String correo;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

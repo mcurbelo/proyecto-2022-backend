@@ -3,6 +3,7 @@ package com.shopnow.shopnow.service;
 
 
 
+import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
@@ -29,22 +30,27 @@ public class AuthService {
     @Autowired private PasswordEncoder passwordEncoder;
 
 
-    public Map<String, String> registrarUsuario(DtUsuario datosUsuario)  {
+    public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario)  {
         //validaciones
+        if(usuarioRepo.findByCorreo(datosUsuario.getCorreo()).isPresent()) {
+            return new RegistrarUsuarioResponse(false, "", "Usuario ya existente");
+        }
+
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Generico usuario = Generico.builder()
                                             .fechaNac(new Date())
-                                            .nombre("Nombre")
-                                            .apellido("Apellido").correo(datosUsuario.getCorreo())
+                                            .nombre(datosUsuario.getNombre())
+                                            .apellido(datosUsuario.getNombre()).correo(datosUsuario.getCorreo())
                                             .estado(EstadoUsuario.Activo)
                                             .imagen("").mobileToken("")
                                             .webToken("")
                                             .password(encodedPass)
-                                            .telefono("")
+                                            .telefono(datosUsuario.getTelefono())
+                                            .fechaNac(datosUsuario.getFechaNac())
                                             .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo());
-        return Collections.singletonMap("jwt-token", token);
+        return new RegistrarUsuarioResponse(true, token, "");
     }
 
     public Map<String, String> iniciarSesion(String correo, String password)  {
