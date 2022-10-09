@@ -3,8 +3,10 @@ package com.shopnow.shopnow.service;
 
 
 
+import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
+import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import com.shopnow.shopnow.security.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
 @Service
@@ -29,7 +32,16 @@ public class AuthService {
     public Map<String, String> registrarUsuario(DtUsuario datosUsuario)  {
         //validaciones
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
-        Usuario usuario = new Usuario(null,datosUsuario.getCorreo(), encodedPass); //Usuario generico falta
+        Generico usuario = Generico.builder()
+                                            .fechaNac(new Date())
+                                            .nombre("Nombre")
+                                            .apellido("Apellido").correo(datosUsuario.getCorreo())
+                                            .estado(EstadoUsuario.Activo)
+                                            .imagen("").mobileToken("")
+                                            .webToken("")
+                                            .password(encodedPass)
+                                            .telefono("")
+                                            .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo());
         return Collections.singletonMap("jwt-token", token);
