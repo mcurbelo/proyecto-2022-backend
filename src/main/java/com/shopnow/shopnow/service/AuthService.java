@@ -32,7 +32,7 @@ public class AuthService {
 
     public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario)  {
         //validaciones
-        if(usuarioRepo.findByCorreo(datosUsuario.getCorreo()).isPresent()) {
+        if(usuarioRepo.findByCorreoAndEstado(datosUsuario.getCorreo(), EstadoUsuario.Activo).isPresent()) {
             return new RegistrarUsuarioResponse(false, "", "Usuario ya existente");
         }
 
@@ -54,6 +54,10 @@ public class AuthService {
     }
 
     public Map<String, String> iniciarSesion(String correo, String password)  {
+        if(usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).isEmpty()) {
+            throw new RuntimeException("Credenciales invalidas");
+        }
+
         try {
             UsernamePasswordAuthenticationToken authInputToken = new UsernamePasswordAuthenticationToken(correo, password);
             authManager.authenticate(authInputToken);
