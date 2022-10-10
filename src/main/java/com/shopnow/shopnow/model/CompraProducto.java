@@ -31,7 +31,7 @@ public class CompraProducto {
     private Integer cantidad;
 
     @Column(nullable = false, updatable = false)
-    @Formula("precioUnitario * cantidad")
+    @Formula("precio_unitario * cantidad")
     private Float precioTotal;
 
     @ManyToOne
