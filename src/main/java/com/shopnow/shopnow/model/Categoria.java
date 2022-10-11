@@ -12,10 +12,12 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Categoria {
     @Id
     private String nombre;
 
+    @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Map<UUID,Producto> productos  = new HashMap<>();
 }
