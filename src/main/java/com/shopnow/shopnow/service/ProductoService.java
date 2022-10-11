@@ -5,7 +5,7 @@ import com.shopnow.shopnow.model.Categoria;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Producto;
 import com.shopnow.shopnow.model.Usuario;
-import com.shopnow.shopnow.model.datatypes.DtProducto;
+import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.repository.CategoriaRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
@@ -32,7 +32,7 @@ public class ProductoService {
     @Autowired
     ProductoRepository productoRepository;
 
-    public void agregarProducto(DtProducto datosProducto, MultipartFile[] imagenes) throws Excepcion, IOException {
+    public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes) throws Excepcion, IOException {
         //Para testear
         categoriaRepository.save(Categoria.builder().nombre("Tecnologia").build());
 

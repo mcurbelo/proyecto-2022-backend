@@ -2,7 +2,7 @@ package com.shopnow.shopnow.controller;
 
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
-import com.shopnow.shopnow.model.datatypes.DtProducto;
+import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
 import com.shopnow.shopnow.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ public class ProductoController {
     ProductoService productoService;
 
     @PostMapping()
-    public ResponseEntity<String> nuevoProducto(@Valid @RequestPart DtProducto datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
+    public ResponseEntity<String> nuevoProducto(@Valid @RequestPart DtAltaProducto datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
         if (imagenes.length==0 || imagenes.length>5){
                 throw new Excepcion("Cantidad de imagenes incorrecta");
             }

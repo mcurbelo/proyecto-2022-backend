@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DtProducto {
+public class DtAltaProducto {
     @NotBlank
     private String emailVendedor;
     @NotBlank
