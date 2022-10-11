@@ -37,7 +37,7 @@ public class ProductoService {
         categoriaRepository.save(Categoria.builder().nombre("Tecnologia").build());
 
         if (datosProducto.getFechaFin() != null && datosProducto.getFechaFin().before(new Date())) {
-            throw new Excepcion("El fecha de fin invalida");
+            throw new Excepcion("La fecha de fin es invalida");
         }
         Optional<Usuario> resultado = usuarioRepository.findByCorreo(datosProducto.getEmailVendedor());
         Generico usuario;
@@ -50,15 +50,14 @@ public class ProductoService {
      //   if (!datosProducto.getEsSolicitud() && usuario.getDatosVendedor().getEstadoSolicitud() != EstadoSolicitud.Aceptado)
        //     throw new Excepcion("El usuario con el correo ingresado no esta habilitado para agregar mas productos.");
 
-        int i = 0;
-        while (i < datosProducto.getCategorias().size()) {
-            if (!categoriaRepository.existsById(datosProducto.getCategorias().get(i)))
+        datosProducto.getCategorias().forEach(categoria -> {
+            if(!categoriaRepository.existsById((categoria)))
                 throw new Excepcion("Una o mas categorias no son validas");
-            i++;
-        }
+        });
+
         List<String> linkImagenes = new ArrayList<>();
         String idImagen = UUID.randomUUID().toString();
-        i = 0;
+        int i = 0;
         for (MultipartFile imagen : imagenes) {
             linkImagenes.add(firebaseStorageService.uploadFile(imagen, idImagen + "--img" + i));
             i++;
