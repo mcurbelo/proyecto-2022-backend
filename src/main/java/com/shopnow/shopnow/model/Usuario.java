@@ -50,5 +50,6 @@ public abstract class Usuario {
 
     private String imagen;
 
+    //@Size(min = 8)
     private String telefono;
 }
