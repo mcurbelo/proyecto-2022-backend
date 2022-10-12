@@ -5,7 +5,6 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 import java.util.*;
 
 @Entity
@@ -13,6 +12,7 @@ import java.util.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Producto {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -29,7 +29,7 @@ public class Producto {
     @ElementCollection
     //@Size(max=5)
     @Column(nullable = false)
-    private List<String> imagenesURL= new ArrayList<>();
+    private List<String> imagenesURL;
 
     @Column(nullable = false)
     //@Size(min = 20)
@@ -54,8 +54,10 @@ public class Producto {
     private Boolean permiteEnvio;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Map<UUID, Reporte> reportes = new HashMap<>();
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Map<UUID, Comentario> comentarios = new HashMap<>();
 }
