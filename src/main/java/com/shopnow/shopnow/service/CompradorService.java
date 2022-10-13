@@ -123,7 +123,7 @@ public class CompradorService {
         }
         usuario.setDatosVendedor(solicitud);
         usuarioRepository.save(usuario);
-        googleSMTP.enviarCorreo("nicolas16ardilla@hotmail.com", "Hay una nueva solicitud pendiente para ser vendedor (" + usuario.getNombre() + " " + usuario.getApellido() + ").", "Solicitud rol vendedor");
+        googleSMTP.enviarCorreo("proyecto.tecnologo.2022@gmail.com", "Hay una nueva solicitud pendiente para ser vendedor (" + usuario.getNombre() + " " + usuario.getApellido() + ").", "Solicitud rol vendedor");
     }
 
     boolean datosEmpresaValidos(String nombre, String rut, String telefono) {
