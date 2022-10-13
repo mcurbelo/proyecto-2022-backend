@@ -7,5 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DatosVendedorRepository extends JpaRepository<DatosVendedor, Integer> {
 
+    boolean existsByRutOrNombreEmpresaOrTelefonoEmpresa(String rut, String nombre, String tel);
+
 
 }

@@ -1,12 +1,10 @@
 package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
-import com.shopnow.shopnow.model.Categoria;
-import com.shopnow.shopnow.model.Generico;
-import com.shopnow.shopnow.model.Producto;
-import com.shopnow.shopnow.model.Usuario;
+import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
+import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.repository.CategoriaRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
@@ -47,33 +45,37 @@ public class ProductoService {
             usuario = (Generico) resultado.get();
         }
 
-     //   if (!datosProducto.getEsSolicitud() && usuario.getDatosVendedor().getEstadoSolicitud() != EstadoSolicitud.Aceptado)
-       //     throw new Excepcion("El usuario con el correo ingresado no esta habilitado para agregar mas productos.");
+        if (!datosProducto.getEsSolicitud() && usuario.getDatosVendedor() == null) {
+            throw new Excepcion("Funcionalidad no disponible para este usuario.");
+        }
+
+        if (!datosProducto.getEsSolicitud() && usuario.getDatosVendedor().getEstadoSolicitud() != EstadoSolicitud.Aceptado)
+            throw new Excepcion("El usuario con el correo ingresado no esta habilitado para agregar productos.");
 
         datosProducto.getCategorias().forEach(categoria -> {
-            if(!categoriaRepository.existsById((categoria)))
+            if (!categoriaRepository.existsById((categoria)))
                 throw new Excepcion("Una o mas categorias no son validas");
         });
 
-        List<String> linkImagenes = new ArrayList<>();
+        List<URLimagen> linkImagenes = new ArrayList<>();
         String idImagen = UUID.randomUUID().toString();
         int i = 0;
         for (MultipartFile imagen : imagenes) {
-            linkImagenes.add(firebaseStorageService.uploadFile(imagen, idImagen + "--img" + i));
+            linkImagenes.add(new URLimagen(firebaseStorageService.uploadFile(imagen, idImagen + "--img" + i)));
             i++;
         }
         Producto producto = Producto.builder()
-                                    .nombre(datosProducto.getNombreProducto())
-                                    .stock(datosProducto.getStock())
-                                    .imagenesURL(linkImagenes)
-                                    .descripcion(datosProducto.getDescripcion())
-                                    .fechaInicio(new Date())
-                                    .fechaFin(datosProducto.getFechaFin())
-                                    .estado((datosProducto.getEsSolicitud()) ? EstadoProducto.Pausado : EstadoProducto.Activo)
-                                    .precio(datosProducto.getPrecio())
-                                    .diasGarantia(datosProducto.getDiasGarantia())
-                                    .permiteEnvio(datosProducto.getPermiteEnvio())
-                                    .build();
+                .nombre(datosProducto.getNombreProducto())
+                .stock(datosProducto.getStock())
+                .imagenesURL(linkImagenes)
+                .descripcion(datosProducto.getDescripcion())
+                .fechaInicio(new Date())
+                .fechaFin(datosProducto.getFechaFin())
+                .estado((datosProducto.getEsSolicitud()) ? EstadoProducto.Pausado : EstadoProducto.Activo)
+                .precio(datosProducto.getPrecio())
+                .diasGarantia(datosProducto.getDiasGarantia())
+                .permiteEnvio(datosProducto.getPermiteEnvio())
+                .build();
         productoRepository.saveAndFlush(producto);
         List<Categoria> categorias = categoriaRepository.findAllById(datosProducto.getCategorias());
         for (Categoria categoria : categorias) {
@@ -83,5 +85,7 @@ public class ProductoService {
         usuario.getProductos().put(producto.getId(), producto);
         usuarioRepository.save(usuario);
     }
+
+
 }
 

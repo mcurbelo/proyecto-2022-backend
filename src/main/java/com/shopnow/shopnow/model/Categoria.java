@@ -19,5 +19,5 @@ public class Categoria {
 
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Map<UUID,Producto> productos  = new HashMap<>();
+    private Map<UUID, Producto> productos = new HashMap<>();
 }
