@@ -20,7 +20,7 @@ public class JWTUtil {
     public String generateToken(String email) throws IllegalArgumentException, JWTCreationException {
         return JWT.create()
                 .withSubject("Detalles usuario")
-                .withClaim("email", email)
+                .withClaim("correo", email)
                 .withIssuedAt(new Date())
                 .withIssuer("ShopNow2022")
                 .sign(Algorithm.HMAC256(secret));
