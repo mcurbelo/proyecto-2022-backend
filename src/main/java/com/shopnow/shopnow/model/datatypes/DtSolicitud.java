@@ -25,6 +25,7 @@ public class DtSolicitud {
     @NotNull
     private DtAltaProducto producto;
 
-    @NotNull
     private DtDireccion local;
+
+    private Integer idDireccion;
 }

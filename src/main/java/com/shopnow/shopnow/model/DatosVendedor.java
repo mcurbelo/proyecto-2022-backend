@@ -35,6 +35,6 @@ public class DatosVendedor {
     @Column(nullable = false)
     private EstadoSolicitud estadoSolicitud;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Map<Integer, Direccion> locales = new HashMap<>();
 }

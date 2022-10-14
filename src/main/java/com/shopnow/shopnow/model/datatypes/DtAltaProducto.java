@@ -38,6 +38,7 @@ public class DtAltaProducto {
     private Integer diasGarantia;
     @NotNull
     private Boolean permiteEnvio;
+    @NotNull
     @Size(min = 1, max = 5)
     private List<String> categorias;
     @NotNull
