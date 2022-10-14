@@ -8,6 +8,7 @@ import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtDireccion;
 import com.shopnow.shopnow.model.datatypes.DtSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
+import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
 import com.shopnow.shopnow.repository.DireccionRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
@@ -42,6 +43,29 @@ public class CompradorService {
 
     @Autowired
     FirebaseStorageService firebaseStorageService;
+
+    public void agregarDreccion(DtDireccion datos, String correoUsuario) {
+        Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
+
+        if(usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");
+        Generico usuarioCasteado = (Generico) usuario.get();
+        Direccion direccion = Direccion.builder()
+                .calle(datos.getCalle())
+                .numero(datos.getNumero())
+                .departamento(datos.getDepartamento())
+                .notas(datos.getNotas())
+                .build();
+
+        for(Direccion dir : usuarioCasteado.getDireccionesEnvio().values())
+            if (Objects.equals(dir.getCalle(), direccion.getCalle()) &&
+                    Objects.equals(dir.getNumero(), direccion.getNumero()) &&
+                    Objects.equals(dir.getDepartamento(), direccion.getDepartamento())
+            ) throw new Excepcion("Direccioón ya existente");
+
+        direccionRepository.save(direccion);
+        usuarioCasteado.getDireccionesEnvio().put(direccion.getId(), direccion);
+        usuarioRepository.save(usuarioCasteado);
+    }
 
     public void crearSolicitud(DtSolicitud datos, MultipartFile[] imagenes) throws IOException {
         boolean esEmpresa = contieneDatosEmpresa(datos.getNombreEmpresa(), datos.getRut(), datos.getTelefonoEmpresa());
