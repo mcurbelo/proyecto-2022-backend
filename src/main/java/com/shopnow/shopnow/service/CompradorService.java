@@ -51,6 +51,8 @@ public class CompradorService {
         if (esEmpresa && datosVendedorRepository.existsByRutOrNombreEmpresaOrTelefonoEmpresa(datos.getRut(), datos.getNombreEmpresa(), datos.getTelefonoEmpresa()))
             throw new Excepcion("Ya existen los datos ingresados de la empresa");
 
+
+        //TODO
 /*                            Validaciones de largo y que sean numericos
 
         if (esEmpresa && datos.getRut().length() != 12 || datos.getRut().matches("[+-]?\\d*(\\.\\d+)?")) {

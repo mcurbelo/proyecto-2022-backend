@@ -31,7 +31,7 @@ public class ProductoService {
     ProductoRepository productoRepository;
 
     public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes) throws Excepcion, IOException {
-        //Para testear
+        //TODO Para testear
         categoriaRepository.save(Categoria.builder().nombre("Tecnologia").build());
 
         if (datosProducto.getFechaFin() != null && datosProducto.getFechaFin().before(new Date())) {
