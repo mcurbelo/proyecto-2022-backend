@@ -3,6 +3,7 @@ package com.shopnow.shopnow.service;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
+import com.shopnow.shopnow.model.datatypes.DtProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.repository.CategoriaRepository;
@@ -86,6 +87,46 @@ public class ProductoService {
         usuarioRepository.save(usuario);
     }
 
+    public DtProducto obtenerProducto(UUID id) {
+        Optional<Producto> resultado = productoRepository.findById(id);
+        Producto producto;
+        if (resultado.isEmpty()) {
+            throw new Excepcion("El producto no existe");
+        } else {
+            producto = resultado.get();
+        }
+        if (producto.getEstado() != EstadoProducto.Activo) {
+            throw new Excepcion("Este producto no se puede visualizar en este momento");
+        }
+        UUID idVendedor = productoRepository.vendedorProducto(id);
+        Optional<Usuario> res = usuarioRepository.findById(idVendedor);
+        Generico usuario;
+        if (res.isEmpty()) {
+            throw new Excepcion("El usuario no existe");
+        } else {
+            usuario = (Generico) res.get();
+        }
+        List<String> linksImagenes = new ArrayList<>();
+        for (URLimagen url : producto.getImagenesURL()) { //Obtengo links de imagenes del producto
+            linksImagenes.add(url.getUrl());
+        }
+        String nombreVendedor;
+        DatosVendedor datosVendedor = usuario.getDatosVendedor(); //Veo que nombre mandar del vendedor
+        if (datosVendedor.getNombreEmpresa() == null) {
+            nombreVendedor = usuario.getNombre() + " " + usuario.getApellido();
+        } else {
+            nombreVendedor = datosVendedor.getNombreEmpresa();
+        }
+        Map<UUID, Compra> ventas = usuario.getVentas();  //Calculo la calificacion :)
+        float sumaCalificacion = 0, calificacion = 0;
+        if (ventas.size() != 0) {
+            for (Compra venta : ventas.values()) {
+                sumaCalificacion += venta.getInfoEntrega().getCalificacion().getPuntuacion();
+            }
+            calificacion = sumaCalificacion / ventas.size();
+        }
+        return new DtProducto(linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), datosVendedor.getLocales());
+    }
 
 }
 

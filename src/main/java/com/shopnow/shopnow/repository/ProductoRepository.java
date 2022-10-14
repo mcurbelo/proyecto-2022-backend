@@ -14,4 +14,6 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "delete from categoria_productos where productos_key=?1", nativeQuery = true)
     void eliminarProductoCategoria(UUID id);
 
+    @Query(value = "select cast(generico_id as varchar)  from usuario_productos where productos_key=?1", nativeQuery = true)
+    UUID vendedorProducto(UUID idProducto);
 }
