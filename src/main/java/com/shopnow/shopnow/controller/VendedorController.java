@@ -28,6 +28,9 @@ public class VendedorController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         */
+        if (datos.getNuevoEstadoProducto() == null) { // Cuando se usen tokens se suma al if de arriba
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
         vendedorService.cambiarEstadoProducto(idProducto, correo, datos.getNuevoEstadoProducto());
         return new ResponseEntity<>("Producto cambiado de estado con exito", HttpStatus.OK);
     }
