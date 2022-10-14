@@ -6,6 +6,7 @@ import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
 import com.shopnow.shopnow.model.datatypes.DtProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
+import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.CategoriaRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
@@ -95,9 +96,7 @@ public class ProductoService {
         } else {
             producto = resultado.get();
         }
-        if (producto.getEstado() != EstadoProducto.Activo) {
-            throw new Excepcion("Este producto no se puede visualizar en este momento");
-        }
+
         UUID idVendedor = productoRepository.vendedorProducto(id);
         Optional<Usuario> res = usuarioRepository.findById(idVendedor);
         Generico usuario;
@@ -106,6 +105,10 @@ public class ProductoService {
         } else {
             usuario = (Generico) res.get();
         }
+        if (producto.getEstado() != EstadoProducto.Activo || usuario.getEstado() != EstadoUsuario.Activo) { //Verifico que el producto se pueda mostrar y ese usuario este activo
+            throw new Excepcion("Este producto no se puede visualizar en este momento");
+        }
+
         List<String> linksImagenes = new ArrayList<>();
         for (URLimagen url : producto.getImagenesURL()) { //Obtengo links de imagenes del producto
             linksImagenes.add(url.getUrl());
