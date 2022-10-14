@@ -125,7 +125,7 @@ public class ProductoService {
             }
             calificacion = sumaCalificacion / ventas.size();
         }
-        return new DtProducto(linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), datosVendedor.getLocales());
+        return new DtProducto(id, idVendedor, linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), datosVendedor.getLocales());
     }
 
 }

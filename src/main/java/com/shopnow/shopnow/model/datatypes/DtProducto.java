@@ -15,6 +15,10 @@ import java.util.UUID;
 @NoArgsConstructor
 public class DtProducto {
 
+    UUID idProducto; //Facilitar CU realizar compra
+
+    UUID idVendedor; //Facilitar CU realizar compra
+
     List<String> imagenes;
 
     String nombre;
