@@ -28,7 +28,7 @@ public class DtAltaProducto {
     @NotBlank
     private String descripcion;
 
-    @JsonFormat(pattern = "DD/MM/yyyy")
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private Date fechaFin;
     @NotNull
     @Min(1)
@@ -38,7 +38,8 @@ public class DtAltaProducto {
     private Integer diasGarantia;
     @NotNull
     private Boolean permiteEnvio;
-    @Size(min=1, max =5)
+    @NotNull
+    @Size(min = 1, max = 5)
     private List<String> categorias;
     @NotNull
     private Boolean esSolicitud;

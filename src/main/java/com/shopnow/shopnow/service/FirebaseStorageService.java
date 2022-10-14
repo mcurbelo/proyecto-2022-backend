@@ -2,6 +2,7 @@ package com.shopnow.shopnow.service;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.*;
+import com.google.firebase.cloud.StorageClient;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,7 +46,7 @@ public class FirebaseStorageService {
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("image/jpeg").build();
         Blob blob = storage.create(blobInfo, Files.readAllBytes(filePath));
 
-        String url= String.format("https://firebasestorage.googleapis.com/v0/b/shopnowproyecto2022.appspot.com/o/%s?alt=media", URLEncoder.encode(id, StandardCharsets.UTF_8));
+        String url = String.format("https://firebasestorage.googleapis.com/v0/b/shopnowproyecto2022.appspot.com/o/%s?alt=media", URLEncoder.encode(id, StandardCharsets.UTF_8));
 
         Files.delete(filePath);
         return url;
@@ -58,6 +59,11 @@ public class FirebaseStorageService {
         fos.write(file.getBytes());
         fos.close();
         return convertedFile;
+    }
+
+    public void deleteFile(String nombre) {
+        Bucket bucket = StorageClient.getInstance().bucket(bucketName);
+        bucket.get(nombre).delete();
     }
 
 

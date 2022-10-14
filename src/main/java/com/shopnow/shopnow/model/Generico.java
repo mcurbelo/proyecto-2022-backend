@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public class Generico extends Usuario{
+public class Generico extends Usuario {
 
     @Column(updatable = false) //No puede ser nulleable=false por la estrategia de mapeo de herencia
     private Date fechaNac;
@@ -50,7 +50,7 @@ public class Generico extends Usuario{
     @Builder.Default
     private Map<String, Tarjeta> tarjetas = new HashMap<>();
 
-    @OneToOne (fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
     private DatosVendedor datosVendedor = null;
 

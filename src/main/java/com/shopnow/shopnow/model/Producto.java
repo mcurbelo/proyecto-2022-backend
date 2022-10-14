@@ -26,10 +26,9 @@ public class Producto {
     @Column(nullable = false)
     private Integer stock;
 
-    @ElementCollection
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     //@Size(max=5)
-    @Column(nullable = false)
-    private List<String> imagenesURL;
+    private List<URLimagen> imagenesURL;
 
     @Column(nullable = false)
     //@Size(min = 20)
@@ -44,11 +43,11 @@ public class Producto {
     @Enumerated(EnumType.STRING)
     private EstadoProducto estado;
 
-    @Column(nullable = false, scale=2)
+    @Column(nullable = false, scale = 2)
     private Float precio;
 
     @Column(nullable = false)
-    private  Integer diasGarantia;
+    private Integer diasGarantia;
 
     @Column(nullable = false)
     private Boolean permiteEnvio;
