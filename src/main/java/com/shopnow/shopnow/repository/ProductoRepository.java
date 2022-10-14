@@ -17,15 +17,14 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "delete from categoria_productos where productos_key=?1", nativeQuery = true)
     void eliminarProductoCategoria(UUID id);
 
-    Page<Producto> findByNombreContaining(String nombre, Pageable pageable);
-
-    @Query(value = "select * from producto where id in (select producto_id from evento_promocional_productos where evento_promocional_id = ?1) and position(nombre in ?2)", nativeQuery = true)
-    Page<Producto> buscarProductoEnEventoYporNombre(UUID idEvento, String nombre, Pageable pageable);
+    List<UUID> findByNombreContaining(String nombre);
 
     @Query(value = "select cast(id as varchar) from producto where id in (select producto_id from evento_promocional_productos where evento_promocional_id = ?1) and position(nombre in ?2)", nativeQuery = true)
     List<UUID> buscarProductoEnEventoYporNombre(UUID idEvento, String nombre);
 
     Page<Producto> findByIdIn(Iterable<UUID> ids, Pageable pageable);
 
+    @Query(value = "select cast(id as varchar) from producto where estado='Activo' and stock>0 and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')", nativeQuery = true)
+    List<UUID> productosValidosParaListar();
 
 }

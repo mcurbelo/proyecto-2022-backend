@@ -14,4 +14,5 @@ public class DtFiltros {
     private String nombre;
     private List<String> categorias;
     private UUID idEventoPromocional;
+    private Boolean recibirInfoEventoActivo;
 }
