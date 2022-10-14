@@ -13,10 +13,6 @@ import java.util.Optional;
 public class Utils {
     @Autowired
     JWTUtil jwtUtil;
-
-    @Autowired
-    UsuarioRepository userRepo;
-
     String correoFromRequest(HttpServletRequest request) {
         String header = request.getHeader("authorization");
         if(header == null || !header.contains("Bearer")) return null;
