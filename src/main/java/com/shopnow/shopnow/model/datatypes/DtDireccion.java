@@ -21,4 +21,6 @@ public class DtDireccion {
     private String departamento;
 
     private String notas;
+    @NotBlank
+    private Boolean esLocal;
 }
