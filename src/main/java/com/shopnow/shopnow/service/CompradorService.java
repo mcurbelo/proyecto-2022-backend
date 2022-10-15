@@ -56,15 +56,27 @@ public class CompradorService {
                 .notas(datos.getNotas())
                 .build();
 
-        for(Direccion dir : usuarioCasteado.getDireccionesEnvio().values())
-            if (Objects.equals(dir.getCalle(), direccion.getCalle()) &&
-                    Objects.equals(dir.getNumero(), direccion.getNumero()) &&
-                    Objects.equals(dir.getDepartamento(), direccion.getDepartamento())
-            ) throw new Excepcion("Direccioón ya existente");
+        if(datos.getEsLocal()) {
+            if(usuarioCasteado.getDatosVendedor() == null)
+                throw new Excepcion("El usuario no puede agregar direcciones de retiro");
+            usuarioCasteado.getDatosVendedor()
+                    .getLocales().values().forEach(address -> validarDireccion(direccion, address));
+            direccionRepository.save(direccion);
+            usuarioCasteado.getDatosVendedor().getLocales().put(direccion.getId(), direccion);
+            usuarioRepository.save(usuarioCasteado);
+        } else {
+            usuarioCasteado.getDireccionesEnvio().values().forEach(address -> validarDireccion(direccion, address));
+            direccionRepository.save(direccion);
+            usuarioCasteado.getDireccionesEnvio().put(direccion.getId(), direccion);
+            usuarioRepository.save(usuarioCasteado);
+        }
+    }
 
-        direccionRepository.save(direccion);
-        usuarioCasteado.getDireccionesEnvio().put(direccion.getId(), direccion);
-        usuarioRepository.save(usuarioCasteado);
+    private void validarDireccion(Direccion toAdd, Direccion existingAddress) {
+        if(Objects.equals(toAdd.getCalle(), existingAddress.getCalle()) &&
+                Objects.equals(toAdd.getNumero(), existingAddress.getNumero()) &&
+                Objects.equals(toAdd.getDepartamento(), existingAddress.getDepartamento()))
+            throw new Excepcion("Dirección ya existente");
     }
 
     public void crearSolicitud(DtSolicitud datos, MultipartFile[] imagenes) throws IOException {
