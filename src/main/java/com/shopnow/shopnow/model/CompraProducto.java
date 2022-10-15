@@ -21,6 +21,9 @@ public class CompraProducto {
 
     private Date horarioRetiroLocal;
 
+    @Column(nullable = false, updatable = false)
+    private Boolean esEnvio;
+
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Direccion direccionEnvioORetiro;
 

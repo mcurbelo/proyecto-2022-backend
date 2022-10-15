@@ -1,5 +1,7 @@
 package com.shopnow.shopnow.service;
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtCompra;
@@ -10,6 +12,7 @@ import com.shopnow.shopnow.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Optional;
 
@@ -34,7 +37,16 @@ public class CompraService {
     @Autowired
     DireccionRepository direccionRepository;
 
-    public void nuevaCompra(DtCompra datosCompra) {
+    @Autowired
+    EventoPromocionalRepository eventoPromocionalRepository;
+
+    @Autowired
+    FirebaseMessagingService firebaseMessagingService;
+
+    @Autowired
+    GoogleSMTP googleSMTP;
+
+    public void nuevaCompra(DtCompra datosCompra) throws FirebaseMessagingException, FirebaseAuthException {
         if (datosCompra.getIdComprador().equals(datosCompra.getIdVendedor())) {
             throw new Excepcion("No se puede comprar un producto a usted mismo");
         }
@@ -82,45 +94,77 @@ public class CompraService {
             } else
                 cupon = resCupon.get();
         }
-        //TODO Crear eventoPromocional enviar descuento, Verificar que sea envio, Validar direccion pertenezcan
 
         Producto producto = resProducto.get();
         Generico comprador = (Generico) resComprador.get();
         Tarjeta tarjeta = resTarjeta.get();
 
+
         Integer idDireccion;
-        if(datosCompra.getEsParaEnvio()) { //
-            if () {
-                throw new Excepcion("Direccion invalida, no pertenece al vendedor");
-            } else
-                idDireccion = datosCompra.getIdDireccionLocal();
-
-            if (datosCompra.getEsParaEnvio() && !comprador.getDireccionesEnvio().containsKey(datosCompra.getIdDireccionEnvio())) {
-                throw new Excepcion("Direccion invalida, no pertenece al comprador");
-            } else
+        if (datosCompra.getEsParaEnvio()) { //
+            if (!comprador.getDireccionesEnvio().containsKey(datosCompra.getIdDireccionEnvio()))
+                throw new Excepcion("La direccion de envio no pertenece al comprador");
+            else
                 idDireccion = datosCompra.getIdDireccionEnvio();
+        } else if (!vendedor.getDatosVendedor().getLocales().containsKey(datosCompra.getIdDireccionEnvio()))
+            throw new Excepcion("La direccion de retiro no pertenece al vendedor");
+        else
+            idDireccion = datosCompra.getIdDireccionLocal();
 
+        Optional<Direccion> resDire = direccionRepository.findById(idDireccion);
+        if (resDire.isEmpty()) {
+            throw new Excepcion("La direccion no existe");
         }
+        Direccion direccion = resDire.get();
+
+        //TODO Revisar si hay evento promocional activo
+        //TODO Falso todo los eventos no tienen descuento, nos falto eso :(((
+
 
         float precio = producto.getPrecio();
-
-        //TODO Revisar si hay evento promocional activo y descontar
-
+        DecimalFormat df = new DecimalFormat("0.00");
         if (cupon != null) {
             precio = (float) (precio - (precio * (cupon.getDescuento() / 100.00))); //Esta dudoso esto
         }
+        df.format(precio);
 
-        CompraProducto infoEntrga = new CompraProducto(null, null, null, (datosCompra.getEsParaEnvio()) ? datosCompra.getIdDireccionEnvio() : datosCompra.getIdDireccionLocal(), precio, datosCompra.getCantidad(), precio * datosCompra.getCantidad(), producto, null);
+        //TODO PAGO TARJETA :DDDD
+
+        CompraProducto infoEntrega = new CompraProducto(null, null, null, datosCompra.getEsParaEnvio(), direccion, precio, datosCompra.getCantidad(), precio * datosCompra.getCantidad(), producto, null);
 
 
         Compra compra = Compra.builder()
                 .id(null)
                 .fecha(new Date())
                 .cuponAplicado(cupon)
-                .tarjetaPago()
-                .infoEntrega(null)
+                .tarjetaPago(tarjeta)
+                .infoEntrega(infoEntrega)
                 .build();
+        compraRepository.saveAndFlush(compra);
+        comprador.getCompras().put(compra.getId(), compra);
+        vendedor.getVentas().put(compra.getId(), compra);
+        usuarioRepository.save(comprador);
+        usuarioRepository.save(vendedor);
 
+        Note notificacionVendedor = new Note("Nueva venta registrada", "Se realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.", null, null, null);
 
+        firebaseMessagingService.enviarNotificacion(notificacionVendedor, vendedor.getWebToken());
+
+        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nSe realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.\n Detalles de la venta: \n" + detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Nueva venta");
+        googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nRealizó una compra de un producto, la confirmacion puede demorar hasta 72hrs despues de haber recibido este correo.\n Detalles de la compra: \n" + detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Compra realizada");
+    }
+
+    private String detallesCompra(Compra compra, Generico vendedor, Generico comprador, Producto producto, Boolean porEnvio) {
+
+        return "\n" +
+                "Producto: " + producto.getNombre() + ".\n" +
+                "Vendedor: " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\n" +
+                "Comprador: " + comprador.getNombre() + " " + comprador.getApellido() + ".\n" +
+                "Cantidad: " + compra.getInfoEntrega().getCantidad() + "." +
+                "Precio unitario: " + compra.getInfoEntrega().getPrecioUnitario() + ".\n" +
+                "Precio total: " + compra.getInfoEntrega().getCantidad() + ".\n" +
+                "Por envio: " + ((porEnvio) ? "Sí" : "No") + ".\n" +
+                ((porEnvio) ? "Direccion envio: " : "Direccion retiro: ") + "" + compra.getInfoEntrega().getDireccionEnvioORetiro().toString() + "\n" +
+                "Estado actual: Esperando confirmacion";
     }
 }
