@@ -7,6 +7,7 @@ import lombok.ToString;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Getter
@@ -15,19 +16,19 @@ import java.util.UUID;
 @ToString
 public class DtCompra {
 
-    @NotBlank
-    private UUID IdComprador; //O correo?
+    @NotNull
+    private UUID idComprador; //O correo?
 
     @NotBlank
     private String correoComprador;
 
-    @NotBlank
+    @NotNull
     private UUID idVendedor;
 
-    @NotBlank
+    @NotNull
     private UUID idProducto;
 
-    @NotBlank
+    @NotNull
     @Min(1)
     private Integer cantidad;
 
@@ -36,12 +37,11 @@ public class DtCompra {
     @NotBlank
     private String idTarjeta;
 
-
-    @NotBlank
+    @NotNull
     private Boolean esParaEnvio;
 
-    private Integer IdDireccionEnvio;
+    private Integer idDireccionEnvio;
 
-    private Integer IdDireccionLocal;
+    private Integer idDireccionLocal;
 
 }
