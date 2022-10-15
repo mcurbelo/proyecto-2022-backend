@@ -9,5 +9,7 @@ public interface DatosVendedorRepository extends JpaRepository<DatosVendedor, In
 
     boolean existsByRutOrNombreEmpresaOrTelefonoEmpresa(String rut, String nombre, String tel);
 
+    boolean existsByNombreEmpresa(String nombre);
 
+    boolean existsByTelefonoEmpresa(String telefono);
 }
