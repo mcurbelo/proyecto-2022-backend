@@ -30,9 +30,9 @@ public class UsuarioService {
     FirebaseStorageService firebaseStorageService;
 
 
-    public void modificarDatosUsuario(String correo, DtModificarUsuario datos, MultipartFile imagen) throws IOException {
+    public void modificarDatosUsuario(UUID id, DtModificarUsuario datos, MultipartFile imagen) throws IOException {
         Generico usuario;
-        Optional<Usuario> res = usuarioRepository.findByCorreoAndEstado(correo, EstadoUsuario.Activo);
+        Optional<Usuario> res = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
         if (res.isEmpty()) {
             throw new Excepcion("El usuario no existe");
         } else {
@@ -45,7 +45,7 @@ public class UsuarioService {
                 usuario.setCorreo(datos.getCorreo());
         }
 
-        if (imagen.getSize() > 0) { //Solo se cambia el link
+        if (imagen != null && !imagen.isEmpty()) { //Solo se cambia el link
             String idImagen = UUID.randomUUID().toString();
             String link = firebaseStorageService.uploadFile(imagen, idImagen + "-UsuarioImg");
             usuario.setImagen(link);

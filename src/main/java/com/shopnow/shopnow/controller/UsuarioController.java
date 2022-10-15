@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -19,14 +20,14 @@ public class UsuarioController {
     UsuarioService usuarioService;
 
 
-    @PutMapping("/{correo}/perfil")
-    public ResponseEntity<String> modificarPerfil(@PathVariable(value = "correo") String correo, @RequestPart DtModificarUsuario datos, @RequestPart(required = false) MultipartFile imagen) throws IOException {
+    @PutMapping("/{id}/perfil")
+    public ResponseEntity<String> modificarPerfil(@PathVariable(value = "id") UUID id, @RequestPart DtModificarUsuario datos, @RequestPart(required = false) MultipartFile imagen) throws IOException {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         //TODO Para cuando utilicemos 100% los token
         //   if(!email.equals(correo)){
         //      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         //}
-        usuarioService.modificarDatosUsuario(correo, datos, imagen);
+        usuarioService.modificarDatosUsuario(id, datos, imagen);
         return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
     }
 
