@@ -13,7 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 public class CompraProducto {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false)
     private Integer id;
 
@@ -22,7 +22,7 @@ public class CompraProducto {
     private Date horarioRetiroLocal;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Direccion direccionRetiroLocal;
+    private Direccion direccionEnvioORetiro;
 
     @Column(nullable = false, updatable = false)
     private Float precioUnitario;
