@@ -4,6 +4,7 @@ package com.shopnow.shopnow.controller;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
 import com.shopnow.shopnow.model.datatypes.DtFiltros;
+import com.shopnow.shopnow.model.datatypes.DtProducto;
 import com.shopnow.shopnow.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -40,5 +42,11 @@ public class ProductoController {
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestBody DtFiltros filtros) {
         return productoService.busquedaDeProductos(pageNo, pageSize, sortBy, sortDir, filtros);
+        
+        
+    @GetMapping("/{id}")
+    public DtProducto informacionProducto(@PathVariable(value = "id") UUID id) {
+        return productoService.obtenerProducto(id);
+
     }
 }

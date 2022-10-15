@@ -27,4 +27,7 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "select cast(id as varchar) from producto where estado='Activo' and stock>0 and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')", nativeQuery = true)
     List<UUID> productosValidosParaListar();
 
+    @Query(value = "select cast(generico_id as varchar)  from usuario_productos where productos_key=?1", nativeQuery = true)
+    UUID vendedorProducto(UUID idProducto);
+
 }
