@@ -42,8 +42,8 @@ public class ProductoController {
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestBody DtFiltros filtros) {
         return productoService.busquedaDeProductos(pageNo, pageSize, sortBy, sortDir, filtros);
-        
-        
+    }
+
     @GetMapping("/{id}")
     public DtProducto informacionProducto(@PathVariable(value = "id") UUID id) {
         return productoService.obtenerProducto(id);
