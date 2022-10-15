@@ -18,8 +18,8 @@ public class VendedorController {
     VendedorService vendedorService;
 
 
-    @PutMapping("/{correo}/productos/{id}/estado")
-    public ResponseEntity<String> cambiarEstado(@PathVariable(value = "correo") String correo, @PathVariable(value = "id") UUID idProducto, @RequestBody DtModificarProducto datos) {
+    @PutMapping("/{idUsuario}/productos/{id}/estado")
+    public ResponseEntity<String> cambiarEstado(@PathVariable(value = "idUsuario") UUID id, @PathVariable(value = "id") UUID idProducto, @RequestBody DtModificarProducto datos) {
         //Ese Dt se deberia utilizar tambien para editar producto
 
         /*TODO Utilizar cuando se utilicen al 100% los token
@@ -31,7 +31,7 @@ public class VendedorController {
         if (datos.getNuevoEstadoProducto() == null) { // Cuando se usen tokens se suma al if de arriba
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        vendedorService.cambiarEstadoProducto(idProducto, correo, datos.getNuevoEstadoProducto());
+        vendedorService.cambiarEstadoProducto(idProducto, id, datos.getNuevoEstadoProducto());
         return new ResponseEntity<>("Producto cambiado de estado con exito", HttpStatus.OK);
     }
 }

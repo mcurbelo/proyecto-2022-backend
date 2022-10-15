@@ -40,7 +40,7 @@ public class VendedorService {
     @Autowired
     FirebaseStorageService firebaseStorageService;
 
-    public void cambiarEstadoProducto(UUID idProducto, String correo, EstadoProducto nuevoEstado) {
+    public void cambiarEstadoProducto(UUID idProducto, UUID id, EstadoProducto nuevoEstado) {
         //No valido que realmente sea un vendedor, porque teniendo el token solo los que tengan el rol vendedor van a poder utilizar esta funcionalidad
         Optional<Producto> resultado = productoRepository.findById(idProducto);
         Producto producto;
@@ -52,7 +52,7 @@ public class VendedorService {
         if (producto.getEstado() == nuevoEstado) {
             throw new Excepcion("Ya el producto ya se encuentra en ese estado");
         }
-        Optional<Usuario> res = usuarioRepository.findByCorreoAndEstado(correo, EstadoUsuario.Activo);
+        Optional<Usuario> res = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
         Generico usuario;
         if (res.isEmpty()) {
             throw new Excepcion("El usuario no existe");
