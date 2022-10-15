@@ -8,6 +8,7 @@ import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtDireccion;
 import com.shopnow.shopnow.model.datatypes.DtSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
+import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
 import com.shopnow.shopnow.repository.DireccionRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
@@ -42,6 +43,41 @@ public class CompradorService {
 
     @Autowired
     FirebaseStorageService firebaseStorageService;
+
+    public void agregarDireccion(DtDireccion datos, String correoUsuario) {
+        Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
+
+        if(usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");
+        Generico usuarioCasteado = (Generico) usuario.get();
+        Direccion direccion = Direccion.builder()
+                .calle(datos.getCalle())
+                .numero(datos.getNumero())
+                .departamento(datos.getDepartamento())
+                .notas(datos.getNotas())
+                .build();
+
+        if(datos.getEsLocal()) {
+            if(usuarioCasteado.getDatosVendedor() == null)
+                throw new Excepcion("El usuario no puede agregar direcciones de retiro");
+            usuarioCasteado.getDatosVendedor()
+                    .getLocales().values().forEach(address -> validarDireccion(direccion, address));
+            direccionRepository.save(direccion);
+            usuarioCasteado.getDatosVendedor().getLocales().put(direccion.getId(), direccion);
+            usuarioRepository.save(usuarioCasteado);
+        } else {
+            usuarioCasteado.getDireccionesEnvio().values().forEach(address -> validarDireccion(direccion, address));
+            direccionRepository.save(direccion);
+            usuarioCasteado.getDireccionesEnvio().put(direccion.getId(), direccion);
+            usuarioRepository.save(usuarioCasteado);
+        }
+    }
+
+    private void validarDireccion(Direccion toAdd, Direccion existingAddress) {
+        if(Objects.equals(toAdd.getCalle(), existingAddress.getCalle()) &&
+                Objects.equals(toAdd.getNumero(), existingAddress.getNumero()) &&
+                Objects.equals(toAdd.getDepartamento(), existingAddress.getDepartamento()))
+            throw new Excepcion("Dirección ya existente");
+    }
 
     public void crearSolicitud(DtSolicitud datos, MultipartFile[] imagenes) throws IOException {
         boolean esEmpresa = contieneDatosEmpresa(datos.getNombreEmpresa(), datos.getRut(), datos.getTelefonoEmpresa());

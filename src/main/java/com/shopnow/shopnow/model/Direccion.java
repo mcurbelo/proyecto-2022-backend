@@ -1,7 +1,6 @@
 package com.shopnow.shopnow.model;
 
 import lombok.*;
-
 import javax.persistence.*;
 
 @Entity
@@ -10,9 +9,10 @@ import javax.persistence.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Direccion {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false)
     private Integer id;
 
