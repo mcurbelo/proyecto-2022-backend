@@ -1,11 +1,8 @@
 package com.shopnow.shopnow.service;
 
 
-
-
 import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.Generico;
-import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.UsuarioRepository;
@@ -25,36 +22,39 @@ import java.util.Map;
 public class AuthService {
     @Autowired
     private UsuarioRepository usuarioRepo;
-    @Autowired private JWTUtil jwtUtil;
-    @Autowired private AuthenticationManager authManager;
-    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JWTUtil jwtUtil;
+    @Autowired
+    private AuthenticationManager authManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
-    public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario)  {
+    public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario) {
         //validaciones
-        if(usuarioRepo.findByCorreoAndEstado(datosUsuario.getCorreo(), EstadoUsuario.Activo).isPresent()) {
+        if (usuarioRepo.findByCorreoAndEstado(datosUsuario.getCorreo(), EstadoUsuario.Activo).isPresent()) {
             return new RegistrarUsuarioResponse(false, "", "Usuario ya existente");
         }
 
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Generico usuario = Generico.builder()
-                                            .fechaNac(new Date())
-                                            .nombre(datosUsuario.getNombre())
-                                            .apellido(datosUsuario.getNombre()).correo(datosUsuario.getCorreo())
-                                            .estado(EstadoUsuario.Activo)
-                                            .imagen("").mobileToken("")
-                                            .webToken("")
-                                            .password(encodedPass)
-                                            .telefono(datosUsuario.getTelefono())
-                                            .fechaNac(datosUsuario.getFechaNac())
-                                            .build();
+                .fechaNac(new Date())
+                .nombre(datosUsuario.getNombre())
+                .apellido(datosUsuario.getApellido()).correo(datosUsuario.getCorreo())
+                .estado(EstadoUsuario.Activo)
+                .imagen("").mobileToken("")
+                .webToken("")
+                .password(encodedPass)
+                .telefono(datosUsuario.getTelefono())
+                .fechaNac(datosUsuario.getFechaNac())
+                .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo());
         return new RegistrarUsuarioResponse(true, token, "");
     }
 
-    public Map<String, String> iniciarSesion(String correo, String password)  {
-        if(usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).isEmpty()) {
+    public Map<String, String> iniciarSesion(String correo, String password) {
+        if (usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).isEmpty()) {
             throw new RuntimeException("Credenciales invalidas");
         }
 
@@ -63,7 +63,7 @@ public class AuthService {
             authManager.authenticate(authInputToken);
             String token = jwtUtil.generateToken(correo);
             return Collections.singletonMap("jwt-token", token);
-        }catch (AuthenticationException authExc){
+        } catch (AuthenticationException authExc) {
             throw new RuntimeException("Credenciales invalidas");
         }
     }

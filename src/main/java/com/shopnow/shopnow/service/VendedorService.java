@@ -87,6 +87,11 @@ public class VendedorService {
         if (filtros.getFecha() != null) {
             ventasIdConFecha = compraRepository.ventasPorFechaYIdusuario(filtros.getFecha(), id);
         }
+        List<UUID> ventasIdConNombreComprador = new ArrayList<>();
+        if (filtros.getNombre() != null) {
+            ventasIdConNombreComprador = compraRepository.ventasPorIdUsuarioYNombreComprador(id, filtros.getNombre());
+        }
+
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 
         // create Pageable instance
@@ -104,7 +109,7 @@ public class VendedorService {
         }
 
         if (filtros.getEstado() == null && filtros.getFecha() == null && filtros.getNombre() != null) { // 0 0 1
-            //CHAN
+            ventasCumplenFiltro = ventasIdConNombreComprador;
         }
 
 

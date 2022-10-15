@@ -1,7 +1,7 @@
 package com.shopnow.shopnow.controller;
 
 
-import com.shopnow.shopnow.model.datatypes.DtFiltros;
+import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.datatypes.DtModificarProducto;
 import com.shopnow.shopnow.service.VendedorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,8 @@ public class VendedorController {
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "nombre", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestBody DtFiltros filtros) {
-        return vendedorService.historialVentas(pageNo, pageSize, sortBy, sortDir, DtFiltrosVentas);
+            @PathVariable(value = "id") UUID id,
+            @RequestBody DtFiltrosVentas filtros) {
+        return vendedorService.historialVentas(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 }
