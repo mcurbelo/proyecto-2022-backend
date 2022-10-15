@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class GoogleSMTP {
 
-//    @Autowired
-//    JavaMailSender sender;
+    @Autowired
+    JavaMailSender sender;
 
 
     public void enviarCorreo(String destino, String mensaje, String asunto) {
@@ -17,7 +17,7 @@ public class GoogleSMTP {
         message.setTo(destino);
         message.setSubject(asunto);
         message.setText(mensaje);
-//        sender.send(message);
+        sender.send(message);
     }
 
 }

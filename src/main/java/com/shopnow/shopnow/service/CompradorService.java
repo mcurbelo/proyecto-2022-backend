@@ -44,7 +44,7 @@ public class CompradorService {
     @Autowired
     FirebaseStorageService firebaseStorageService;
 
-    public void agregarDreccion(DtDireccion datos, String correoUsuario) {
+    public void agregarDireccion(DtDireccion datos, String correoUsuario) {
         Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
 
         if(usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");

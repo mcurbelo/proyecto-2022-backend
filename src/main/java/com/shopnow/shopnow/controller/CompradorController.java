@@ -35,7 +35,7 @@ public class CompradorController {
     public ResponseEntity<Object> agregarDireccion(@RequestBody DtDireccion datos) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if(Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        compradorService.agregarDreccion(datos, email);
+        compradorService.agregarDireccion(datos, email);
         return ResponseEntity.ok().build();
     }
 
