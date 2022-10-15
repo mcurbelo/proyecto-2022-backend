@@ -206,7 +206,7 @@ public class ProductoService {
 
     }
 
-    
+
     public DtProducto obtenerProducto(UUID id) {
         Optional<Producto> resultado = productoRepository.findById(id);
         Producto producto;
@@ -251,9 +251,10 @@ public class ProductoService {
         return new DtProducto(id, idVendedor, linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), datosVendedor.getLocales());
 
     }
-private DtProductoSlim generarDtProductoSlim(Producto producto) {
+
+    private DtProductoSlim generarDtProductoSlim(Producto producto) {
         return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio());
-        }
+    }
 
 
     private DtEventoInfo generarDtEventoInfo(EventoPromocional evento) {

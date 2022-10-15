@@ -1,18 +1,23 @@
 package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
+import com.shopnow.shopnow.model.Compra;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Producto;
 import com.shopnow.shopnow.model.Usuario;
+import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
-import com.shopnow.shopnow.repository.DatosVendedorRepository;
-import com.shopnow.shopnow.repository.DireccionRepository;
-import com.shopnow.shopnow.repository.ProductoRepository;
-import com.shopnow.shopnow.repository.UsuarioRepository;
+import com.shopnow.shopnow.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,6 +45,9 @@ public class VendedorService {
     @Autowired
     FirebaseStorageService firebaseStorageService;
 
+    @Autowired
+    CompraRepository compraRepository;
+
     public void cambiarEstadoProducto(UUID idProducto, UUID id, EstadoProducto nuevoEstado) {
         //No valido que realmente sea un vendedor, porque teniendo el token solo los que tengan el rol vendedor van a poder utilizar esta funcionalidad
         Optional<Producto> resultado = productoRepository.findById(idProducto);
@@ -64,6 +72,41 @@ public class VendedorService {
         }
         producto.setEstado(nuevoEstado);
         productoRepository.save(producto);
+    }
+
+    public void historialVentas(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltrosVentas filtros, UUID id) {
+
+        if (!sortBy.matches("nombreComprador|fecha|estado")) {
+            throw new Excepcion("Atributo de ordenamiento invalido");
+        }
+        List<UUID> ventasIdConEstado = new ArrayList<>();
+        if (filtros.getEstado() != null) {
+            ventasIdConEstado = compraRepository.ventasPorEstadoYIdusuario(filtros.getEstado(), id);
+        }
+        List<UUID> ventasIdConFecha = new ArrayList<>();
+        if (filtros.getFecha() != null) {
+            ventasIdConFecha = compraRepository.ventasPorFechaYIdusuario(filtros.getFecha(), id);
+        }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Page<Compra> compras;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        List<UUID> ventasCumplenFiltro;
+
+        if (filtros.getEstado() != null && filtros.getFecha() == null && filtros.getNombre() == null) { //1 0 0
+            ventasCumplenFiltro = ventasIdConEstado;
+        }
+
+        if (filtros.getEstado() == null && filtros.getFecha() != null && filtros.getNombre() == null) { //1 0 0
+            ventasCumplenFiltro = ventasIdConFecha;
+        }
+
+        if (filtros.getEstado() == null && filtros.getFecha() == null && filtros.getNombre() != null) { // 0 0 1
+            //CHAN
+        }
+
 
     }
 }
