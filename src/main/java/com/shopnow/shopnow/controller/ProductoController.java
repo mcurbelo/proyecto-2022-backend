@@ -34,7 +34,7 @@ public class ProductoController {
     }
 
     @GetMapping()
-    //Ejemplo http://localhost:8080/api/productos?pageSize=5&pageNo=1&sortBy=title&sortDir=asc
+    //Ejemplo http://localhost:8080/api/productos?pageSize=5&pageNo=0&sortBy=title&sortDir=asc
     public Map<String, Object> busquedaDeProductos(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
