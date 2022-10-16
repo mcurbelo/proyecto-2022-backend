@@ -5,17 +5,22 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtCompra;
+import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
+import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CompraService {
@@ -46,6 +51,9 @@ public class CompraService {
 
     @Autowired
     GoogleSMTP googleSMTP;
+
+    @Autowired
+    UtilService utilService;
 
     public void nuevaCompra(DtCompra datosCompra) throws FirebaseMessagingException, FirebaseAuthException {
         //Validaciones RNE
@@ -178,22 +186,94 @@ public class CompraService {
             Note notificacionVendedor = new Note("Nueva venta registrada", "Se realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.", vendedor.getWebToken(), new HashMap<>(), null);
             firebaseMessagingService.enviarNotificacion(notificacionVendedor, vendedor.getWebToken());
         }
-        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nSe realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.\n Detalles de la venta: \n" + detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Nueva venta");
-        googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nRealizó una compra de un producto, la confirmacion puede demorar hasta 72hrs despues de haber recibido este correo.\n Detalles de la compra: \n" + detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Compra realizada");
+        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nSe realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.\n Detalles de la venta: \n" + utilService.detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Nueva venta");
+        googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nRealizó una compra de un producto, la confirmacion puede demorar hasta 72hrs despues de haber recibido este correo.\n Detalles de la compra: \n" + utilService.detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Compra realizada");
     }
 
-    private String detallesCompra(Compra compra, Generico vendedor, Generico comprador, Producto producto, Boolean porEnvio) {
+    public void cambiarEstadoVenta(UUID idVendedor, UUID idVenta, EstadoCompra nuevoEstado, DtConfirmarCompra datosEntregaRetiro) throws FirebaseMessagingException, FirebaseAuthException {
+        Optional<Usuario> resUsu = usuarioRepository.findByIdAndEstado(idVendedor, EstadoUsuario.Activo);
+        if (resUsu.isEmpty()) {
+            throw new Excepcion("El usuario no esta habilitado");
+        }
+        Optional<Compra> resCompra = compraRepository.findById(idVenta);
+        if (resCompra.isEmpty()) {
+            throw new Excepcion("La venta no existe");
+        }
+        Generico vendedor = (Generico) resUsu.get();
+        Compra venta = resCompra.get();
 
-        return "\n" +
-                "Producto: " + producto.getNombre() + ".\n" +
-                "Vendedor: " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\n" +
-                "Comprador: " + comprador.getNombre() + " " + comprador.getApellido() + ".\n" +
-                "Cantidad: " + compra.getInfoEntrega().getCantidad() + "." +
-                "Precio unitario: " + compra.getInfoEntrega().getPrecioUnitario() + ".\n" +
-                "Precio total: " + compra.getInfoEntrega().getCantidad() + ".\n" +
-                "Por envio: " + ((porEnvio) ? "Sí" : "No") + ".\n" +
-                ((porEnvio) ? "Direccion envio: " : "Direccion retiro: ") + "" + compra.getInfoEntrega().getDireccionEnvioORetiro().toString() + "\n" +
-                "Estado actual: Esperando confirmacion";
+        if (!vendedor.getVentas().containsKey(idVenta)) {
+            throw new Excepcion("Esta venta no pertenece a este vendedor");
+        }
+
+        if (venta.getInfoEntrega().getEsEnvio() && nuevoEstado == EstadoCompra.Completada) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta funcionalidad no es para completar ventas de tipo envio");
+        }
+        if (venta.getEstado() == nuevoEstado) {
+            throw new Excepcion("La venta ya se encuentra en ese estado");
+        }
+
+        if (nuevoEstado == EstadoCompra.EsperandoConfirmacion) {
+            throw new Excepcion("No se puede volver a ese estado");
+        }
+
+        if (venta.getEstado() == EstadoCompra.Completada) {
+            throw new Excepcion("No se puede cambiar el estado de una venta completada");
+        }
+
+        if (venta.getEstado() == EstadoCompra.Confirmada && nuevoEstado != EstadoCompra.Completada || venta.getEstado() == EstadoCompra.EsperandoConfirmacion && nuevoEstado == EstadoCompra.Completada || venta.getEstado() == EstadoCompra.Cancelada) {
+            throw new Excepcion("No se puede modificar el estado de esta venta");
+        }
+
+        if (nuevoEstado == EstadoCompra.Confirmada && venta.getInfoEntrega().getEsEnvio() && datosEntregaRetiro.getFechayHoraEntrega() == null) {
+            throw new Excepcion("Información insuficiente para completar el envío");
+        }
+
+        if (nuevoEstado == EstadoCompra.Confirmada && !venta.getInfoEntrega().getEsEnvio() && datosEntregaRetiro.getFechayHoraRetiro() == null) {
+            throw new Excepcion("Información insuficiente para completar el retiro");
+        }
+        if (nuevoEstado == EstadoCompra.Cancelada && datosEntregaRetiro.getMotivo() == null) {
+            throw new Excepcion("Información insuficiente para cancelar la compra");
+        }
+
+        //Logica
+        if (nuevoEstado == EstadoCompra.Confirmada && venta.getInfoEntrega().getEsEnvio())  //Es un envio
+            venta.getInfoEntrega().setTiempoEstimadoEnvio(datosEntregaRetiro.getFechayHoraEntrega());
+        else //Es un retiro
+            venta.getInfoEntrega().setHorarioRetiroLocal(datosEntregaRetiro.getFechayHoraRetiro());
+
+        venta.setEstado(nuevoEstado);
+        UUID id = compraRepository.obtenerComprador(idVenta);
+        Optional<Usuario> resComprador = usuarioRepository.findById(id);
+        Generico comprador = (Generico) resComprador.orElseThrow();
+        compraRepository.save(venta);
+        String nombreParaMostrar;
+        if (vendedor.getDatosVendedor().getNombreEmpresa().isBlank())
+            nombreParaMostrar = vendedor.getDatosVendedor().getNombreEmpresa();
+        else
+            nombreParaMostrar = vendedor.getNombre() + " " + vendedor.getApellido();
+
+        Note noteComprador;
+        String mensaje, asunto;
+        if (nuevoEstado == EstadoCompra.Confirmada) {
+            noteComprador = new Note("Compra confirmada", "La compra hecha a " + nombreParaMostrar + " a sido confirmada!!! Ve hacia 'Historial de compras' para obtener más información de la entrega/retiro o iniciar chat con vendedor.", comprador.getWebToken(), new HashMap<>(), null);
+            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido confirmada (Identificador: " + venta.getId() + ")!!! Ve hacia 'Historial de compras' en la pagina web o en tu dispositivo movil para obtener más información de la entrega/retiro.";
+            asunto = "Estado de compra actualizado";
+        } else if (nuevoEstado == EstadoCompra.Cancelada) {
+            noteComprador = new Note("Compra cancelada", "La compra hecha a " + nombreParaMostrar + " a sido cancelada!!! Revisa tu correo para conocer el motivo." + vendedor.getCorreo() + "", comprador.getWebToken(), new HashMap<>(), null);
+            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido cancelada (Identificador: " + venta.getId() + ")!!!\n Motivo:\n" + datosEntregaRetiro.getMotivo() + "\n Para mas información ponerse en contacto con el vendedor:\n Correo: " + vendedor.getCorreo() + ".";
+            asunto = "Estado de compra actualizado";
+        } else {
+            noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", comprador.getWebToken(), new HashMap<>(), null);
+            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + venta.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(venta, vendedor, comprador, venta.getInfoEntrega().getProducto(), venta.getInfoEntrega().getEsEnvio()) + "";
+            asunto = "Compra completada";
+        }
+        if (!comprador.getWebToken().equals(""))
+            firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
+        if (!comprador.getMobileToken().equals(""))
+            firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
+        //googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
+
 
 }
