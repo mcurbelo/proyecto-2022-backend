@@ -35,7 +35,7 @@ public class UsuarioController {
         usuarioService.modificarDatosUsuario(id, datos, imagen);
         return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
     }
-    @PutMapping("/{id}/tarjetas")
+    @PostMapping("/{id}/tarjetas")
     public ResponseEntity<String> agregarTarjeta(@PathVariable(value = "id") UUID id, @RequestBody DtTarjeta tarjeta) {
         usuarioService.agregarTarjeta(tarjeta, id);
         return ResponseEntity.ok().build();
