@@ -36,9 +36,9 @@ public class ShopNowApplication {
     BraintreeGateway getGateway() {
         return new BraintreeGateway(
                 Environment.SANDBOX,
-                "hbwcs3cttj8zwxy3",
-                "53q6w6bxpyxj6qfz",
-                "839b3524f96f770d93bedded80219ae3"
+                "zy8jwmz98jjgyvnd",
+                "yy7dw4ht6bz9j2kj",
+                "6530627a98e95aa671909bdec8262d80"
         );
     }
 }
