@@ -1,10 +1,13 @@
 package com.shopnow.shopnow.model;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.Map;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Note {
     private String asunto;
     private String mensaje;

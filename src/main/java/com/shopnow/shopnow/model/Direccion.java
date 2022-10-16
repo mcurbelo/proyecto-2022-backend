@@ -1,12 +1,13 @@
 package com.shopnow.shopnow.model;
 
 import lombok.*;
+
 import javax.persistence.*;
 
 @Entity
 @Getter
 @Setter
-@ToString
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -26,4 +27,10 @@ public class Direccion {
     private String departamento;
 
     private String notas;
+
+    @Override
+    public String toString() {
+        return this.calle + " " + this.numero + " ," + this.departamento;
+    }
+
 }

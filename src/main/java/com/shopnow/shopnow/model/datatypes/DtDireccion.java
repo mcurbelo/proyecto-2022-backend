@@ -3,6 +3,7 @@ package com.shopnow.shopnow.model.datatypes;
 import lombok.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
@@ -21,6 +22,6 @@ public class DtDireccion {
     private String departamento;
 
     private String notas;
-    @NotBlank
+    @NotNull
     private Boolean esLocal;
 }
