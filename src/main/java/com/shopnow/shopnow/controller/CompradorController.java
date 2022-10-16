@@ -10,9 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.Objects;
+import javax.validation.Valid;
+import java.io.IOException;
+
 
 @RestController
 @RequestMapping("/api/compradores")
@@ -22,13 +24,13 @@ public class CompradorController {
     CompradorService compradorService;
 
     @PostMapping("/solicitudVendedor")
-    public ResponseEntity<String> nuevaSolicitud(@RequestPart DtSolicitud datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
+    public ResponseEntity<String> nuevaSolicitud(@Valid @RequestPart DtSolicitud datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
         compradorService.crearSolicitud(datos, imagenes);
         return new ResponseEntity<>("Solicitud enviada con exito!!!", HttpStatus.OK);
     }
 
     @PostMapping("/agregarDireccion")
-    public ResponseEntity<Object> agregarDireccion(@RequestBody DtDireccion datos) {
+    public ResponseEntity<Object> agregarDireccion(@Valid @RequestBody DtDireccion datos) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         compradorService.agregarDireccion(datos, email);

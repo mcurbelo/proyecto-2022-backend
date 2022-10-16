@@ -14,9 +14,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class AuthService {
@@ -33,7 +31,7 @@ public class AuthService {
     public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario) {
         //validaciones
         if (usuarioRepo.findByCorreoAndEstado(datosUsuario.getCorreo(), EstadoUsuario.Activo).isPresent()) {
-            return new RegistrarUsuarioResponse(false, "", "Usuario ya existente");
+            return new RegistrarUsuarioResponse(false, "", "Usuario ya existente", "");
         }
 
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
@@ -49,8 +47,8 @@ public class AuthService {
                 .fechaNac(datosUsuario.getFechaNac())
                 .build();
         usuarioRepo.save(usuario);
-        String token = jwtUtil.generateToken(usuario.getCorreo());
-        return new RegistrarUsuarioResponse(true, token, "");
+        String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
+        return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString());
     }
 
     public Map<String, String> iniciarSesion(String correo, String password) {
@@ -61,8 +59,12 @@ public class AuthService {
         try {
             UsernamePasswordAuthenticationToken authInputToken = new UsernamePasswordAuthenticationToken(correo, password);
             authManager.authenticate(authInputToken);
-            String token = jwtUtil.generateToken(correo);
-            return Collections.singletonMap("jwt-token", token);
+            Map<String, String> response = new HashMap<>(Collections.emptyMap());
+            Optional<Usuario> usuario = usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo);
+            usuario.ifPresent(value -> response.put("uuid", value.getId().toString()));
+            String token = jwtUtil.generateToken(correo, response.get("uuid"));
+            response.put("jwt-token", token);
+            return response;
         } catch (AuthenticationException authExc) {
             throw new RuntimeException("Credenciales invalidas");
         }

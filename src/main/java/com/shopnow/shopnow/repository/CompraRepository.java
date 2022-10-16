@@ -5,8 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface CompraRepository extends JpaRepository<Compra, UUID> {
@@ -28,6 +28,5 @@ public interface CompraRepository extends JpaRepository<Compra, UUID> {
 
     @Query(value = "select CAST(id as VARCHAR) from (usuario g join usuario_compras u on g.id=u.generico_id) where compras_key=?1", nativeQuery = true)
     UUID obtenerComprador(UUID idCompra);
-
 
 }
