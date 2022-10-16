@@ -1,18 +1,25 @@
 package com.shopnow.shopnow.service;
 
+import com.braintreegateway.BraintreeGateway;
+import com.braintreegateway.CreditCardRequest;
+import com.braintreegateway.CustomerRequest;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.Generico;
+import com.shopnow.shopnow.model.Tarjeta;
 import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtModificarUsuario;
+import com.shopnow.shopnow.model.datatypes.DtTarjeta;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
+import com.shopnow.shopnow.repository.TarjetasRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,9 +32,13 @@ public class UsuarioService {
 
     @Autowired
     DatosVendedorRepository datosVendedorRepository;
+    @Autowired
+    TarjetasRepository tarjetasRepository;
 
     @Autowired
     FirebaseStorageService firebaseStorageService;
+    @Autowired
+    BraintreeUtils braintreeUtils;
 
 
     public void modificarDatosUsuario(UUID id, DtModificarUsuario datos, MultipartFile imagen) throws IOException {
@@ -84,5 +95,24 @@ public class UsuarioService {
 
         usuarioRepository.save(usuario);
 
+    }
+
+    public void agregarTarjeta(DtTarjeta dtTarjeta, UUID userId) {
+        Optional<Usuario> user = usuarioRepository.findByIdAndEstado(userId, EstadoUsuario.Activo);
+        if(user.isPresent() && user.get() instanceof Generico usuarioGenerico) {
+            if(usuarioGenerico.getBraintreeCustomerId() == null) {
+                String braintreeId = braintreeUtils.generateCustomerId(usuarioGenerico);
+                if(braintreeId == null) throw new Excepcion("Ha ocurrido un error inesperado");
+                usuarioGenerico.setBraintreeCustomerId(braintreeId);
+                usuarioRepository.save(usuarioGenerico);
+            }
+            Tarjeta nuevaTarjeta = braintreeUtils.agregarTarjeta(dtTarjeta, usuarioGenerico.getBraintreeCustomerId());
+            if(nuevaTarjeta == null) throw new Excepcion("Ha ocurrido un error al agregar la tarjeta");
+            tarjetasRepository.save(nuevaTarjeta);
+            usuarioGenerico.getTarjetas().put(nuevaTarjeta.getIdTarjeta(), nuevaTarjeta);
+            usuarioRepository.save(usuarioGenerico);
+        } else {
+            throw new Excepcion("Ha ocurrido un error inesperado");
+        }
     }
 }

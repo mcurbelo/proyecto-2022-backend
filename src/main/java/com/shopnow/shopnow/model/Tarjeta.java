@@ -3,10 +3,7 @@ package com.shopnow.shopnow.model;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.UUID;
 
@@ -16,18 +13,19 @@ import java.util.UUID;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Tarjeta {
-
     @Id
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String idTarjeta;
 
-    @Column(nullable = false)
-   //@Size(min=13)
-    private Integer numero;
+    private String vencimiento;
+    private String imageUrl;
 
     @Column(nullable = false, updatable = false)
-    private String sello;
+    private String last4;
 
     @Column(nullable = false, updatable = false)
-    private String nombreTitular;
+    private String token;
 }
