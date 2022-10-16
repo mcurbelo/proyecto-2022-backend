@@ -1,8 +1,6 @@
 package com.shopnow.shopnow.service;
 
 
-
-
 import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Usuario;
@@ -23,50 +21,52 @@ import java.util.*;
 public class AuthService {
     @Autowired
     private UsuarioRepository usuarioRepo;
-    @Autowired private JWTUtil jwtUtil;
-    @Autowired private AuthenticationManager authManager;
-    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JWTUtil jwtUtil;
+    @Autowired
+    private AuthenticationManager authManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
-    public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario)  {
+    public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario) {
         //validaciones
-        if(usuarioRepo.findByCorreoAndEstado(datosUsuario.getCorreo(), EstadoUsuario.Activo).isPresent()) {
+        if (usuarioRepo.findByCorreoAndEstado(datosUsuario.getCorreo(), EstadoUsuario.Activo).isPresent()) {
             return new RegistrarUsuarioResponse(false, "", "Usuario ya existente", "");
         }
 
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Generico usuario = Generico.builder()
-                                            .fechaNac(new Date())
-                                            .nombre(datosUsuario.getNombre())
-                                            .apellido(datosUsuario.getNombre()).correo(datosUsuario.getCorreo())
-                                            .estado(EstadoUsuario.Activo)
-                                            .imagen("").mobileToken("")
-                                            .webToken("")
-                                            .password(encodedPass)
-                                            .telefono(datosUsuario.getTelefono())
-                                            .fechaNac(datosUsuario.getFechaNac())
-                                            .build();
+                .fechaNac(new Date())
+                .nombre(datosUsuario.getNombre())
+                .apellido(datosUsuario.getNombre()).correo(datosUsuario.getCorreo())
+                .estado(EstadoUsuario.Activo)
+                .imagen("").mobileToken("")
+                .webToken("")
+                .password(encodedPass)
+                .telefono(datosUsuario.getTelefono())
+                .fechaNac(datosUsuario.getFechaNac())
+                .build();
         usuarioRepo.save(usuario);
-        String token = jwtUtil.generateToken(usuario.getCorreo());
+        String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
         return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString());
     }
 
-    public Map<String, String> iniciarSesion(String correo, String password)  {
-        if(usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).isEmpty()) {
+    public Map<String, String> iniciarSesion(String correo, String password) {
+        if (usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).isEmpty()) {
             throw new RuntimeException("Credenciales invalidas");
         }
 
         try {
             UsernamePasswordAuthenticationToken authInputToken = new UsernamePasswordAuthenticationToken(correo, password);
             authManager.authenticate(authInputToken);
-            String token = jwtUtil.generateToken(correo);
             Map<String, String> response = new HashMap<>(Collections.emptyMap());
-            response.put("jwt-token", token);
             Optional<Usuario> usuario = usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo);
             usuario.ifPresent(value -> response.put("uuid", value.getId().toString()));
-
+            String token = jwtUtil.generateToken(correo, response.get("uuid"));
+            response.put("jwt-token", token);
             return response;
-        }catch (AuthenticationException authExc){
+        } catch (AuthenticationException authExc) {
             throw new RuntimeException("Credenciales invalidas");
         }
     }
