@@ -97,6 +97,7 @@ public class UsuarioService {
 
     }
 
+    //TODO Verificar tarjeta duplicada para el usuario y verificar tarjeta existente en el sistema en general
     public void agregarTarjeta(DtTarjeta dtTarjeta, UUID userId) {
         Optional<Usuario> user = usuarioRepository.findByIdAndEstado(userId, EstadoUsuario.Activo);
         if(user.isPresent() && user.get() instanceof Generico usuarioGenerico) {
