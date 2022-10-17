@@ -39,7 +39,7 @@ public class VendedorController {
     }
 
     @GetMapping("/{id}/ventas")
-    public Map<String, Object> busquedaDeProductos(
+    public Map<String, Object> busquedaDeventas(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
