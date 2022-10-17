@@ -35,7 +35,7 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "select cast(generico_id as varchar)  from usuario_productos where productos_key=?1", nativeQuery = true)
     UUID vendedorProducto(UUID idProducto);
 
-    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and date(p.fecha_inicio)=cast(?1 as date)", nativeQuery = true)
+    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and date(p.fecha_inicio)=cast(?2 as date)", nativeQuery = true)
     List<UUID> misProductosPorFecha(UUID id, String fecha);
 
     @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and p.estado=?2", nativeQuery = true)
