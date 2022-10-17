@@ -48,22 +48,6 @@ public class VendedorService {
     @Autowired
     CompraRepository compraRepository;
 
-    @SafeVarargs
-    private static <T, C extends Collection<T>> C encontrarInterseccion(C newCollection, Collection<T>... collections) {
-        boolean first = true;
-        for (Collection<T> collection : collections) {
-            if (collection.isEmpty())
-                continue;
-            if (first) {
-                newCollection.addAll(collection);
-                first = false;
-            } else {
-                newCollection.retainAll(collection);
-            }
-        }
-        return newCollection;
-    }
-
     public void cambiarEstadoProducto(UUID idProducto, UUID id, EstadoProducto nuevoEstado) {
         //No valido que realmente sea un vendedor, porque teniendo el token solo los que tengan el rol vendedor van a poder utilizar esta funcionalidad
         Optional<Producto> resultado = productoRepository.findById(idProducto);
@@ -104,23 +88,23 @@ public class VendedorService {
         List<UUID> ventasCumplenFiltro = new ArrayList<>();
 
         if (filtros != null) {
-            List<UUID> ventasIdConEstado = new ArrayList<>();
+            List<UUID> ventasIdConEstado = null;
             if (filtros.getEstado() != null) {
                 ventasIdConEstado = compraRepository.ventasPorEstadoYIdusuario(filtros.getEstado().name(), id);
             }
-            
-            List<UUID> ventasIdConFecha = new ArrayList<>();
+
+            List<UUID> ventasIdConFecha = null;
             if (filtros.getFecha() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 String fecha = sdf.format(filtros.getFecha());
                 ventasIdConFecha = compraRepository.ventasPorFechaYIdusuario(fecha, id);
             }
 
-            List<UUID> ventasIdConNombreComprador = new ArrayList<>();
+            List<UUID> ventasIdConNombreComprador = null;
             if (filtros.getNombre() != null) {
                 ventasIdConNombreComprador = compraRepository.ventasPorIdUsuarioYNombreComprador(id, filtros.getNombre());
             }
-            ventasCumplenFiltro = encontrarInterseccion(new HashSet<>(), ventasIdConEstado, ventasIdConFecha, ventasIdConNombreComprador).stream().toList();
+            ventasCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), ventasIdConEstado, ventasIdConFecha, ventasIdConNombreComprador).stream().toList();
         } else {
             ventasCumplenFiltro = compraRepository.ventasPorIdUsuario(id);
         }
