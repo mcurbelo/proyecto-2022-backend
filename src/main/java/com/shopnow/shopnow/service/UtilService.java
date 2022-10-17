@@ -30,7 +30,6 @@ public class UtilService {
         }
         return newCollection;
 
-
     }
 
     public String detallesCompra(Compra compra, Generico vendedor, Generico comprador, Producto producto, Boolean porEnvio) {
