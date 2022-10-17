@@ -2,12 +2,8 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
+import com.shopnow.shopnow.model.datatypes.*;
 
-import com.shopnow.shopnow.model.datatypes.DtEventoInfo;
-import com.shopnow.shopnow.model.datatypes.DtFiltros;
-import com.shopnow.shopnow.model.datatypes.DtProductoSlim;
-import com.shopnow.shopnow.model.datatypes.DtProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
@@ -147,7 +143,7 @@ public class ProductoService {
             }
             List<UUID> productosIdConNombre = null;
             if (filtros.getNombre() != null) {
-                List<Producto> productosConNombre = productoRepository.findByNombreContainingIgnoreCaseAndEstado(filtros.getNombre(), EstadoProducto.Activo);
+                List<Producto> productosConNombre = productoRepository.findByNombreContainingIgnoreCaseAndEstado(filtros.getNombre(), EstadoProducto.Activo); //Se puede optimizar a una sola
                 productosIdConNombre = new ArrayList<>();
                 for (Producto producto : productosConNombre) {
                     productosIdConNombre.add(producto.getId());

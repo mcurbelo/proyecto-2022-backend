@@ -1,24 +1,26 @@
 package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
-import com.shopnow.shopnow.model.DatosVendedor;
-import com.shopnow.shopnow.model.Direccion;
-import com.shopnow.shopnow.model.Generico;
-import com.shopnow.shopnow.model.Usuario;
-import com.shopnow.shopnow.model.datatypes.DtDireccion;
-import com.shopnow.shopnow.model.datatypes.DtSolicitud;
+import com.shopnow.shopnow.model.*;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.repository.CompraRepository;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
 import com.shopnow.shopnow.repository.DireccionRepository;
-import com.shopnow.shopnow.repository.ProductoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CompradorService {
@@ -36,7 +38,7 @@ public class CompradorService {
     GoogleSMTP googleSMTP;
 
     @Autowired
-    ProductoRepository productoRepository;
+    CompraRepository compraRepository;
 
     @Autowired
     DatosVendedorRepository datosVendedorRepository;
@@ -47,7 +49,7 @@ public class CompradorService {
     public void agregarDireccion(DtDireccion datos, String correoUsuario) {
         Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
 
-        if(usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");
+        if (usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");
         Generico usuarioCasteado = (Generico) usuario.get();
         Direccion direccion = Direccion.builder()
                 .calle(datos.getCalle())
@@ -56,8 +58,8 @@ public class CompradorService {
                 .notas(datos.getNotas())
                 .build();
 
-        if(datos.getEsLocal()) {
-            if(usuarioCasteado.getDatosVendedor() == null)
+        if (datos.getEsLocal()) {
+            if (usuarioCasteado.getDatosVendedor() == null)
                 throw new Excepcion("El usuario no puede agregar direcciones de retiro");
             usuarioCasteado.getDatosVendedor()
                     .getLocales().values().forEach(address -> validarDireccion(direccion, address));
@@ -73,7 +75,7 @@ public class CompradorService {
     }
 
     private void validarDireccion(Direccion toAdd, Direccion existingAddress) {
-        if(Objects.equals(toAdd.getCalle(), existingAddress.getCalle()) &&
+        if (Objects.equals(toAdd.getCalle(), existingAddress.getCalle()) &&
                 Objects.equals(toAdd.getNumero(), existingAddress.getNumero()) &&
                 Objects.equals(toAdd.getDepartamento(), existingAddress.getDepartamento()))
             throw new Excepcion("Dirección ya existente");
@@ -152,16 +154,76 @@ public class CompradorService {
         googleSMTP.enviarCorreo("proyecto.tecnologo.2022@gmail.com", "Hay una nueva solicitud pendiente para ser vendedor (" + usuario.getNombre() + " " + usuario.getApellido() + ").", "Solicitud rol vendedor");
     }
 
-    boolean datosEmpresaValidos(String nombre, String rut, String telefono) {
+
+    public Map<String, Object> historialDeCompras(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltrosCompras filtros, UUID id) {
+        if (!sortBy.matches("fecha|estado")) {
+            throw new Excepcion("Atributo de ordenamiento invalido");
+        }
+
+        List<UUID> comprasCumplenFiltro;
+
+        if (filtros != null) {
+            List<UUID> comprasIdConFecha = null;
+            if (filtros.getFecha() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String fecha = sdf.format(filtros.getFecha());
+                comprasIdConFecha = compraRepository.comprasPorFechaYIdusuario(fecha, id);
+            }
+            List<UUID> comprasIdConEstado = null;
+            if (filtros.getEstado() != null) {
+                comprasIdConEstado = compraRepository.comprasPorEstadoYIdusuario(filtros.getEstado().name(), id);
+            }
+            List<UUID> comprasIdConNombreVendedor = null;
+            if (filtros.getNombreVendedor() != null) {
+                comprasIdConNombreVendedor = compraRepository.comprasPorIdUsuarioYNombreVendedor(id, filtros.getNombreVendedor());
+            }
+            List<UUID> comprasIdConNombreProducto = null;
+            if (filtros.getNombreVendedor() != null) {
+                comprasIdConNombreProducto = compraRepository.comprasPorIdUsuarioYNombreProducto(id, filtros.getNombreProducto());
+            }
+            comprasCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), comprasIdConEstado, comprasIdConFecha, comprasIdConNombreProducto, comprasIdConNombreVendedor).stream().toList();
+        } else
+            comprasCumplenFiltro = compraRepository.comprasPorIdUsuario(id);
+
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Page<Compra> compras;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        compras = compraRepository.findByIdIn(comprasCumplenFiltro, pageable);
+
+        List<Compra> listaDeCompras = compras.getContent();
+
+        List<DtCompraSlimComprador> content = listaDeCompras.stream().map(this::generarDtCompraSlimComprador).collect(Collectors.toList());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("compras", content);
+        response.put("currentPage", compras.getNumber());
+        response.put("totalItems", compras.getTotalElements());
+        response.put("totalPages", compras.getTotalPages());
+
+        return response;
+    }
+
+    private boolean datosEmpresaValidos(String nombre, String rut, String telefono) {
         List<String> datos = new ArrayList<>(Arrays.asList(nombre, rut, telefono));
         return !datos.contains(null) && !datos.contains("");
     }
 
-    boolean contieneDatosEmpresa(String nombre, String rut, String telefono) {
+    private boolean contieneDatosEmpresa(String nombre, String rut, String telefono) {
         if (nombre != null && !nombre.isEmpty())
             return true;
         if (rut != null && !rut.isEmpty())
             return true;
         return telefono != null && !telefono.isEmpty();
+    }
+
+    private DtCompraSlimComprador generarDtCompraSlimComprador(Compra compra) {
+        UUID idVendedor = compraRepository.obtenerVendedor(compra.getId());
+        Usuario vendedor = usuarioRepository.findById(idVendedor).orElseThrow();
+        String nombreProducto = compraRepository.obtenerNombreProducto(compra.getId());
+
+        return new DtCompraSlimComprador(compra.getId(), idVendedor, vendedor.getNombre() + " " + vendedor.getApellido(), nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal());
     }
 }
