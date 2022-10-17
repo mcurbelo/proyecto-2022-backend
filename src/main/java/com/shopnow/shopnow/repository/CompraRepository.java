@@ -14,7 +14,6 @@ public interface CompraRepository extends JpaRepository<Compra, UUID> {
     @Query(value = "select cast(id as varchar) from compra c join usuario_ventas u on c.id=u.ventas_key where date(c.fecha)=cast(?1 as date) and u.generico_id=?2", nativeQuery = true)
     List<UUID> ventasPorFechaYIdusuario(String fecha, UUID usuario);
 
-
     @Query(value = "select cast(id as varchar) from compra c join usuario_ventas u on c.id=u.ventas_key where c.estado=?1 and u.generico_id=?2", nativeQuery = true)
     List<UUID> ventasPorEstadoYIdusuario(String estado, UUID usuario);
 
