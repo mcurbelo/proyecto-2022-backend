@@ -3,6 +3,7 @@ package com.shopnow.shopnow.service;
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.CreditCardRequest;
 import com.braintreegateway.CustomerRequest;
+import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Tarjeta;
@@ -21,8 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.swing.text.html.Option;
 import java.io.IOException;
-import java.util.Optional;
-import java.util.UUID;
+import java.lang.reflect.Array;
+import java.util.*;
 
 @Service
 public class UsuarioService {
@@ -115,5 +116,21 @@ public class UsuarioService {
         } else {
             throw new Excepcion("Ha ocurrido un error inesperado");
         }
+    }
+
+    public List<CreditCardRef> getTarjetas(UUID id) {
+        Optional<Usuario> user = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
+        ArrayList<CreditCardRef> list = new ArrayList<>();
+        if(user.isPresent() && user.get() instanceof Generico usuarioGenerico) {
+            usuarioGenerico.getTarjetas().values().forEach(tarjeta -> {
+                CreditCardRef ref = new CreditCardRef(
+                        tarjeta.getIdTarjeta(),
+                        tarjeta.getLast4(),
+                        tarjeta.getImageUrl(),
+                        tarjeta.getVencimiento());
+                list.add(ref);
+            });
+        }
+        return list;
     }
 }
