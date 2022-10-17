@@ -54,5 +54,6 @@ public class Generico extends Usuario {
     @Builder.Default
     private DatosVendedor datosVendedor = null;
 
-
+    @Builder.Default
+    private String braintreeCustomerId = null;
 }
