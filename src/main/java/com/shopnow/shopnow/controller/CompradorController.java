@@ -13,6 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.Objects;
+
+
+
 
 @RestController
 @RequestMapping("/api/compradores")
@@ -30,10 +34,10 @@ public class CompradorController {
     @PostMapping("/agregarDireccion")
     public ResponseEntity<Object> agregarDireccion(@Valid @RequestBody DtDireccion datos) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        // if(Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        email = "nicoComprador@gmail.com";
+        if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         compradorService.agregarDireccion(datos, email);
         return ResponseEntity.ok().build();
     }
+
 
 }

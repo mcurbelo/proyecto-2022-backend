@@ -7,12 +7,16 @@ import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.service.CompraService;
+import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
+import com.shopnow.shopnow.model.datatypes.DtModificarProducto;
 import com.shopnow.shopnow.service.VendedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -38,6 +42,7 @@ public class VendedorController {
         return new ResponseEntity<>("Producto cambiado de estado con exito", HttpStatus.OK);
     }
 
+
     @PutMapping("/{idUsuario}/ventas/{id}/estado")
     public ResponseEntity<String> cambiarEstadoVenta(@PathVariable(value = "idUsuario") UUID id, @PathVariable(value = "id") UUID idVenta, @RequestParam(value = "nuevoEstado") EstadoCompra nuevoEstado, @RequestBody DtConfirmarCompra info) throws FirebaseMessagingException, FirebaseAuthException {
         compraService.cambiarEstadoVenta(id, idVenta, nuevoEstado, info);
@@ -45,4 +50,16 @@ public class VendedorController {
     }
 
 
+    @GetMapping("/{id}/ventas")
+    public Map<String, Object> busquedaDeventas(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @PathVariable(value = "id") UUID id,
+            @RequestBody(required = false) DtFiltrosVentas filtros) throws ParseException {
+
+        //TODO Validar UUID del que lo pide
+        return vendedorService.historialVentas(pageNo, pageSize, sortBy, sortDir, filtros, id);
+    }
 }

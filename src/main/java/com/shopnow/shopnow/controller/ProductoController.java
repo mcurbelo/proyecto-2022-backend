@@ -34,13 +34,13 @@ public class ProductoController {
     }
 
     @GetMapping()
-    //Ejemplo http://localhost:8080/api/productos?pageSize=5&pageNo=1&sortBy=title&sortDir=asc
+    //Ejemplo http://localhost:8080/api/productos?pageSize=5&pageNo=0&sortBy=title&sortDir=asc
     public Map<String, Object> busquedaDeProductos(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "nombre", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestBody DtFiltros filtros) {
+            @RequestBody(required = false) DtFiltros filtros) {
         return productoService.busquedaDeProductos(pageNo, pageSize, sortBy, sortDir, filtros);
     }
 

@@ -6,10 +6,13 @@ import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import java.util.Date;
 import java.util.UUID;
 
 
@@ -52,4 +55,6 @@ public abstract class Usuario {
 
     //@Size(min = 8)
     private String telefono;
+
+
 }
