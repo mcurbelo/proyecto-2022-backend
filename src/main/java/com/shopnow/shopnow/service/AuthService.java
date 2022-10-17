@@ -3,6 +3,7 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.Generico;
+import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.UsuarioRepository;
