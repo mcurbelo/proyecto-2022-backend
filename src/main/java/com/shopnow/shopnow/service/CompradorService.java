@@ -224,6 +224,6 @@ public class CompradorService {
         Usuario vendedor = usuarioRepository.findById(idVendedor).orElseThrow();
         String nombreProducto = compraRepository.obtenerNombreProducto(compra.getId());
 
-        return new DtCompraSlimComprador(compra.getId(), idVendedor, vendedor.getNombre() + " " + vendedor.getApellido(), nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal());
+        return new DtCompraSlimComprador(compra.getId(), idVendedor, vendedor.getNombre() + " " + vendedor.getApellido(), nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
     }
 }

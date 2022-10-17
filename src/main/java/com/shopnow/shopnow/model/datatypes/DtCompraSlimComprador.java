@@ -32,4 +32,6 @@ public class DtCompraSlimComprador {
     public EstadoCompra estadoCompra;
 
     public Float montoTotal;
+
+    public Float montoUnitario;
 }
