@@ -143,7 +143,7 @@ public class ProductoService {
             }
             List<UUID> productosIdConNombre = null;
             if (filtros.getNombre() != null) {
-                List<Producto> productosConNombre = productoRepository.findByNombreContainingIgnoreCaseAndEstado(filtros.getNombre(), EstadoProducto.Activo);
+                List<Producto> productosConNombre = productoRepository.findByNombreContainingIgnoreCaseAndEstado(filtros.getNombre(), EstadoProducto.Activo); //Se puede optimizar a una sola
                 productosIdConNombre = new ArrayList<>();
                 for (Producto producto : productosConNombre) {
                     productosIdConNombre.add(producto.getId());
