@@ -16,16 +16,21 @@ public class UtilService {
     public static <T, C extends Collection<T>> C encontrarInterseccion(C newCollection, Collection<T>... collections) {
         boolean first = true;
         for (Collection<T> collection : collections) {
-            if (collection.isEmpty())
+            if (collection == null)
                 continue;
+            if (collection.isEmpty()) {
+                newCollection.clear();
+                return newCollection;
+            }
             if (first) {
                 newCollection.addAll(collection);
                 first = false;
-            } else {
+            } else
                 newCollection.retainAll(collection);
-            }
         }
         return newCollection;
+
+
     }
 
     public String detallesCompra(Compra compra, Generico vendedor, Generico comprador, Producto producto, Boolean porEnvio) {
