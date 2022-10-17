@@ -11,6 +11,23 @@ import java.util.Collection;
 @Service
 public class UtilService {
 
+
+    @SafeVarargs
+    public static <T, C extends Collection<T>> C encontrarInterseccion(C newCollection, Collection<T>... collections) {
+        boolean first = true;
+        for (Collection<T> collection : collections) {
+            if (collection.isEmpty())
+                continue;
+            if (first) {
+                newCollection.addAll(collection);
+                first = false;
+            } else {
+                newCollection.retainAll(collection);
+            }
+        }
+        return newCollection;
+    }
+
     public String detallesCompra(Compra compra, Generico vendedor, Generico comprador, Producto producto, Boolean porEnvio) {
         return "\n" +
                 "Identificador: " + compra.getId() + ".\n" +
@@ -30,20 +47,5 @@ public class UtilService {
             return "Esperando confirmación";
         else
             return estadoCompra.toString();
-    }
-    @SafeVarargs
-    private static <T, C extends Collection<T>> C encontrarInterseccion(C newCollection, Collection<T>... collections) {
-        boolean first = true;
-        for (Collection<T> collection : collections) {
-            if (collection.isEmpty())
-                continue;
-            if (first) {
-                newCollection.addAll(collection);
-                first = false;
-            } else {
-                newCollection.retainAll(collection);
-            }
-        }
-        return newCollection;
     }
 }

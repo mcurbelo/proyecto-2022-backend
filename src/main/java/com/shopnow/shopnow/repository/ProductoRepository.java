@@ -21,8 +21,8 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     void eliminarProductoCategoria(UUID id);
 
     Optional<Producto> findByIdAndEstado(UUID id, EstadoProducto estado);
-	
-    List<UUID> findByNombreContaining(String nombre);
+
+    List<UUID> findByNombreContainingAndEstado(String nombre, EstadoProducto estado);
 
     @Query(value = "select cast(id as varchar) from producto where id in (select producto_id from evento_promocional_productos where evento_promocional_id = ?1) and position(nombre in ?2)", nativeQuery = true)
     List<UUID> buscarProductoEnEventoYporNombre(UUID idEvento, String nombre);
