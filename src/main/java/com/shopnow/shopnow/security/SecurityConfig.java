@@ -30,7 +30,7 @@ public class SecurityConfig  {
                 .and()
                 .authorizeHttpRequests()
                 .antMatchers("/api/auth/**").permitAll()
-                .antMatchers("/api/user/**").hasRole("USER")
+                .antMatchers("/api/usuarios/**").hasRole("USER")
                 .and()
                 .userDetailsService(uds)
                 .exceptionHandling()

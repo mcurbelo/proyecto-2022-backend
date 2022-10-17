@@ -2,6 +2,8 @@ package com.shopnow.shopnow.controller;
 
 
 import com.braintreegateway.BraintreeGateway;
+import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
+import com.shopnow.shopnow.model.Tarjeta;
 import com.shopnow.shopnow.model.datatypes.DtModificarUsuario;
 import com.shopnow.shopnow.model.datatypes.DtTarjeta;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -50,5 +53,8 @@ public class UsuarioController {
         return ResponseEntity.ok().build();
     }
 
-
+    @GetMapping("/{id}/tarjetas")
+    public ResponseEntity<List<CreditCardRef>> fetchTarjetas(@PathVariable(value = "id") UUID id) {
+        return ResponseEntity.ok().body(usuarioService.getTarjetas(id));
+    }
 }
