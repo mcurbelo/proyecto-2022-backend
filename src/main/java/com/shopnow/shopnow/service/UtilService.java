@@ -6,8 +6,26 @@ import com.shopnow.shopnow.model.Producto;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+
 @Service
 public class UtilService {
+
+    @SafeVarargs
+    private static <T, C extends Collection<T>> C encontrarInterseccion(C newCollection, Collection<T>... collections) {
+        boolean first = true;
+        for (Collection<T> collection : collections) {
+            if (collection.isEmpty())
+                continue;
+            if (first) {
+                newCollection.addAll(collection);
+                first = false;
+            } else {
+                newCollection.retainAll(collection);
+            }
+        }
+        return newCollection;
+    }
 
     public String detallesCompra(Compra compra, Generico vendedor, Generico comprador, Producto producto, Boolean porEnvio) {
         return "\n" +
