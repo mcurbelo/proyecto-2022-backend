@@ -37,16 +37,16 @@ public class AuthService {
 
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Generico usuario = Generico.builder()
-                .fechaNac(new Date())
-                .nombre(datosUsuario.getNombre())
-                .apellido(datosUsuario.getApellido()).correo(datosUsuario.getCorreo())
-                .estado(EstadoUsuario.Activo)
-                .imagen("").mobileToken("")
-                .webToken("")
-                .password(encodedPass)
-                .telefono(datosUsuario.getTelefono())
-                .fechaNac(datosUsuario.getFechaNac())
-                .build();
+                            .fechaNac(new Date())
+                            .nombre(datosUsuario.getNombre())
+                            .apellido(datosUsuario.getApellido()).correo(datosUsuario.getCorreo())
+                            .estado(EstadoUsuario.Activo)
+                            .imagen("").mobileToken("")
+                            .webToken("")
+                            .password(encodedPass)
+                            .telefono(datosUsuario.getTelefono())
+                            .fechaNac(datosUsuario.getFechaNac())
+                            .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
         return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString());
