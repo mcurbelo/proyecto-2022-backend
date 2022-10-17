@@ -3,7 +3,6 @@ package com.shopnow.shopnow.service;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
-
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -237,10 +237,70 @@ public class ProductoService {
 
     }
 
+
+    public Map<String, Object> listarMisProductos(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltosMisProductos filtros, UUID id) {
+        if (!sortBy.matches("nombre|fechaInicio|precio|permiteEnvio")) {
+            throw new Excepcion("Atributo de ordenamiento invalido");
+        }
+        List<UUID> productosCumplenFiltro;
+
+        if (filtros != null) {
+            List<UUID> productosIdConFecha = null;
+            if (filtros.getFecha() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String fecha = sdf.format(filtros.getFecha());
+                productosIdConFecha = productoRepository.misProductosPorFecha(id, fecha);
+            }
+            List<UUID> productosIdConEstado = null;
+            if (filtros.getEstado() != null) {
+                productosIdConEstado = productoRepository.misProductosPorEstado(id, filtros.getEstado().name());
+            }
+            List<UUID> productosIdConNombre = null;
+            if (filtros.getNombre() != null) {
+                productosIdConNombre = productoRepository.misProductosConNombre(id, filtros.getNombre());
+            }
+            List<UUID> productosEnCategorias = null;
+            if (filtros.getCategorias() != null) {
+                productosEnCategorias = new ArrayList<>();
+                for (String categoria : filtros.getCategorias()) {
+                    productosEnCategorias.addAll(productoRepository.misProductosEnCategoria(id, categoria));
+                }
+            }
+            productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosEnCategorias, productosIdConFecha, productosIdConEstado, productosIdConNombre).stream().toList();
+        } else
+            productosCumplenFiltro = productoRepository.misProductos(id);
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Page<Producto> productos;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
+
+        List<Producto> listaDeProductos = productos.getContent();
+
+        List<DtMiProducto> content = listaDeProductos.stream().map(this::generarDtMiProductos).collect(Collectors.toList());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("productos", content);
+        response.put("currentPage", productos.getNumber());
+        response.put("totalItems", productos.getTotalElements());
+        response.put("totalPages", productos.getTotalPages());
+        return response;
+    }
+
     private DtProductoSlim generarDtProductoSlim(Producto producto) {
         return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio());
     }
 
+    private DtMiProducto generarDtMiProductos(Producto producto) {
+        List<String> urlImagenes = new ArrayList<>();
+        for (URLimagen url : producto.getImagenesURL()) {
+            urlImagenes.add(url.getUrl());
+        }
+        List<String> categorias = productoRepository.categoriasDelProducto(producto.getId());
+        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado());
+    }
 
     private DtEventoInfo generarDtEventoInfo(EventoPromocional evento) {
         List<DtProductoSlim> infoProductos = new ArrayList<>();
