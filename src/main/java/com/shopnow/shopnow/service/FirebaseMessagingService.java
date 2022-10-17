@@ -1,7 +1,6 @@
 package com.shopnow.shopnow.service;
 
 
-
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -16,7 +15,7 @@ public class FirebaseMessagingService {
     @Autowired
     private FirebaseMessaging firebaseMessaging;
 
-    public String enviarNotificacion(Note note, String token) throws FirebaseMessagingException, FirebaseAuthException {
+    public void enviarNotificacion(Note note, String token) throws FirebaseMessagingException, FirebaseAuthException {
 
         Notification notification = Notification
                 .builder()
@@ -32,7 +31,7 @@ public class FirebaseMessagingService {
                 .putAllData(note.getData())
                 .build();
 
-        return firebaseMessaging.send(message);
+        firebaseMessaging.send(message);
     }
 
 }

@@ -9,5 +9,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class RegistrarUsuarioResponse {
     boolean success;
-    String token, errorMessage;
+    String token, errorMessage, uuid;
 }

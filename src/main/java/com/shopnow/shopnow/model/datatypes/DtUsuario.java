@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.springframework.format.annotation.DateTimeFormat;
 
+
 import java.util.Date;
 
 @Getter
@@ -24,4 +25,5 @@ public class DtUsuario {
    @JsonFormat(pattern = "DD/MM/yyyy")
    public Date fechaNac;
    public DtImagen imagen;
+
 }

@@ -1,5 +1,7 @@
 package com.shopnow.shopnow;
 
+import com.braintreegateway.BraintreeGateway;
+import com.braintreegateway.Environment;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -30,4 +32,13 @@ public class ShopNowApplication {
         return FirebaseMessaging.getInstance(app);
     }
 
+    @Bean
+    BraintreeGateway getGateway() {
+        return new BraintreeGateway(
+                Environment.SANDBOX,
+                "zy8jwmz98jjgyvnd",
+                "yy7dw4ht6bz9j2kj",
+                "6530627a98e95aa671909bdec8262d80"
+        );
+    }
 }

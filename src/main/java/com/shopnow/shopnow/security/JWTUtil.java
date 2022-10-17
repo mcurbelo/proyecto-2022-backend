@@ -17,16 +17,17 @@ public class JWTUtil {
     @Value("${jwt_secret}")
     private String secret;
 
-    public String generateToken(String email) throws IllegalArgumentException, JWTCreationException {
+    public String generateToken(String email, String uuid) throws IllegalArgumentException, JWTCreationException {
         return JWT.create()
                 .withSubject("Detalles usuario")
-                .withClaim("email", email)
+                .withClaim("correo", email)
+                .withClaim("UUID", uuid)
                 .withIssuedAt(new Date())
                 .withIssuer("ShopNow2022")
                 .sign(Algorithm.HMAC256(secret));
     }
 
-    public String validateTokenAndRetrieveSubject(String token)throws JWTVerificationException {
+    public String validateTokenAndRetrieveSubject(String token) throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
                 .withSubject("Detalles usuario")
                 .withIssuer("ShopNow2022")
