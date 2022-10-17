@@ -35,4 +35,21 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "select cast(generico_id as varchar)  from usuario_productos where productos_key=?1", nativeQuery = true)
     UUID vendedorProducto(UUID idProducto);
 
+    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and date(p.fecha_inicio)=cast(?1 as date)", nativeQuery = true)
+    List<UUID> misProductosPorFecha(UUID id, String fecha);
+
+    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and p.estado=?2", nativeQuery = true)
+    List<UUID> misProductosPorEstado(UUID id, String estado);
+
+    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and p.nombre like %?2%", nativeQuery = true)
+    List<UUID> misProductosConNombre(UUID id, String estado);
+
+    @Query(value = "select cast(p.id as varchar) from (usuario_productos up join producto p on p.id=up.productos_key) join categoria_productos cp on p.id=cp.productos_id where up.generico_id=?1 and cp.categoria_nombre=?2", nativeQuery = true)
+    List<UUID> misProductosEnCategoria(UUID id, String categoria);
+
+    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1", nativeQuery = true)
+    List<UUID> misProductos(UUID id);
+
+    @Query(value = "select categoria_nombre from categoria_productos where productos_key=?1", nativeQuery = true)
+    List<String> categoriasDelProducto(UUID id);
 }
