@@ -1,19 +1,11 @@
 package com.shopnow.shopnow.controller;
 
 
-import com.shopnow.shopnow.model.Usuario;
-import com.shopnow.shopnow.model.datatypes.DtUsuario;
-import com.shopnow.shopnow.repository.UsuarioRepository;
-import com.shopnow.shopnow.service.UsuarioService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.bind.annotation.*;
-import java.util.Optional;
 import com.braintreegateway.BraintreeGateway;
 import com.shopnow.shopnow.model.datatypes.DtModificarUsuario;
 import com.shopnow.shopnow.model.datatypes.DtTarjeta;
+import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.service.UsuarioService;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -32,18 +23,15 @@ public class UsuarioController {
 
     @Autowired
     UsuarioService usuarioService;
+    @Autowired
+    BraintreeGateway gateway;
 
     @GetMapping("/obtenerInfoUsuario/{correo}")
     @ResponseBody
-    public DtUsuario obtenerInfoUsuario(@PathVariable String correo){
+    public DtUsuario obtenerInfoUsuario(@PathVariable String correo) {
         DtUsuario usuario = usuarioService.infoUsuario(correo);
         return usuario;
     }
-
-    @Autowired
-    UsuarioService usuarioService;
-    @Autowired
-    BraintreeGateway gateway;
 
     @PutMapping("/{id}/perfil")
     public ResponseEntity<String> modificarPerfil(@PathVariable(value = "id") UUID id, @RequestPart DtModificarUsuario datos, @RequestPart(required = false) MultipartFile imagen) throws IOException {
@@ -55,6 +43,7 @@ public class UsuarioController {
         usuarioService.modificarDatosUsuario(id, datos, imagen);
         return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
     }
+
     @PostMapping("/{id}/tarjetas")
     public ResponseEntity<String> agregarTarjeta(@PathVariable(value = "id") UUID id, @RequestBody DtTarjeta tarjeta) {
         usuarioService.agregarTarjeta(tarjeta, id);

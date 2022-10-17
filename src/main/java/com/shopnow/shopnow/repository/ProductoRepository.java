@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ProductoRepository extends JpaRepository<Producto, UUID> {
+    List<Producto> findByNombreContainingIgnoreCaseAndEstado(String nombre, EstadoProducto estado);
+
     @Modifying
     @Transactional
     @Query(value = "delete from categoria_productos where productos_key=?1", nativeQuery = true)
     void eliminarProductoCategoria(UUID id);
 
     Optional<Producto> findByIdAndEstado(UUID id, EstadoProducto estado);
-	
-    List<UUID> findByNombreContaining(String nombre);
 
     @Query(value = "select cast(id as varchar) from producto where id in (select producto_id from evento_promocional_productos where evento_promocional_id = ?1) and position(nombre in ?2)", nativeQuery = true)
     List<UUID> buscarProductoEnEventoYporNombre(UUID idEvento, String nombre);
