@@ -20,7 +20,7 @@ public class UtilService {
                 continue;
             if (collection.isEmpty()) {
                 newCollection.clear();
-                return newCollection;
+                break;
             }
             if (first) {
                 newCollection.addAll(collection);
