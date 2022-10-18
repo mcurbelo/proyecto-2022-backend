@@ -285,7 +285,7 @@ public class ProductoService {
     }
 
     private DtProductoSlim generarDtProductoSlim(Producto producto) {
-        return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio());
+        return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio(), producto.getStock());
     }
 
     private DtMiProducto generarDtMiProductos(Producto producto) {

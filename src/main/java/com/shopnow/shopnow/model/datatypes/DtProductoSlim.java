@@ -18,4 +18,6 @@ public class DtProductoSlim {
     private String imagen;
 
     private Float precio;
+
+    private Integer stock;
 }
