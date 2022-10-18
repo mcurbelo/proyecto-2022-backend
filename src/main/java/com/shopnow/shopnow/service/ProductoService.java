@@ -42,9 +42,6 @@ public class ProductoService {
     EventoPromocionalRepository eventoPromocionalRepository;
 
     public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes) throws Excepcion, IOException {
-        //TODO Para testear
-        categoriaRepository.save(Categoria.builder().nombre("Tecnologia").build());
-
         if (datosProducto.getFechaFin() != null && datosProducto.getFechaFin().before(new Date())) {
             throw new Excepcion("La fecha de fin es invalida");
         }
