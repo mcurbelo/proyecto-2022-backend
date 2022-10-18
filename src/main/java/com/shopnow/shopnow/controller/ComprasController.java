@@ -33,9 +33,9 @@ public class ComprasController {
     }
 
     @PutMapping("/envios/{id}")
-    public ResponseEntity<String> completarCompraEnvio(@RequestParam(value = "id") UUID compra) throws FirebaseMessagingException, FirebaseAuthException {
+    public ResponseEntity<String> completarCompraEnvio(@PathVariable(value = "id") UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
         //TODO Validar que el UUID que hace la solicitud es uno de los dos involucradors (vendedor o comprador)
-        compraService.confirmarEntregaoReciboProducto(compra);
+        compraService.confirmarEntregaoReciboProducto(idCompra);
         return new ResponseEntity<>("Compra cambiada de estado con exito!!!", HttpStatus.OK);
     }
 }
