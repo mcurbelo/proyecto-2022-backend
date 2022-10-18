@@ -27,7 +27,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,9 +37,20 @@ public class UsuarioService {
     @Autowired
     UsuarioRepository usuarioRepository;
 
-    public DtUsuario infoUsuario(String correo){
+    @Autowired
+    DatosVendedorRepository datosVendedorRepository;
+    @Autowired
+    TarjetasRepository tarjetasRepository;
 
-        Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByCorreo(correo);
+    @Autowired
+    FirebaseStorageService firebaseStorageService;
+    @Autowired
+    BraintreeUtils braintreeUtils;
+
+
+    public DtUsuario infoUsuario(String uuid){
+
+        Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByIdAndEstado(UUID.fromString(uuid), EstadoUsuario.Activo);
 
         Usuario usuario = usuarioBaseDatos.get();
 
@@ -53,16 +63,6 @@ public class UsuarioService {
 
         return usuarioReturn;
     }
-
-    @Autowired
-    DatosVendedorRepository datosVendedorRepository;
-    @Autowired
-    TarjetasRepository tarjetasRepository;
-
-    @Autowired
-    FirebaseStorageService firebaseStorageService;
-    @Autowired
-    BraintreeUtils braintreeUtils;
 
 
     public void modificarDatosUsuario(UUID id, DtModificarUsuario datos, MultipartFile imagen) throws IOException {

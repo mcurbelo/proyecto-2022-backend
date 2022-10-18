@@ -33,10 +33,10 @@ public class UsuarioController {
     @Autowired
     UsuarioService usuarioService;
 
-    @GetMapping("/obtenerInfoUsuario/{correo}")
+    @GetMapping("/obtenerInfoUsuario/{uuid}")
     @ResponseBody
-    public DtUsuario obtenerInfoUsuario(@PathVariable String correo){
-        DtUsuario usuario = usuarioService.infoUsuario(correo);
+    public DtUsuario obtenerInfoUsuario(@PathVariable String uuid) {
+        DtUsuario usuario = usuarioService.infoUsuario(uuid);
         return usuario;
     }
 
