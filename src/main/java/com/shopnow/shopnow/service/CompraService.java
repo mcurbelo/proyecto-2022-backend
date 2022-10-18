@@ -272,7 +272,41 @@ public class CompraService {
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
         if (!comprador.getMobileToken().equals(""))
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
-        //googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
+        googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
+    }
+
+    public void confirmarEntregaoReciboProducto(UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
+        Compra compra = compraRepository.findById(idCompra).orElseThrow();
+
+        if (!compra.getInfoEntrega().getEsEnvio()) {
+            throw new Excepcion("Esta compra no es del tipo envio");
+        }
+
+        if (compra.getEstado() != EstadoCompra.Confirmada) {
+            throw new Excepcion("Esta compra esta en un estado no valido para esta funcionalidad");
+        }
+
+        if (compra.getFecha().before(new Date())) {
+            throw new Excepcion("Solo se puede colocar la compra como completada cuando supere la fecha estipulada para ser entregada");
+        }
+
+        Generico comprador = (Generico) usuarioRepository.findById(compraRepository.obtenerComprador(compra.getId())).orElseThrow();
+        Generico vendedor = (Generico) usuarioRepository.findById(compraRepository.obtenerVendedor(compra.getId())).orElseThrow();
+        String nombreParaMostrar;
+        if (vendedor.getDatosVendedor().getNombreEmpresa().isBlank())
+            nombreParaMostrar = vendedor.getDatosVendedor().getNombreEmpresa();
+        else
+            nombreParaMostrar = vendedor.getNombre() + " " + vendedor.getApellido();
+
+        compra.setEstado(EstadoCompra.Completada);
+        Note noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", comprador.getWebToken(), new HashMap<>(), null);
+        String mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + compra.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()) + "";
+        String asunto = "Compra completada";
+        if (!comprador.getWebToken().equals(""))
+            firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
+        if (!comprador.getMobileToken().equals(""))
+            firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
+        googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
 
 
