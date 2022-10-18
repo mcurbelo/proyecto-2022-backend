@@ -243,9 +243,7 @@ public class CompraService {
             venta.getInfoEntrega().setHorarioRetiroLocal(datosEntregaRetiro.getFechayHoraRetiro());
 
         venta.setEstado(nuevoEstado);
-        UUID id = compraRepository.obtenerComprador(idVenta);
-        Optional<Usuario> resComprador = usuarioRepository.findById(id);
-        Generico comprador = (Generico) resComprador.orElseThrow();
+        Generico comprador = compraRepository.obtenerComprador(idVenta);
         compraRepository.save(venta);
         String nombreParaMostrar;
         if (vendedor.getDatosVendedor().getNombreEmpresa().isBlank())
@@ -290,8 +288,8 @@ public class CompraService {
             throw new Excepcion("Solo se puede colocar la compra como completada cuando supere la fecha estipulada para ser entregada");
         }
 
-        Generico comprador = (Generico) usuarioRepository.findById(compraRepository.obtenerComprador(compra.getId())).orElseThrow();
-        Generico vendedor = (Generico) usuarioRepository.findById(compraRepository.obtenerVendedor(compra.getId())).orElseThrow();
+        Generico comprador = compraRepository.obtenerComprador(compra.getId());
+        Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
         String nombreParaMostrar;
         if (vendedor.getDatosVendedor().getNombreEmpresa().isBlank())
             nombreParaMostrar = vendedor.getDatosVendedor().getNombreEmpresa();
