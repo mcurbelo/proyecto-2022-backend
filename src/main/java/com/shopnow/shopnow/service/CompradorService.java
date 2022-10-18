@@ -160,6 +160,12 @@ public class CompradorService {
             throw new Excepcion("Atributo de ordenamiento invalido");
         }
 
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Page<Compra> compras;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
         List<UUID> comprasCumplenFiltro;
 
         if (filtros != null) {
@@ -182,16 +188,10 @@ public class CompradorService {
                 comprasIdConNombreProducto = compraRepository.comprasPorIdUsuarioYNombreProducto(id, filtros.getNombreProducto());
             }
             comprasCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), comprasIdConEstado, comprasIdConFecha, comprasIdConNombreProducto, comprasIdConNombreVendedor).stream().toList();
+            compras = compraRepository.findByIdIn(comprasCumplenFiltro, pageable);
         } else
-            comprasCumplenFiltro = compraRepository.comprasPorIdUsuario(id);
+            compras = compraRepository.comprasPorIdUsuario(id, pageable);
 
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-
-        // create Pageable instance
-        Page<Compra> compras;
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-
-        compras = compraRepository.findByIdIn(comprasCumplenFiltro, pageable);
 
         List<Compra> listaDeCompras = compras.getContent();
 
@@ -220,10 +220,9 @@ public class CompradorService {
     }
 
     private DtCompraSlimComprador generarDtCompraSlimComprador(Compra compra) {
-        UUID idVendedor = compraRepository.obtenerVendedor(compra.getId());
-        Usuario vendedor = usuarioRepository.findById(idVendedor).orElseThrow();
-        String nombreProducto = compraRepository.obtenerNombreProducto(compra.getId());
+        Usuario vendedor = compraRepository.obtenerVendedor(compra.getId());
+        String nombreProducto = compra.getInfoEntrega().getProducto().getNombre();
 
-        return new DtCompraSlimComprador(compra.getId(), idVendedor, vendedor.getNombre() + " " + vendedor.getApellido(), nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
+        return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), vendedor.getNombre() + " " + vendedor.getApellido(), nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
     }
 }

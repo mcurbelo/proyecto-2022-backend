@@ -236,6 +236,10 @@ public class CompraService {
             throw new Excepcion("Información insuficiente para cancelar la compra");
         }
 
+        if ((datosEntregaRetiro.getFechayHoraEntrega() != null && datosEntregaRetiro.getFechayHoraEntrega().before(new Date())) || (datosEntregaRetiro.getFechayHoraRetiro() != null && datosEntregaRetiro.getFechayHoraRetiro().before(new Date()))) {
+            throw new Excepcion("Fecha invalida");
+        }
+
         //Logica
         if (nuevoEstado == EstadoCompra.Confirmada && venta.getInfoEntrega().getEsEnvio())  //Es un envio
             venta.getInfoEntrega().setTiempoEstimadoEnvio(datosEntregaRetiro.getFechayHoraEntrega());
@@ -243,9 +247,7 @@ public class CompraService {
             venta.getInfoEntrega().setHorarioRetiroLocal(datosEntregaRetiro.getFechayHoraRetiro());
 
         venta.setEstado(nuevoEstado);
-        UUID id = compraRepository.obtenerComprador(idVenta);
-        Optional<Usuario> resComprador = usuarioRepository.findById(id);
-        Generico comprador = (Generico) resComprador.orElseThrow();
+        Generico comprador = compraRepository.obtenerComprador(idVenta);
         compraRepository.save(venta);
         String nombreParaMostrar;
         if (vendedor.getDatosVendedor().getNombreEmpresa().isBlank())
@@ -272,7 +274,42 @@ public class CompraService {
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
         if (!comprador.getMobileToken().equals(""))
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
-        //googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
+        googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
+    }
+
+    public void confirmarEntregaoReciboProducto(UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
+        Compra compra = compraRepository.findById(idCompra).orElseThrow();
+
+        if (!compra.getInfoEntrega().getEsEnvio()) {
+            throw new Excepcion("Esta compra no es del tipo envio");
+        }
+
+        if (compra.getEstado() != EstadoCompra.Confirmada) {
+            throw new Excepcion("Esta compra esta en un estado no valido para esta funcionalidad");
+        }
+
+        if (compra.getInfoEntrega().getTiempoEstimadoEnvio().before(new Date())) {
+            throw new Excepcion("Solo se puede colocar la compra como completada cuando supere la fecha estipulada para ser entregada");
+        }
+
+        Generico comprador = compraRepository.obtenerComprador(compra.getId());
+        Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
+        String nombreParaMostrar;
+        if (vendedor.getDatosVendedor().getNombreEmpresa().isBlank())
+            nombreParaMostrar = vendedor.getDatosVendedor().getNombreEmpresa();
+        else
+            nombreParaMostrar = vendedor.getNombre() + " " + vendedor.getApellido();
+
+        compra.setEstado(EstadoCompra.Completada);
+        compraRepository.save(compra);
+        Note noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", comprador.getWebToken(), new HashMap<>(), null);
+        String mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + compra.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()) + "";
+        String asunto = "Compra completada";
+        if (!comprador.getWebToken().equals(""))
+            firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
+        if (!comprador.getMobileToken().equals(""))
+            firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
+        googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
 
 

@@ -8,12 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/compras")
@@ -32,5 +30,12 @@ public class ComprasController {
         }
 
         return new ResponseEntity<>("Compra realizada con exito!!!", HttpStatus.OK);
+    }
+
+    @PutMapping("/envios/{id}")
+    public ResponseEntity<String> completarCompraEnvio(@PathVariable(value = "id") UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
+        //TODO Validar que el UUID que hace la solicitud es uno de los dos involucradors (vendedor o comprador)
+        compraService.confirmarEntregaoReciboProducto(idCompra);
+        return new ResponseEntity<>("Compra cambiada de estado con exito!!!", HttpStatus.OK);
     }
 }
