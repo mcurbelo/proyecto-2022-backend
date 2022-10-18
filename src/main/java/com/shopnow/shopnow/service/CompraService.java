@@ -297,6 +297,7 @@ public class CompraService {
             nombreParaMostrar = vendedor.getNombre() + " " + vendedor.getApellido();
 
         compra.setEstado(EstadoCompra.Completada);
+        compraRepository.save(compra);
         Note noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", comprador.getWebToken(), new HashMap<>(), null);
         String mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + compra.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()) + "";
         String asunto = "Compra completada";
