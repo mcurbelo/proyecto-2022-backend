@@ -4,7 +4,10 @@ import lombok.*;
 import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -41,6 +44,7 @@ public class CompraProducto {
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Calificacion calificacion;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @Size(max = 2)
+    private List<Calificacion> calificaciones = new ArrayList<>();
 }
