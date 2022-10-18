@@ -284,7 +284,7 @@ public class CompraService {
             throw new Excepcion("Esta compra esta en un estado no valido para esta funcionalidad");
         }
 
-        if (compra.getFecha().before(new Date())) {
+        if (compra.getInfoEntrega().getTiempoEstimadoEnvio().before(new Date())) {
             throw new Excepcion("Solo se puede colocar la compra como completada cuando supere la fecha estipulada para ser entregada");
         }
 
