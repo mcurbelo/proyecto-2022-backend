@@ -42,9 +42,6 @@ public class ProductoService {
     EventoPromocionalRepository eventoPromocionalRepository;
 
     public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes) throws Excepcion, IOException {
-        //TODO Para testear
-        categoriaRepository.save(Categoria.builder().nombre("Tecnologia").build());
-
         if (datosProducto.getFechaFin() != null && datosProducto.getFechaFin().before(new Date())) {
             throw new Excepcion("La fecha de fin es invalida");
         }
@@ -103,6 +100,9 @@ public class ProductoService {
         if (!sortBy.matches("nombre|fechaInicio|precio|permiteEnvio")) {
             throw new Excepcion("Atributo de ordenamiento invalido");
         }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Page<Producto> productos;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         List<UUID> productosCumplenFiltro;
 
         EventoPromocional evento;
@@ -151,18 +151,11 @@ public class ProductoService {
             }
             {
                 productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosIdEnCategoria, productosIdConNombre, productosIdEnEventoPromocional).stream().toList();
+                productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
             }
 
         } else
-            productosCumplenFiltro = productoRepository.productosValidosParaListar();
-
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-
-        // create Pageable instance
-        Page<Producto> productos;
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-
-        productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
+            productos = productoRepository.productosValidosParaListar(pageable);
 
         List<Producto> listaDeProductos = productos.getContent();
 
@@ -201,14 +194,7 @@ public class ProductoService {
             producto = resultado.get();
         }
 
-        UUID idVendedor = productoRepository.vendedorProducto(id);
-        Optional<Usuario> res = usuarioRepository.findById(idVendedor);
-        Generico usuario;
-        if (res.isEmpty()) {
-            throw new Excepcion("El usuario no existe");
-        } else {
-            usuario = (Generico) res.get();
-        }
+        Generico usuario = productoRepository.vendedorProducto(id);
         if (producto.getEstado() != EstadoProducto.Activo || usuario.getEstado() != EstadoUsuario.Activo) { //Verifico que el producto se pueda mostrar y ese usuario este activo
             throw new Excepcion("Este producto no se puede visualizar en este momento");
         }
@@ -227,13 +213,18 @@ public class ProductoService {
         Map<UUID, Compra> ventas = usuario.getVentas();  //Calculo la calificacion :)
         float sumaCalificacion = 0, calificacion = 0;
         if (ventas.size() != 0) {
+            int ventasCalificacion = 1;
             for (Compra venta : ventas.values()) {
+                if (venta.getInfoEntrega().getCalificacion() == null) {
+                    continue;
+                }
                 sumaCalificacion += venta.getInfoEntrega().getCalificacion().getPuntuacion();
+                ventasCalificacion++;
             }
-            calificacion = sumaCalificacion / ventas.size();
+            calificacion = sumaCalificacion / ventasCalificacion;
         }
         //TODO Descontar el precio si esta en un evento promocional
-        return new DtProducto(id, idVendedor, linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), datosVendedor.getLocales());
+        return new DtProducto(id, usuario.getId(), linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), (producto.getPermiteEnvio()) ? datosVendedor.getLocales() : new HashMap<>());
 
     }
 
@@ -243,6 +234,12 @@ public class ProductoService {
             throw new Excepcion("Atributo de ordenamiento invalido");
         }
         List<UUID> productosCumplenFiltro;
+
+        // create Pageable instance
+        Page<Producto> productos;
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
 
         if (filtros != null) {
             List<UUID> productosIdConFecha = null;
@@ -267,15 +264,10 @@ public class ProductoService {
                 }
             }
             productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosEnCategorias, productosIdConFecha, productosIdConEstado, productosIdConNombre).stream().toList();
+            productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
         } else
-            productosCumplenFiltro = productoRepository.misProductos(id);
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+            productos = productoRepository.misProductos(id, pageable);
 
-        // create Pageable instance
-        Page<Producto> productos;
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-
-        productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
 
         List<Producto> listaDeProductos = productos.getContent();
 
@@ -290,7 +282,7 @@ public class ProductoService {
     }
 
     private DtProductoSlim generarDtProductoSlim(Producto producto) {
-        return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio());
+        return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio(), producto.getStock());
     }
 
     private DtMiProducto generarDtMiProductos(Producto producto) {
