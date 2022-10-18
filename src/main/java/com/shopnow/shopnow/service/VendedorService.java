@@ -5,7 +5,7 @@ import com.shopnow.shopnow.model.Compra;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Producto;
 import com.shopnow.shopnow.model.Usuario;
-import com.shopnow.shopnow.model.datatypes.DtCompraSlim;
+import com.shopnow.shopnow.model.datatypes.DtCompraSlimVendedor;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
@@ -114,7 +114,7 @@ public class VendedorService {
 
         List<Compra> listaDeVentas = ventas.getContent();
 
-        List<DtCompraSlim> content = listaDeVentas.stream().map(this::getDtCompraSlim).toList();
+        List<DtCompraSlimVendedor> content = listaDeVentas.stream().map(this::getDtCompraSlim).toList();
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("ventas", content);
@@ -125,11 +125,13 @@ public class VendedorService {
         return response;
     }
 
-    private DtCompraSlim getDtCompraSlim(Compra compra) {
+    private DtCompraSlimVendedor getDtCompraSlim(Compra compra) {
         Usuario comprador = compraRepository.obtenerComprador(compra.getId());
-        return new DtCompraSlim(compra.getId(), comprador.getId(), comprador.getNombre() + " " + comprador.getApellido(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal());
+        return new DtCompraSlimVendedor(compra.getId(), comprador.getId(), comprador.getNombre() + " " + comprador.getApellido(),
+                compra.getInfoEntrega().getProducto().getNombre(),
+                compra.getInfoEntrega().getCantidad(), compra.getFecha(),
+                compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
     }
-
 }
 
 

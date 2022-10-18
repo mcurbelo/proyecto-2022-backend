@@ -14,13 +14,17 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DtCompraSlim {
+public class DtCompraSlimVendedor {
 
     public UUID idCompra;
 
     public UUID idComprador;
 
-    public String nombre;
+    public String nombreComprador;
+
+    public String nombreProducto;
+
+    public Integer cantidad;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
     public Date fecha;
@@ -28,4 +32,6 @@ public class DtCompraSlim {
     public EstadoCompra estadoCompra;
 
     public Float montoTotal;
+
+    public Float montoUnitario;
 }
