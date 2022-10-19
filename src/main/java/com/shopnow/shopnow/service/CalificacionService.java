@@ -24,14 +24,22 @@ public class CalificacionService {
     UsuarioRepository usuarioRepository;
 
 
-    public void agregarCalificacion(UUID idCompra, DtCalificacion datos, UUID idUsuario, boolean esComprador) {
+    public void agregarCalificacion(UUID idCompra, DtCalificacion datos) {
         //Si EsComprador es true, es porque califica la compra. De lo contrario Vendedor califica a Comprador
 
         Compra compra = compraRepository.findById(idCompra).orElseThrow();
-        Generico usuario = (Generico) usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElse(null);
+        Generico usuario = (Generico) usuarioRepository.findByIdAndEstado(datos.getAutor(), EstadoUsuario.Activo).orElse(null);
+        boolean esComprador = false;
 
         if (usuario == null) {
-            throw new Excepcion("Este usuario no esta habilitado para utilizar esta funcionalidad");
+            throw new Excepcion("Este usuario invalido");
+        }
+        if (usuario.getId() == compraRepository.obtenerComprador(idCompra).getId()) {
+            esComprador = true;
+        }
+
+        if (!esComprador && usuario.getId() != compraRepository.obtenerVendedor(idCompra).getId()) {
+            throw new Excepcion("Este usuario no participo en la compra");
         }
 
         if (compra.getEstado() != EstadoCompra.Completada) {
@@ -44,7 +52,6 @@ public class CalificacionService {
                     throw new Excepcion("Esta compra ya tiene una calificacion. Solo se puede calificar una vez");
                 }
             }
-
         }
         if (datos.getPuntuacion() > 5) {
             throw new Excepcion("Puntuacion invalida");

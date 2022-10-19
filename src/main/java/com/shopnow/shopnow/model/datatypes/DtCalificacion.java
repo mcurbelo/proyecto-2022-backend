@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
+import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
@@ -17,4 +18,6 @@ public class DtCalificacion {
 
     private String comentario;
 
+    @NotNull
+    private UUID autor;
 }
