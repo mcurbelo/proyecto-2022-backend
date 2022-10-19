@@ -49,7 +49,7 @@ public class CalificacionService {
         if (!compra.getInfoEntrega().getCalificaciones().isEmpty()) {
             for (Calificacion calificacionItem : compra.getInfoEntrega().getCalificaciones()) {
                 if (calificacionItem.getAutor().getId() == usuario.getId()) {
-                    throw new Excepcion("Esta compra ya tiene una calificacion. Solo se puede calificar una vez");
+                    throw new Excepcion("Esta compra ya tiene una calificacion de este usuario. Solo se puede calificar una vez");
                 }
             }
         }
