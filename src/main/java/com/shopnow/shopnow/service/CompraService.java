@@ -183,7 +183,7 @@ public class CompraService {
 
 
         if (!vendedor.getWebToken().equals("")) {
-            Note notificacionVendedor = new Note("Nueva venta registrada", "Se realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.", vendedor.getWebToken(), new HashMap<>(), null);
+            Note notificacionVendedor = new Note("Nueva venta registrada", "Se realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.", new HashMap<>(), null);
             firebaseMessagingService.enviarNotificacion(notificacionVendedor, vendedor.getWebToken());
         }
         googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nSe realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.\n Detalles de la venta: \n" + utilService.detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Nueva venta");
@@ -258,15 +258,15 @@ public class CompraService {
         Note noteComprador;
         String mensaje, asunto;
         if (nuevoEstado == EstadoCompra.Confirmada) {
-            noteComprador = new Note("Compra confirmada", "La compra hecha a " + nombreParaMostrar + " a sido confirmada!!! Ve hacia 'Historial de compras' para obtener más información de la entrega/retiro o iniciar chat con vendedor.", comprador.getWebToken(), new HashMap<>(), null);
+            noteComprador = new Note("Compra confirmada", "La compra hecha a " + nombreParaMostrar + " a sido confirmada!!! Ve hacia 'Historial de compras' para obtener más información de la entrega/retiro o iniciar chat con vendedor.", new HashMap<>(), null);
             mensaje = "La compra hecha a " + nombreParaMostrar + " a sido confirmada (Identificador: " + venta.getId() + ")!!! Ve hacia 'Historial de compras' en la pagina web o en tu dispositivo movil para obtener más información de la entrega/retiro.";
             asunto = "Estado de compra actualizado";
         } else if (nuevoEstado == EstadoCompra.Cancelada) {
-            noteComprador = new Note("Compra cancelada", "La compra hecha a " + nombreParaMostrar + " a sido cancelada!!! Revisa tu correo para conocer el motivo." + vendedor.getCorreo() + "", comprador.getWebToken(), new HashMap<>(), null);
+            noteComprador = new Note("Compra cancelada", "La compra hecha a " + nombreParaMostrar + " a sido cancelada!!! Revisa tu correo para conocer el motivo." + vendedor.getCorreo() + "", new HashMap<>(), null);
             mensaje = "La compra hecha a " + nombreParaMostrar + " a sido cancelada (Identificador: " + venta.getId() + ")!!!\n Motivo:\n" + datosEntregaRetiro.getMotivo() + "\n Para mas información ponerse en contacto con el vendedor:\n Correo: " + vendedor.getCorreo() + ".";
             asunto = "Estado de compra actualizado";
         } else {
-            noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", comprador.getWebToken(), new HashMap<>(), null);
+            noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", new HashMap<>(), null);
             mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + venta.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(venta, vendedor, comprador, venta.getInfoEntrega().getProducto(), venta.getInfoEntrega().getEsEnvio()) + "";
             asunto = "Compra completada";
         }
@@ -302,7 +302,7 @@ public class CompraService {
 
         compra.setEstado(EstadoCompra.Completada);
         compraRepository.save(compra);
-        Note noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", comprador.getWebToken(), new HashMap<>(), null);
+        Note noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", new HashMap<>(), null);
         String mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + compra.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()) + "";
         String asunto = "Compra completada";
         if (!comprador.getWebToken().equals(""))

@@ -1,8 +1,11 @@
 package com.shopnow.shopnow.service;
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.Compra;
 import com.shopnow.shopnow.model.Generico;
+import com.shopnow.shopnow.model.Note;
 import com.shopnow.shopnow.model.Reclamo;
 import com.shopnow.shopnow.model.datatypes.DtAltaReclamo;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Service
@@ -36,7 +40,7 @@ public class ReclamoService {
     @Autowired
     FirebaseMessagingService firebaseMessagingService;
 
-    public void iniciarReclamo(DtAltaReclamo datos, UUID idCompra, UUID idComprador) {
+    public void iniciarReclamo(DtAltaReclamo datos, UUID idCompra, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
 
         if (idComprador != compraRepository.obtenerComprador(idCompra).getId()) {
             throw new Excepcion("Usuario invalido");
@@ -73,11 +77,12 @@ public class ReclamoService {
         comprador.getReclamos().put(reclamo.getId(), reclamo);
         usuarioRepository.save(comprador);
 
+        String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
+
         if (vendedor.getWebToken() != null) {
-            // Note note= new Note()
+            Note note = new Note("Nuevo reclamo", "Hay un nuevo reclamo sin resolver, ve hacia la sección 'Mis reclamos' para mas información", new HashMap<>(), "");
+            firebaseMessagingService.enviarNotificacion(note, vendedor.getWebToken());
         }
-        //googleSMTP.enviarCorreo();
-
-
+        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + nombreParaMostrar + ".\n Tiene un nuevo reclamo en una compra (identificador:" + compra.getId() + ") Visite el sitio y vaya a la sección 'Mis reclamos' para poder realizar acciones.", "Nuevo reclamo - " + reclamo.getId());
     }
 }
