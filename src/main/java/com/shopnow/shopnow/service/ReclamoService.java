@@ -15,7 +15,9 @@ import com.shopnow.shopnow.repository.CompraRepository;
 import com.shopnow.shopnow.repository.ReclamoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -42,10 +44,10 @@ public class ReclamoService {
 
     public void iniciarReclamo(DtAltaReclamo datos, UUID idCompra, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
 
-        if (idComprador != compraRepository.obtenerComprador(idCompra).getId()) {
+        Generico comprador = (Generico) usuarioRepository.findByIdAndEstado(idComprador, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("Usuario inhabilitado"));
+        if (idComprador.compareTo(comprador.getId()) != 0) {
             throw new Excepcion("Usuario invalido");
         }
-        Generico comprador = (Generico) usuarioRepository.findById(idComprador).orElseThrow();
 
         if (comprador.getEstado() != EstadoUsuario.Activo) {
             throw new Excepcion("El usuario comprador esta inhabilitado");
@@ -79,10 +81,68 @@ public class ReclamoService {
 
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
 
-        if (vendedor.getWebToken() != null) {
+        if (!vendedor.getWebToken().equals("")) {
             Note note = new Note("Nuevo reclamo", "Hay un nuevo reclamo sin resolver, ve hacia la sección 'Mis reclamos' para mas información", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(note, vendedor.getWebToken());
         }
         googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + nombreParaMostrar + ".\n Tiene un nuevo reclamo en una compra (identificador:" + compra.getId() + ") Visite el sitio y vaya a la sección 'Mis reclamos' para poder realizar acciones.", "Nuevo reclamo - " + reclamo.getId());
+    }
+
+    public void gestionReclamo(UUID idVenta, UUID idReclamo, UUID idVendedor, TipoResolucion resolucion) throws FirebaseMessagingException, FirebaseAuthException {
+        Reclamo reclamo = reclamoRepository.findById(idReclamo).orElseThrow(() -> new Excepcion("No existe el reclamo"));
+        Compra compra = compraRepository.findById(idVenta).orElseThrow(() -> new Excepcion("No existe la compra"));
+        Generico vendedor = (Generico) usuarioRepository.findByIdAndEstado(idVendedor, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("Usuario inhabilitado"));
+        Generico comprador = compraRepository.obtenerComprador(idVenta);
+
+        if (reclamo.getResuelto() != TipoResolucion.NoResuelto) {
+            throw new Excepcion("Este reclamo ya se solucionó");
+        }
+
+        if (resolucion == TipoResolucion.NoResuelto) {
+            throw new Excepcion("Resolucion inválida");
+        }
+        //Logica
+        Note notificacionComprador;
+        if (resolucion == TipoResolucion.Devolucion) {
+            //TODO hacer devolucion Braintree
+            reclamo.setResuelto(TipoResolucion.Devolucion);
+            reclamoRepository.save(reclamo);
+            if (!comprador.getWebToken().equals("")) {
+                notificacionComprador = new Note("Reclamo resuelto: Devolucion", "Uno de tus reclamos ah sido marcado como resuelto, ve a 'Mis reclamos' para obtener mas información.", new HashMap<>(), "");
+                firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
+            }
+            googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\n El reclamo hacia la compra (identificador:" + idVenta + ") ha sido marcado como resuelto vía devolución de dinero.", "Reclamo resuelto - " + reclamo.getId());
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Funcionalidad no implementada");
+            //Todo Notificacion al comprador
+        }
+    }
+
+    public void marcarComoResuelto(UUID idCompra, UUID idReclamo, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
+        Reclamo reclamo = reclamoRepository.findById(idReclamo).orElseThrow(() -> new Excepcion("No existe el reclamo"));
+        Generico vendedor = compraRepository.obtenerVendedor(idCompra);
+        Generico comprador = compraRepository.obtenerComprador(idCompra);
+
+        if (idComprador.compareTo(comprador.getId()) != 0) {
+            throw new Excepcion("Usuario invalido");
+        }
+
+        if (comprador.getEstado() != EstadoUsuario.Activo) {
+            throw new Excepcion("El usuario comprador esta inhabilitado");
+        }
+
+        if (reclamo.getResuelto() != TipoResolucion.NoResuelto) {
+            throw new Excepcion("No se puede modificar el estado de este reclamo");
+        }
+        reclamo.setResuelto(TipoResolucion.PorChat);
+        reclamoRepository.save(reclamo);
+
+        String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
+
+        if (!vendedor.getWebToken().equals("")) {
+            Note note = new Note("Reclamo resuelto", "Uno de tus reclamos ha sido marcado como resuelto por el comprador. ve a 'Mis reclamos' para obtener mas información.", new HashMap<>(), "");
+            firebaseMessagingService.enviarNotificacion(note, vendedor.getWebToken());
+        }
+        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + nombreParaMostrar + ".\n El reclamo hacia la venta (identificador:" + idCompra + ") ha sido marcado como resuelto vía chat.", "Reclamo resuelto - " + reclamo.getId());
     }
 }

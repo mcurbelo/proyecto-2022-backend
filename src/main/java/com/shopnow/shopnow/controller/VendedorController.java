@@ -8,8 +8,10 @@ import com.shopnow.shopnow.model.datatypes.DtFiltosMisProductos;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
+import com.shopnow.shopnow.model.enumerados.TipoResolucion;
 import com.shopnow.shopnow.service.CompraService;
 import com.shopnow.shopnow.service.ProductoService;
+import com.shopnow.shopnow.service.ReclamoService;
 import com.shopnow.shopnow.service.VendedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,9 @@ public class VendedorController {
 
     @Autowired
     CompraService compraService;
+
+    @Autowired
+    ReclamoService reclamoService;
 
     @PutMapping("/{idUsuario}/productos/{id}/estado")
     public ResponseEntity<String> cambiarEstado(@PathVariable(value = "idUsuario") UUID id, @PathVariable(value = "id") UUID idProducto, @RequestParam(value = "nuevoEstado") EstadoProducto nuevoEstado) {
@@ -77,5 +82,12 @@ public class VendedorController {
 
         //TODO Validar UUID del que lo pide
         return vendedorService.historialVentas(pageNo, pageSize, sortBy, sortDir, filtros, id);
+    }
+
+    @PutMapping("/{id}/ventas/{idVenta}/reclamos/{idReclamo}")
+    public ResponseEntity<String> gestionarReclamo(@PathVariable(value = "id") UUID idVendedor, @PathVariable(value = "idVenta") UUID idVenta,
+                                                   @PathVariable(value = "idReclamo") UUID idReclamo, @RequestParam(value = "accion") TipoResolucion accion) throws FirebaseMessagingException, FirebaseAuthException {
+        reclamoService.gestionReclamo(idVenta, idReclamo, idVendedor, accion);
+        return new ResponseEntity<>("Accion del reclamo realizada con exito!!!", HttpStatus.OK);
     }
 }

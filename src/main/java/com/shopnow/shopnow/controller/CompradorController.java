@@ -1,10 +1,14 @@
 package com.shopnow.shopnow.controller;
 
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.shopnow.shopnow.model.datatypes.DtAltaReclamo;
 import com.shopnow.shopnow.model.datatypes.DtDireccion;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosCompras;
 import com.shopnow.shopnow.model.datatypes.DtSolicitud;
 import com.shopnow.shopnow.service.CompradorService;
+import com.shopnow.shopnow.service.ReclamoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +23,15 @@ import java.util.Objects;
 import java.util.UUID;
 
 
-
-
 @RestController
 @RequestMapping("/api/compradores")
 public class CompradorController {
     private final String ANONYMOUS_USER = "anonymousUser";
     @Autowired
     CompradorService compradorService;
+
+    @Autowired
+    ReclamoService reclamoService;
 
     @PostMapping("/solicitudVendedor")
     public ResponseEntity<String> nuevaSolicitud(@Valid @RequestPart DtSolicitud datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
@@ -53,5 +58,20 @@ public class CompradorController {
         return compradorService.historialDeCompras(pageNo, pageSize, sortBy, sortDir, filtros, id);
 
     }
+
+    @PostMapping("/{id}/compras/{idCompra}/reclamos")
+    public ResponseEntity<String> iniciarReclamo(@PathVariable(value = "id") UUID idComprador, @PathVariable(value = "idCompra") UUID idCompra, @RequestBody DtAltaReclamo datos) throws FirebaseMessagingException, FirebaseAuthException {
+        //TODO Verificar que coincidan los id
+        reclamoService.iniciarReclamo(datos, idCompra, idComprador);
+        return new ResponseEntity<>("Reclamo realizado con exito!!!", HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}/compras/{idCompra}/reclamos/{idReclamo}")
+    public ResponseEntity<String> reclamoResuelto(@PathVariable(value = "id") UUID idComprador, @PathVariable(value = "idCompra") UUID idCompra, @PathVariable(value = "idReclamo") UUID idReclamo) throws FirebaseMessagingException, FirebaseAuthException {
+        //TODO Verificar que coincidan los id
+        reclamoService.marcarComoResuelto(idCompra, idReclamo, idComprador);
+        return new ResponseEntity<>("Reclamo resuelto con exito!!!", HttpStatus.OK);
+    }
+
 
 }
