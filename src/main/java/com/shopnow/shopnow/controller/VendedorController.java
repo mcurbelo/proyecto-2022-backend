@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
 import com.shopnow.shopnow.model.datatypes.DtFiltosMisProductos;
+import com.shopnow.shopnow.model.datatypes.DtFiltroReclamo;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
@@ -87,5 +88,16 @@ public class VendedorController {
                                                    @PathVariable(value = "idReclamo") UUID idReclamo, @RequestParam(value = "accion") TipoResolucion accion) throws FirebaseMessagingException, FirebaseAuthException {
         reclamoService.gestionReclamo(idVenta, idReclamo, idVendedor, accion);
         return new ResponseEntity<>("Accion del reclamo realizada con exito!!!", HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/ventas/reclamos")
+    public Map<String, Object> obtenerReclamos(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestBody(required = false) DtFiltroReclamo filtros,
+            @PathVariable(value = "id") UUID id) {
+        return reclamoService.listarMisReclamosRecibidos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 }

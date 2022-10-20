@@ -164,7 +164,6 @@ public class ReclamoService {
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         List<UUID> reclamosCumplenFiltro;
-
         if (filtros != null) {
             List<UUID> reclamosIdConFecha = null;
             if (filtros.getFecha() != null) {

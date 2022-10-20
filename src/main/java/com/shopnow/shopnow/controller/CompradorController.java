@@ -3,10 +3,7 @@ package com.shopnow.shopnow.controller;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
-import com.shopnow.shopnow.model.datatypes.DtAltaReclamo;
-import com.shopnow.shopnow.model.datatypes.DtDireccion;
-import com.shopnow.shopnow.model.datatypes.DtFiltrosCompras;
-import com.shopnow.shopnow.model.datatypes.DtSolicitud;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.service.CompradorService;
 import com.shopnow.shopnow.service.ReclamoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +29,7 @@ public class CompradorController {
 
     @Autowired
     ReclamoService reclamoService;
+
 
     @PostMapping("/solicitudVendedor")
     public ResponseEntity<String> nuevaSolicitud(@Valid @RequestPart DtSolicitud datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
@@ -71,6 +69,17 @@ public class CompradorController {
         //TODO Verificar que coincidan los id
         reclamoService.marcarComoResuelto(idCompra, idReclamo, idComprador);
         return new ResponseEntity<>("Reclamo resuelto con exito!!!", HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/compras/reclamos")
+    public Map<String, Object> obtenerReclamos(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestBody(required = false) DtFiltroReclamo filtros,
+            @PathVariable(value = "id") UUID id) {
+        return reclamoService.listarMisReclamosHechos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 
 
