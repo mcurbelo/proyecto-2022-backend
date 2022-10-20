@@ -58,7 +58,7 @@ public class CompraService {
     public void nuevaCompra(DtCompra datosCompra) throws FirebaseMessagingException, FirebaseAuthException {
         //Validaciones RNE
 
-        if (datosCompra.getIdComprador().equals(datosCompra.getIdVendedor())) {
+        if (datosCompra.getIdComprador().compareTo(datosCompra.getIdVendedor()) == 0) {
             throw new Excepcion("No se puede comprar un producto a usted mismo");
         }
         Optional<Usuario> resComprador = usuarioRepository.findByIdAndEstado(datosCompra.getIdComprador(), EstadoUsuario.Activo);

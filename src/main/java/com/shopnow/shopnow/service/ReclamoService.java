@@ -8,6 +8,9 @@ import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Note;
 import com.shopnow.shopnow.model.Reclamo;
 import com.shopnow.shopnow.model.datatypes.DtAltaReclamo;
+import com.shopnow.shopnow.model.datatypes.DtCompraSlimComprador;
+import com.shopnow.shopnow.model.datatypes.DtFiltroReclamo;
+import com.shopnow.shopnow.model.datatypes.DtReclamo;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.model.enumerados.TipoResolucion;
@@ -15,14 +18,17 @@ import com.shopnow.shopnow.repository.CompraRepository;
 import com.shopnow.shopnow.repository.ReclamoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ReclamoService {
@@ -72,7 +78,7 @@ public class ReclamoService {
         if (new Date().after(fechaLimite)) {
             throw new Excepcion("No se puede realizar un reclamo porque vencio el plazo de garantia");
         }
-        //TODO solo un reclamo no resuelto activo por compra?
+
 
         Reclamo reclamo = new Reclamo(null, datos.getTipo(), new Date(), datos.getDescripcion(), TipoResolucion.NoResuelto, compra);
         reclamoRepository.saveAndFlush(reclamo);
@@ -145,4 +151,133 @@ public class ReclamoService {
         }
         googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + nombreParaMostrar + ".\n El reclamo hacia la venta (identificador:" + idCompra + ") ha sido marcado como resuelto vía chat.", "Reclamo resuelto - " + reclamo.getId());
     }
+
+    //Cambiar de lugar
+    public Map<String, Object> listarMisReclamosHechos(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltroReclamo filtros, UUID id) {
+        if (!sortBy.matches("fecha|resuelto|tipo")) {
+            throw new Excepcion("Atributo de ordenamiento invalido");
+        }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Page<Reclamo> reclamos;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        List<UUID> reclamosCumplenFiltro;
+
+        if (filtros != null) {
+            List<UUID> reclamosIdConFecha = null;
+            if (filtros.getFecha() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String fecha = sdf.format(filtros.getFecha());
+                reclamosIdConFecha = reclamoRepository.misReclamosHechosPorFecha(id, fecha);
+            }
+            List<UUID> reclamoIdConTipo = null;
+            if (filtros.getTipo() != null) {
+                reclamoIdConTipo = reclamoRepository.misReclamosHechosPorTipo(id, filtros.getTipo().toString());
+            }
+            List<UUID> reclamosIdConNombreVendedor = null;
+            if (filtros.getNombreUsario() != null) {
+                reclamosIdConNombreVendedor = reclamoRepository.misReclamosHechosPorNombreVendedor(id, filtros.getNombreUsario());
+            }
+            List<UUID> reclamosIdConNombreProducto = null;
+            if (filtros.getNombreProducto() != null) {
+                reclamosIdConNombreProducto = reclamoRepository.misReclamosHechosPorNombreProducto(id, filtros.getNombreProducto());
+            }
+            List<UUID> reclamosIdEstado = null;
+            if (filtros.getResuelto() != null && filtros.getResuelto()) {
+                reclamosIdEstado = reclamoRepository.misReclamosHechosResueltos(id);
+            }
+            if (filtros.getResuelto() != null && !filtros.getResuelto()) {
+                reclamosIdEstado = reclamoRepository.misReclamosHechosNoResueltos(id);
+            }
+
+            reclamosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), reclamosIdEstado, reclamosIdConNombreProducto, reclamosIdConNombreVendedor,
+                    reclamoIdConTipo, reclamosIdConFecha).stream().toList();
+            reclamos = reclamoRepository.findByIdIn(reclamosCumplenFiltro, pageable);
+        } else
+            reclamos = reclamoRepository.misReclamosHechos(id, pageable);
+
+
+        List<Reclamo> listaDeReclamos = reclamos.getContent();
+
+        List<DtReclamo> content = listaDeReclamos.stream().map(this::getDtReclamo).collect(Collectors.toList());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("reclamos", content);
+        response.put("currentPage", reclamos.getNumber());
+        response.put("totalItems", reclamos.getTotalElements());
+        response.put("totalPages", reclamos.getTotalPages());
+
+        return response;
+    }
+
+    public Map<String, Object> listarMisReclamosRecibidos(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltroReclamo filtros, UUID id) {
+        if (!sortBy.matches("fecha|resuelto|tipo")) {
+            throw new Excepcion("Atributo de ordenamiento invalido");
+        }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Page<Reclamo> reclamos;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        List<UUID> reclamosCumplenFiltro;
+
+        if (filtros != null) {
+            List<UUID> reclamosIdConFecha = null;
+            if (filtros.getFecha() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String fecha = sdf.format(filtros.getFecha());
+                reclamosIdConFecha = reclamoRepository.reclamosRecibidosPorFecha(id, fecha);
+            }
+            List<UUID> reclamoIdConTipo = null;
+            if (filtros.getTipo() != null) {
+                reclamoIdConTipo = reclamoRepository.reclamosRecibidosPorTipo(id, filtros.getTipo().toString());
+            }
+            List<UUID> reclamosRecibidosPorNombreComprador = null;
+            if (filtros.getNombreUsario() != null) {
+                reclamosRecibidosPorNombreComprador = reclamoRepository.reclamosRecibidosPorNombreComprador(id, filtros.getNombreUsario());
+            }
+            List<UUID> reclamosIdConNombreProducto = null;
+            if (filtros.getNombreProducto() != null) {
+                reclamosIdConNombreProducto = reclamoRepository.reclamosRecibosPorNombreProducto(id, filtros.getNombreProducto());
+            }
+            List<UUID> reclamosIdEstado = null;
+            if (filtros.getResuelto() != null && filtros.getResuelto()) {
+                reclamosIdEstado = reclamoRepository.reclamosRecibidosPorEstadoResuelto(id);
+            }
+            if (filtros.getResuelto() != null && !filtros.getResuelto()) {
+                reclamosIdEstado = reclamoRepository.reclamosRecibidosPorEstadoNoResuelto(id);
+            }
+
+            reclamosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), reclamosIdEstado, reclamosIdConNombreProducto, reclamosRecibidosPorNombreComprador,
+                    reclamoIdConTipo, reclamosIdConFecha).stream().toList();
+            reclamos = reclamoRepository.findByIdIn(reclamosCumplenFiltro, pageable);
+        } else
+            reclamos = reclamoRepository.misReclamosHechos(id, pageable);
+
+
+        List<Reclamo> listaDeReclamos = reclamos.getContent();
+
+        List<DtReclamo> content = listaDeReclamos.stream().map(this::getDtReclamo).collect(Collectors.toList());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("reclamos", content);
+        response.put("currentPage", reclamos.getNumber());
+        response.put("totalItems", reclamos.getTotalElements());
+        response.put("totalPages", reclamos.getTotalPages());
+
+        return response;
+    }
+
+    private DtReclamo getDtReclamo(Reclamo reclamo) {
+        Compra compra = reclamo.getCompra();
+        Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
+        String nombreProducto = compra.getInfoEntrega().getProducto().getNombre();
+        String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
+        DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
+        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha());
+    }
+
 }

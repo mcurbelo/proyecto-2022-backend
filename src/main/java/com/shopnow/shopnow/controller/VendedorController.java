@@ -40,8 +40,6 @@ public class VendedorController {
 
     @PutMapping("/{idUsuario}/productos/{id}/estado")
     public ResponseEntity<String> cambiarEstado(@PathVariable(value = "idUsuario") UUID id, @PathVariable(value = "id") UUID idProducto, @RequestParam(value = "nuevoEstado") EstadoProducto nuevoEstado) {
-        //Ese Dt se deberia utilizar tambien para editar producto
-
         /*TODO Utilizar cuando se utilicen al 100% los token
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!email.equals(correo)) {
