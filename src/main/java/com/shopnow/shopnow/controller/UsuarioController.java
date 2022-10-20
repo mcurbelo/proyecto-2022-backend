@@ -3,10 +3,7 @@ package com.shopnow.shopnow.controller;
 
 import com.braintreegateway.BraintreeGateway;
 import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
-import com.shopnow.shopnow.model.Tarjeta;
-import com.shopnow.shopnow.model.datatypes.DtModificarUsuario;
-import com.shopnow.shopnow.model.datatypes.DtTarjeta;
-import com.shopnow.shopnow.model.datatypes.DtUsuario;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -56,5 +54,15 @@ public class UsuarioController {
     @GetMapping("/{id}/tarjetas")
     public ResponseEntity<List<CreditCardRef>> fetchTarjetas(@PathVariable(value = "id") UUID id) {
         return ResponseEntity.ok().body(usuarioService.getTarjetas(id));
+    }
+
+    @GetMapping()
+    public Map<String, Object> busquedaDeUsuarios(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "apellido", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestBody(required = false) DtFiltrosUsuario filtros) {
+        return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
     }
 }

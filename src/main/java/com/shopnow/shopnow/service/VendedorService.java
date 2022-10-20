@@ -87,7 +87,7 @@ public class VendedorService {
 
         Page<Compra> ventas;
 
-        List<UUID> ventasCumplenFiltro = new ArrayList<>();
+        List<UUID> ventasCumplenFiltro;
 
         if (filtros != null) {
             List<UUID> ventasIdConEstado = null;
