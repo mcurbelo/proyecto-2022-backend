@@ -215,11 +215,16 @@ public class ProductoService {
         if (ventas.size() != 0) {
             int ventasCalificacion = 1;
             for (Compra venta : ventas.values()) {
-                if (venta.getInfoEntrega().getCalificacion() == null) {
+                if (venta.getInfoEntrega().getCalificaciones().isEmpty()) {
                     continue;
                 }
-                sumaCalificacion += venta.getInfoEntrega().getCalificacion().getPuntuacion();
-                ventasCalificacion++;
+                for (Calificacion calificacionItem : venta.getInfoEntrega().getCalificaciones()) {
+                    if (calificacionItem.getAutor().getId() == usuario.getId()) {
+                        sumaCalificacion += calificacionItem.getPuntuacion();
+                        ventasCalificacion++;
+                    }
+                }
+
             }
             calificacion = sumaCalificacion / ventasCalificacion;
         }

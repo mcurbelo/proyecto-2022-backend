@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DecimalFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class CompraService {
@@ -164,7 +161,7 @@ public class CompraService {
 
         //TODO PAGO TARJETA :DDDD
 
-        CompraProducto infoEntrega = new CompraProducto(null, null, null, datosCompra.getEsParaEnvio(), direccion, precio, datosCompra.getCantidad(), precio * datosCompra.getCantidad(), producto, null);
+        CompraProducto infoEntrega = new CompraProducto(null, null, null, datosCompra.getEsParaEnvio(), direccion, precio, datosCompra.getCantidad(), precio * datosCompra.getCantidad(), producto, new ArrayList<>());
 
         Compra compra = Compra.builder()
                 .id(null)
