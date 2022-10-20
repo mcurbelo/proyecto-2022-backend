@@ -55,4 +55,7 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
 
     @Query(value = "select categoria_nombre from categoria_productos where productos_key=?1", nativeQuery = true)
     List<String> categoriasDelProducto(UUID id);
+
+    @Query(value = "select CAST(id as VARCHAR) from (usuario g join usuario_compras u on g.id=u.generico_id) where compras_key=?1", nativeQuery = true)
+    UUID obtenerIdComprador(UUID idCompra);
 }
