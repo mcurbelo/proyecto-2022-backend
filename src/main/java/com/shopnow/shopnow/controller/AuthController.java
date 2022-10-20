@@ -1,21 +1,15 @@
 package com.shopnow.shopnow.controller;
 
 
-
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.StorageOptions;
 import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.datatypes.DtDatosLogin;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -27,15 +21,26 @@ public class AuthController {
 
 
     @PostMapping("/registrarse")
-    public RegistrarUsuarioResponse registerHandler(@RequestBody DtUsuario datosUsuario){
-         return authService.registrarUsuario(datosUsuario);
+    public RegistrarUsuarioResponse registerHandler(@RequestBody DtUsuario datosUsuario) {
+        return authService.registrarUsuario(datosUsuario);
     }
 
     @PostMapping("/iniciarSesion")
-    public Map<String, String> loginHandler(@RequestBody DtDatosLogin datos){
+    public Map<String, String> loginHandler(@RequestBody DtDatosLogin datos) {
         return authService.iniciarSesion(datos.getCorreo(), datos.getPassword());
     }
 
+    @PostMapping("/recuperarContrasena")
+    public ResponseEntity<String> recuperarContrasena(@RequestParam(value = "correo") String correo) {
+        authService.recuperarContrasena(correo);
+        return new ResponseEntity<>("Accion realizada!!!", HttpStatus.OK);
+    }
+
+    @PostMapping("/reiniciarContrasena")
+    public ResponseEntity<String> reiniciarContrasena(@RequestParam(value = "token") String token, @RequestParam(value = "contrasena") String contrasena) {
+        authService.reiniciarContrasena(token, contrasena);
+        return new ResponseEntity<>("Contraseña cambiada con exito!!!", HttpStatus.OK);
+    }
 
 
 }
