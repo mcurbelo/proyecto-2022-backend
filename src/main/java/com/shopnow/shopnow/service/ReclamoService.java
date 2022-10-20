@@ -176,19 +176,16 @@ public class ReclamoService {
                 reclamoIdConTipo = reclamoRepository.misReclamosHechosPorTipo(id, filtros.getTipo().toString());
             }
             List<UUID> reclamosIdConNombreVendedor = null;
-            if (filtros.getNombreUsario() != null) {
-                reclamosIdConNombreVendedor = reclamoRepository.misReclamosHechosPorNombreVendedor(id, filtros.getNombreUsario());
+            if (filtros.getNombreUsuario() != null) {
+                reclamosIdConNombreVendedor = reclamoRepository.misReclamosHechosPorNombreVendedor(id, filtros.getNombreUsuario());
             }
             List<UUID> reclamosIdConNombreProducto = null;
             if (filtros.getNombreProducto() != null) {
                 reclamosIdConNombreProducto = reclamoRepository.misReclamosHechosPorNombreProducto(id, filtros.getNombreProducto());
             }
             List<UUID> reclamosIdEstado = null;
-            if (filtros.getResuelto() != null && filtros.getResuelto()) {
-                reclamosIdEstado = reclamoRepository.misReclamosHechosResueltos(id);
-            }
-            if (filtros.getResuelto() != null && !filtros.getResuelto()) {
-                reclamosIdEstado = reclamoRepository.misReclamosHechosNoResueltos(id);
+            if (filtros.getResolucion() != null) {
+                reclamosIdEstado = reclamoRepository.misReclamosHechosPorResolucion(id, filtros.getResolucion().toString());
             }
 
             reclamosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), reclamosIdEstado, reclamosIdConNombreProducto, reclamosIdConNombreVendedor,
@@ -235,26 +232,23 @@ public class ReclamoService {
                 reclamoIdConTipo = reclamoRepository.reclamosRecibidosPorTipo(id, filtros.getTipo().toString());
             }
             List<UUID> reclamosRecibidosPorNombreComprador = null;
-            if (filtros.getNombreUsario() != null) {
-                reclamosRecibidosPorNombreComprador = reclamoRepository.reclamosRecibidosPorNombreComprador(id, filtros.getNombreUsario());
+            if (filtros.getNombreUsuario() != null) {
+                reclamosRecibidosPorNombreComprador = reclamoRepository.reclamosRecibidosPorNombreComprador(id, filtros.getNombreUsuario());
             }
             List<UUID> reclamosIdConNombreProducto = null;
             if (filtros.getNombreProducto() != null) {
                 reclamosIdConNombreProducto = reclamoRepository.reclamosRecibosPorNombreProducto(id, filtros.getNombreProducto());
             }
             List<UUID> reclamosIdEstado = null;
-            if (filtros.getResuelto() != null && filtros.getResuelto()) {
-                reclamosIdEstado = reclamoRepository.reclamosRecibidosPorEstadoResuelto(id);
-            }
-            if (filtros.getResuelto() != null && !filtros.getResuelto()) {
-                reclamosIdEstado = reclamoRepository.reclamosRecibidosPorEstadoNoResuelto(id);
+            if (filtros.getResolucion() != null) {
+                reclamosIdEstado = reclamoRepository.reclamosRecibidosPorEstado(id, filtros.getResolucion().toString());
             }
 
             reclamosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), reclamosIdEstado, reclamosIdConNombreProducto, reclamosRecibidosPorNombreComprador,
                     reclamoIdConTipo, reclamosIdConFecha).stream().toList();
             reclamos = reclamoRepository.findByIdIn(reclamosCumplenFiltro, pageable);
         } else
-            reclamos = reclamoRepository.misReclamosHechos(id, pageable);
+            reclamos = reclamoRepository.misReclamosRecibidos(id, pageable);
 
 
         List<Reclamo> listaDeReclamos = reclamos.getContent();
@@ -273,10 +267,11 @@ public class ReclamoService {
     private DtReclamo getDtReclamo(Reclamo reclamo) {
         Compra compra = reclamo.getCompra();
         Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
+        Generico comprador = compraRepository.obtenerComprador(compra.getId());
         String nombreProducto = compra.getInfoEntrega().getProducto().getNombre();
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
         DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
-        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha());
+        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido());
     }
 
 }

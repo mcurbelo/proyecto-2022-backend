@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
 
 
-    @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1 and date(r.fecha)=cast(?2 as date)", nativeQuery = true)
+    @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on u.reclamos_key=r.id where u.generico_id=?1 and date(r.fecha)=cast(?2 as date)", nativeQuery = true)
     List<UUID> misReclamosHechosPorFecha(UUID id, String fecha);
 
     @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1 and r.tipo=?2", nativeQuery = true)
@@ -24,11 +24,8 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
     @Query(value = "Select cast (r.id as varchar) from (usuario_ventas uv join usuario u on uv.generico_id=u.id) join (usuario_reclamos ur join reclamo r on reclamos_key=id) on r.compra_id=ventas_key where ur.generico_id=?1 and u.nombre like %?2% ", nativeQuery = true)
     List<UUID> misReclamosHechosPorNombreVendedor(UUID id, String nombre);
 
-    @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1 and resuelto='Devolucion' or resuelto='PorChat'", nativeQuery = true)
-    List<UUID> misReclamosHechosResueltos(UUID id);
-
-    @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1 and resuelto='NoResuelto'", nativeQuery = true)
-    List<UUID> misReclamosHechosNoResueltos(UUID id);
+    @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1 and resuelto=?2", nativeQuery = true)
+    List<UUID> misReclamosHechosPorResolucion(UUID id, String resuelto);
 
     @Query(value = "Select r.* from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1",
             countQuery = "Select count(r.*) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1", nativeQuery = true)
@@ -36,23 +33,23 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
 
     Page<Reclamo> findByIdIn(List<UUID> ids, Pageable pageable);
 
-    @Query(value = "(select cast (id as varchar) from reclamo where date(fecha)=cast(?2 as date) and compra_id in (Select c.id from compra c join usuario_ventas u on c.id=u.ventas_key where u.generico_id=?1 and u.ventas_key) ", nativeQuery = true)
+    @Query(value = "select cast (id as varchar) from reclamo where date(fecha)=cast(?2 as date) and compra_id in (select ventas_key from usuario_ventas where generico_id=?1) ", nativeQuery = true)
     List<UUID> reclamosRecibidosPorFecha(UUID id, String fecha);
 
-    @Query(value = "select cast (id as varchar) from reclamo where tipo=?2 and compra_id in (select c.id from compra c join usuario_ventas u on c.id=u.ventas_key where u.generico_id=?1)", nativeQuery = true)
+    @Query(value = "select cast (id as varchar) from reclamo where tipo=?2 and compra_id in (select ventas_key from usuario_ventas where generico_id=?1)", nativeQuery = true)
     List<UUID> reclamosRecibidosPorTipo(UUID id, String tipo);
 
-    @Query(value = "select cast (id as varchar) from reclamo where compra_id in (select c.id from ((usuario_ventas uv join compra c on uv.ventas_key=c.id) join compra_producto cp on c.entrega_info=cp.id) join producto p on cp.producto_id=p.id) where u.generico_id=?1 and p.nombre like %?2%)", nativeQuery = true)
+    @Query(value = "select cast (id as varchar) from reclamo where compra_id in (select c.id from ((usuario_ventas uv join compra c on uv.ventas_key=c.id) join compra_producto cp on c.entrega_info=cp.id) join producto p on cp.producto_id=p.id where uv.generico_id=?1 and p.nombre like %?2%)", nativeQuery = true)
     List<UUID> reclamosRecibosPorNombreProducto(UUID id, String nombre);
 
-    @Query(value = "select cast (r.id as varchar) from reclamo r join (usuario usu join usuario_reclamos ur on usu.id=ur.generico_id) on usu.id=ur.generico_id where usu.nombre like %?2% compra_id in (select c.id from compra c join usuario_ventas u on c.id=u.ventas_key)where u.generico_id=?1)", nativeQuery = true)
+    @Query(value = "select cast (r.id as varchar) from reclamo r join (usuario usu join usuario_reclamos ur on usu.id=ur.generico_id) on r.id=ur.reclamos_key where usu.nombre like %?2% and compra_id in (select ventas_key from usuario_ventas where generico_id=?1)", nativeQuery = true)
     List<UUID> reclamosRecibidosPorNombreComprador(UUID id, String nombre);
 
+    @Query(value = "select cast (id as varchar) from reclamo where resuelto=?2 and compra_id in (select ventas_key from usuario_ventas where generico_id=?1)", nativeQuery = true)
+    List<UUID> reclamosRecibidosPorEstado(UUID id, String resolucion);
 
-    @Query(value = "select cast (id as varchar) from reclamo where resuelto='NoResuelto' and compra_id in (select c.id from compra c join usuario_ventas u on c.id=u.ventas_key where u.generico_id=?1)", nativeQuery = true)
-    List<UUID> reclamosRecibidosPorEstadoNoResuelto(UUID id);
 
-    @Query(value = "select cast (id as varchar) from reclamo where resuelto='PorChat' or resuelto='Devolucion' and compra_id in (select c.id from compra c join usuario_ventas u on c.id=u.ventas_key where u.generico_id=?1)", nativeQuery = true)
-    List<UUID> reclamosRecibidosPorEstadoResuelto(UUID id);
-
+    @Query(value = "select reclamo.* from reclamo where compra_id in (select ventas_key from usuario_ventas where generico_id=?1)",
+            countQuery = "select reclamo.* from reclamo where compra_id in (select ventas_key from usuario_ventas where generico_id=?1)", nativeQuery = true)
+    Page<Reclamo> misReclamosRecibidos(UUID id, Pageable pageable);
 }

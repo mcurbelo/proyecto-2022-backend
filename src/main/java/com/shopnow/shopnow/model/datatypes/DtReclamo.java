@@ -25,4 +25,5 @@ public class DtReclamo {
     @JsonFormat(pattern = "dd/MM/yyyy")
     private Date fechaRealizado;
 
+    private String autor;
 }

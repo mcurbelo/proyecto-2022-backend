@@ -2,6 +2,7 @@ package com.shopnow.shopnow.model.datatypes;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.shopnow.shopnow.model.enumerados.TipoReclamo;
+import com.shopnow.shopnow.model.enumerados.TipoResolucion;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,9 +21,9 @@ public class DtFiltroReclamo {
 
     private String nombreProducto;
 
-    private String nombreUsario;
+    private String nombreUsuario;
 
     private TipoReclamo tipo;
 
-    private Boolean resuelto;
+    private TipoResolucion resolucion;
 }
