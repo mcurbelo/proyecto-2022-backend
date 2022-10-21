@@ -15,4 +15,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     boolean existsByCorreoAndEstado(String correo, EstadoUsuario estado);
 
     Optional<Usuario> findByIdAndEstado(UUID id, EstadoUsuario estado);
+
+    Optional<Usuario> findByResetPasswordToken(String id);
 }
