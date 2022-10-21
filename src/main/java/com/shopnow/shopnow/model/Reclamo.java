@@ -23,6 +23,7 @@ public class Reclamo {
     private UUID id;
 
     @Column(nullable = false, updatable = false)
+    @Enumerated(EnumType.STRING)
     private TipoReclamo tipo;
 
     @Column(nullable = false, updatable = false)

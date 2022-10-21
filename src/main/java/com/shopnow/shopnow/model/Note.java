@@ -11,7 +11,6 @@ import java.util.Map;
 public class Note {
     private String asunto;
     private String mensaje;
-    private String token;
     private Map<String, String> data;
     private String img;
 }

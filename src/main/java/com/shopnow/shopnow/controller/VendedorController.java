@@ -5,11 +5,14 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
 import com.shopnow.shopnow.model.datatypes.DtFiltosMisProductos;
+import com.shopnow.shopnow.model.datatypes.DtFiltroReclamo;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
+import com.shopnow.shopnow.model.enumerados.TipoResolucion;
 import com.shopnow.shopnow.service.CompraService;
 import com.shopnow.shopnow.service.ProductoService;
+import com.shopnow.shopnow.service.ReclamoService;
 import com.shopnow.shopnow.service.VendedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,10 +36,11 @@ public class VendedorController {
     @Autowired
     CompraService compraService;
 
+    @Autowired
+    ReclamoService reclamoService;
+
     @PutMapping("/{idUsuario}/productos/{id}/estado")
     public ResponseEntity<String> cambiarEstado(@PathVariable(value = "idUsuario") UUID id, @PathVariable(value = "id") UUID idProducto, @RequestParam(value = "nuevoEstado") EstadoProducto nuevoEstado) {
-        //Ese Dt se deberia utilizar tambien para editar producto
-
         /*TODO Utilizar cuando se utilicen al 100% los token
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!email.equals(correo)) {
@@ -77,5 +81,23 @@ public class VendedorController {
 
         //TODO Validar UUID del que lo pide
         return vendedorService.historialVentas(pageNo, pageSize, sortBy, sortDir, filtros, id);
+    }
+
+    @PutMapping("/{id}/ventas/{idVenta}/reclamos/{idReclamo}")
+    public ResponseEntity<String> gestionarReclamo(@PathVariable(value = "id") UUID idVendedor, @PathVariable(value = "idVenta") UUID idVenta,
+                                                   @PathVariable(value = "idReclamo") UUID idReclamo, @RequestParam(value = "accion") TipoResolucion accion) throws FirebaseMessagingException, FirebaseAuthException {
+        reclamoService.gestionReclamo(idVenta, idReclamo, idVendedor, accion);
+        return new ResponseEntity<>("Accion del reclamo realizada con exito!!!", HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/ventas/reclamos")
+    public Map<String, Object> obtenerReclamos(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestBody(required = false) DtFiltroReclamo filtros,
+            @PathVariable(value = "id") UUID id) {
+        return reclamoService.listarMisReclamosRecibidos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 }

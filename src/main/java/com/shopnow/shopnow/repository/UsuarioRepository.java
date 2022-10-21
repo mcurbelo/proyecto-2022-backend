@@ -20,7 +20,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     Optional<Usuario> findByIdAndEstado(UUID id, EstadoUsuario estado);
 
-
     @Query(value = "select cast(id as varchar) from usuario where nombre like %?1%", nativeQuery = true)
     List<UUID> usuariosConNombre(String nombre);
 
@@ -37,4 +36,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     @Query(value = "select * from usuario", countQuery = "select count(*) from usuario", nativeQuery = true)
     Page<Usuario> todosLosUsuarios(Pageable pageable);
+    
+    Optional<Usuario> findByResetPasswordToken(String id);
 }
