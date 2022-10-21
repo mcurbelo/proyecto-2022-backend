@@ -65,4 +65,10 @@ public class UsuarioController {
             @RequestBody(required = false) DtFiltrosUsuario filtros) {
         return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> eliminarCuenta(@PathVariable(value = "id") UUID id) {
+        usuarioService.eliminarMiCuenta(id);
+        return new ResponseEntity<>("Cuenta eliminada con exito!!!", HttpStatus.OK);
+    }
 }

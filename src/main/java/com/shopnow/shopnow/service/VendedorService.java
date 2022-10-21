@@ -8,6 +8,7 @@ import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtCompraSlimVendedor;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
+import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,6 @@ public class VendedorService {
     CompraRepository compraRepository;
 
     public void cambiarEstadoProducto(UUID idProducto, UUID id, EstadoProducto nuevoEstado) {
-        //No valido que realmente sea un vendedor, porque teniendo el token solo los que tengan el rol vendedor van a poder utilizar esta funcionalidad
         Optional<Producto> resultado = productoRepository.findById(idProducto);
         Producto producto;
         if (resultado.isEmpty()) {
@@ -67,6 +67,10 @@ public class VendedorService {
         } else {
             usuario = (Generico) res.get();
         }
+        if (usuario.getDatosVendedor() == null || usuario.getDatosVendedor().getEstadoSolicitud() != EstadoSolicitud.Aceptado) {
+            throw new Excepcion("Usuario no habilitado para esta funcionalidad");
+        }
+
         if (nuevoEstado == EstadoProducto.BloqueadoADM || !usuario.getProductos().containsKey(idProducto)) {
             throw new Excepcion("Este usuario no puede ejecutar esta accion");
         }

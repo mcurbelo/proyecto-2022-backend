@@ -2,10 +2,10 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
-import com.shopnow.shopnow.model.Generico;
-import com.shopnow.shopnow.model.Tarjeta;
-import com.shopnow.shopnow.model.Usuario;
+import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
+import com.shopnow.shopnow.model.enumerados.EstadoCompra;
+import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
@@ -36,6 +36,8 @@ public class UsuarioService {
     FirebaseStorageService firebaseStorageService;
     @Autowired
     BraintreeUtils braintreeUtils;
+    @Autowired
+    GoogleSMTP googleSMTP;
 
     public DtUsuario infoUsuario(String correo) {
 
@@ -198,6 +200,48 @@ public class UsuarioService {
         response.put("totalPages", usuarios.getTotalPages());
 
         return response;
+    }
+
+    public void eliminarMiCuenta(UUID id) {
+        Usuario usuario = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("Usuario no disponible para esta funcionalidad"));
+        if (usuario instanceof Administrador) {
+            throw new Excepcion("Tipo de usuario equivocado");
+        }
+        Generico usuarioEliminar = (Generico) usuario;
+        if (usuarioEliminar.getEstado() == EstadoUsuario.Eliminado) {
+            throw new Excepcion("El usuario ya se encuentra en ese estado");
+        }
+
+        boolean productosActivos = false;
+        boolean comprasActivas = false;
+        boolean ventasActivas = false;
+        for (Compra compras : usuarioEliminar.getCompras().values()) {
+            if (compras.getEstado() != EstadoCompra.Completada || compras.getEstado() != EstadoCompra.Cancelada) {
+                comprasActivas = true;
+                break;
+            }
+        }
+        for (Compra ventas : usuarioEliminar.getVentas().values()) {
+            if (ventas.getEstado() != EstadoCompra.Completada || ventas.getEstado() != EstadoCompra.Cancelada) {
+                ventasActivas = true;
+                break;
+            }
+        }
+        for (Producto producto : usuarioEliminar.getProductos().values()) {
+            if (producto.getEstado() == EstadoProducto.Activo) {
+                productosActivos = true;
+                break;
+            }
+        }
+        if (productosActivos || comprasActivas || ventasActivas) {
+            throw new Excepcion("No se puede realizar la eliminacion de la cuenta debido a que tiene: " +
+                    ((productosActivos) ? "Productos activos. " : "") +
+                    ((comprasActivas) ? "Compras en proceso. " : "") +
+                    ((ventasActivas) ? "Ventas en proceso." : ""));
+        }
+        usuarioEliminar.setEstado(EstadoUsuario.Eliminado);
+        usuarioRepository.save(usuarioEliminar);
+        googleSMTP.enviarCorreo(usuarioEliminar.getCorreo(), "Su cuenta en ShopNow (correo: " + usuario.getCorreo() + ") ha sido eliminada satisfactoriamente.", "Cuenta de ShopNow - Eliminada");
     }
 
     private DtUsuarioSlim getDtUsuarioSlim(Usuario usuario) {
