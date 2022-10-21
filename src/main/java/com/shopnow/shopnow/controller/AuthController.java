@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 @RestController
@@ -31,7 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/recuperarContrasena")
-    public ResponseEntity<String> recuperarContrasena(@RequestParam(value = "correo") String correo) {
+    public ResponseEntity<String> recuperarContrasena(@RequestParam(value = "correo") String correo) throws NoSuchAlgorithmException {
         authService.recuperarContrasena(correo);
         return new ResponseEntity<>("Accion realizada!!!", HttpStatus.OK);
     }

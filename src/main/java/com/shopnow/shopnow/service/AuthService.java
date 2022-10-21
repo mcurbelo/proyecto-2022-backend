@@ -27,6 +27,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -106,10 +108,14 @@ public class AuthService {
     }
 
 
-    public void recuperarContrasena(String correo) {
+    public void recuperarContrasena(String correo) throws NoSuchAlgorithmException {
         Usuario usuario = usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).orElse(null);
         if (usuario != null) {
-            usuario.setResetPasswordToken(UUID.randomUUID().toString());
+            String chrs = "0123456789abcdefghijklmnopqrstuvwxyz-_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            SecureRandom secureRandom = SecureRandom.getInstanceStrong();
+            String token = secureRandom.ints(9, 0, chrs.length()).mapToObj(chrs::charAt)
+                    .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+            usuario.setResetPasswordToken(token);
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
             calendar.add(Calendar.HOUR, 1);
