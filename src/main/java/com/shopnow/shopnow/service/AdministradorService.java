@@ -2,6 +2,7 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
+import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
@@ -11,8 +12,11 @@ import com.shopnow.shopnow.repository.ProductoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +33,9 @@ public class AdministradorService {
 
     @Autowired
     DatosVendedorRepository datosVendedorRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     public void bloquearUsuario(UUID idUsuario, String motivo) {
         Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
@@ -110,7 +117,22 @@ public class AdministradorService {
             datosVendedorRepository.deleteById(datosVendedorViejo);
             googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ah sido rechazada, motivo:\n" + motivo + "\n Para mas información comunicarse con el soporte de la página", "Solicitud de vendedor rechazada");
         }
+    }
 
-
+    public void crearAdministrador(DtUsuario datos) throws NoSuchAlgorithmException {
+        if (usuarioRepository.existsByCorreoAndEstado(datos.getCorreo(), EstadoUsuario.Activo))
+            throw new Excepcion("El correo ya existe");
+        String chrs = "0123456789abcdefghijklmnopqrstuvwxyz-_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        SecureRandom secureRandom = SecureRandom.getInstanceStrong();
+        String contrasena = secureRandom.ints(16, 0, chrs.length()).mapToObj(chrs::charAt)
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+        Administrador administrador = Administrador.builder()
+                .correo(datos.getCorreo())
+                .nombre(datos.getNombre())
+                .apellido(datos.getApellido())
+                .password(passwordEncoder.encode(contrasena))
+                .build();
+        usuarioRepository.save(administrador);
+        googleSMTP.enviarCorreo(administrador.getCorreo(), "Se ha creado su cuenta de administrador con los siguientes datos de inicio de sesión\n\nCorreo: " + datos.getCorreo() + "\nContraseña: " + contrasena + "", "Nueva cuenta de adminstrador - ShopNow");
     }
 }
