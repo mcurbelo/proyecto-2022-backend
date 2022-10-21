@@ -2,7 +2,7 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.DtUsuario;
+import com.shopnow.shopnow.model.datatypes.DtUsuarioSlim;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
@@ -13,6 +13,7 @@ import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.NoSuchAlgorithmException;
@@ -20,6 +21,7 @@ import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.UUID;
 
+@Service
 public class AdministradorService {
 
     @Autowired
@@ -41,7 +43,7 @@ public class AdministradorService {
         Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
         usuario.setEstado(EstadoUsuario.Bloqueado);
         usuarioRepository.save(usuario);
-        googleSMTP.enviarCorreo(usuario.getCorreo(), "Usted ha sido bloqueado del sitio ShopNow por el siguiente motivo:\n" + motivo + ".\n Para más información comunicarse con el soporte de la aplicación.", "Usuario bloqueado en ShopNow");
+        googleSMTP.enviarCorreo(usuario.getCorreo(), "Usted ha sido bloqueado del sitio ShopNow por el siguiente motivo:\n" + motivo + ".\nPara más información comunicarse con el soporte de la aplicación.", "Usuario bloqueado en ShopNow");
     }
 
     public void desbloquearUsuario(UUID idUsuario) {
@@ -51,7 +53,7 @@ public class AdministradorService {
         googleSMTP.enviarCorreo(usuario.getCorreo(), "Usted ha sido desbloqueado del sitio ShopNow, ya puede volver a utilizar su cuenta con normalidad al recibir este mensaje.", "Usuario desbloqueado en ShopNow");
     }
 
-    public void eliminarUsuario(UUID idUsuario) {
+    public void eliminarUsuario(UUID idUsuario, String motivo) {
         Usuario usuario = usuarioRepository.findById(idUsuario).orElseThrow(() -> new Excepcion("El usuario no existe"));
         if (usuario.getEstado() == EstadoUsuario.Eliminado) {
             throw new Excepcion("El usuario ya se encuentra en ese estado");
@@ -60,33 +62,36 @@ public class AdministradorService {
             for (Compra compra : ((Generico) usuario).getCompras().values()) {
                 if (compra.getEstado() != EstadoCompra.Completada || compra.getEstado() != EstadoCompra.Cancelada) {
                     //Devolucion
+                    //Envio de correo
                     break;
                 }
             }
             for (Compra venta : ((Generico) usuario).getVentas().values()) {
                 if (venta.getEstado() != EstadoCompra.Completada || venta.getEstado() != EstadoCompra.Cancelada) {
                     //Devolucion
+                    //Envio de correo
                     break;
                 }
             }
         }
         usuario.setEstado(EstadoUsuario.Eliminado);
         usuarioRepository.save(usuario);
+        googleSMTP.enviarCorreo(usuario.getCorreo(), "Su cuenta ha sido eliminada del sitio ShopNow por el siguiente motivo:\n" + motivo + ".\nPara más información comunicarse con el soporte de la aplicación.", "Usuario eliminado de ShopNow");
     }
 
-    public void revisarSolicitudNuevoVendedor(UUID idUsuario, boolean aceptar, String motivo) {
-        Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Bloqueado).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
+    public void respuestaSolicitud(UUID idUsuario, boolean aceptar, String motivo) {
+        Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
         if (usuario instanceof Administrador) {
             throw new Excepcion("El usuario no esta disponible para esta funcionalidad");
         }
         if (((Generico) usuario).getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado) {
-            throw new Excepcion("El usuario no disponible para esta funcionalidad");
+            throw new Excepcion("Usuario seleccionado no disponible para esta funcionalidad");
         }
 
         if (aceptar) {
             ((Generico) usuario).getDatosVendedor().setEstadoSolicitud(EstadoSolicitud.Aceptado);
             usuarioRepository.save(usuario);
-            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ah sido aceptada con éxito, vuelva a iniciar sesión para obtener sus nuevas funcionalidades.\nAdemás su producto enviado en la solicitd se ah coloca a la venta", "Solicitud de vendedor aceptada");
+            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ah sido aceptada con éxito, vuelva a iniciar sesión para obtener sus nuevas funcionalidades.\nAdemás su producto enviado en la solicitud se colocó a la venta", "Solicitud de vendedor aceptada");
             for (Producto producto : ((Generico) usuario).getProductos().values()) { //Solo seria uno.
                 producto.setEstado(EstadoProducto.Activo);
                 productoRepository.save(producto);
@@ -115,11 +120,11 @@ public class AdministradorService {
             productoRepository.eliminarProductoCategoria(idProducto);
             productoRepository.delete(producto);
             datosVendedorRepository.deleteById(datosVendedorViejo);
-            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ah sido rechazada, motivo:\n" + motivo + "\n Para mas información comunicarse con el soporte de la página", "Solicitud de vendedor rechazada");
+            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ah sido rechazada, motivo:\n\n" + motivo + "\n\nPara mas información comunicarse con el soporte de la página.", "Solicitud de vendedor rechazada");
         }
     }
 
-    public void crearAdministrador(DtUsuario datos) throws NoSuchAlgorithmException {
+    public void crearAdministrador(DtUsuarioSlim datos) throws NoSuchAlgorithmException {
         if (usuarioRepository.existsByCorreoAndEstado(datos.getCorreo(), EstadoUsuario.Activo))
             throw new Excepcion("El correo ya existe");
         String chrs = "0123456789abcdefghijklmnopqrstuvwxyz-_ABCDEFGHIJKLMNOPQRSTUVWXYZ";

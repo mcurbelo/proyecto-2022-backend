@@ -136,10 +136,10 @@ public class CompradorService {
             local = new Direccion(null, infoLocal.getCalle(), infoLocal.getNumero(), infoLocal.getDepartamento(), infoLocal.getNotas());
             direccionRepository.saveAndFlush(local);
         } else {
-            Optional<Direccion> resulDireccion = direccionRepository.findById(idDireccion);
-            if (resulDireccion.isEmpty())
-                throw new Excepcion("El identificador de direccion no existe");
-            local = resulDireccion.get();
+            local = direccionRepository.findById(idDireccion).orElseThrow(() -> new Excepcion("El identificador de direccion no existe"));
+            if (direccionRepository.yaPerteneceAUnaEmpresa(local.getId())) {
+                throw new Excepcion("Esa direccion ya pertenece a un vendedor");
+            }
         }
         Map<Integer, Direccion> locales = new HashMap<>();
         locales.put(local.getId(), local);
