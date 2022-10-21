@@ -206,6 +206,7 @@ public class CompradorService {
         return response;
     }
 
+
     private boolean datosEmpresaValidos(String nombre, String rut, String telefono) {
         List<String> datos = new ArrayList<>(Arrays.asList(nombre, rut, telefono));
         return !datos.contains(null) && !datos.contains("");
@@ -220,9 +221,10 @@ public class CompradorService {
     }
 
     private DtCompraSlimComprador generarDtCompraSlimComprador(Compra compra) {
-        Usuario vendedor = compraRepository.obtenerVendedor(compra.getId());
+        Generico vendedor = (Generico) compraRepository.obtenerVendedor(compra.getId());
         String nombreProducto = compra.getInfoEntrega().getProducto().getNombre();
+        String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
 
-        return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), vendedor.getNombre() + " " + vendedor.getApellido(), nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
+        return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
     }
 }
