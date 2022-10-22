@@ -48,6 +48,9 @@ public class ReclamoService {
     @Autowired
     FirebaseMessagingService firebaseMessagingService;
 
+    @Autowired
+    BraintreeUtils braintreeUtils;
+
     public void iniciarReclamo(DtAltaReclamo datos, UUID idCompra, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
 
         Generico comprador = (Generico) usuarioRepository.findByIdAndEstado(idComprador, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("Usuario inhabilitado"));
@@ -110,7 +113,10 @@ public class ReclamoService {
         //Logica
         Note notificacionComprador;
         if (resolucion == TipoResolucion.Devolucion) {
-            //TODO hacer devolucion Braintree
+            boolean success = braintreeUtils.devolverDinero(compra.getIdTransaccion());
+            if (!success) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "No se puede realizar la devolucion de dinero");
+            }
             reclamo.setResuelto(TipoResolucion.Devolucion);
             reclamoRepository.save(reclamo);
             if (!comprador.getWebToken().equals("")) {
