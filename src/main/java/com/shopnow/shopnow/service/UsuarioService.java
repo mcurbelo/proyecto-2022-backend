@@ -241,7 +241,7 @@ public class UsuarioService {
         }
         usuarioEliminar.setEstado(EstadoUsuario.Eliminado);
         usuarioRepository.save(usuarioEliminar);
-        googleSMTP.enviarCorreo(usuarioEliminar.getCorreo(), "Su cuenta en ShopNow (correo: " + usuario.getCorreo() + ") ha sido eliminada satisfactoriamente.", "Cuenta de ShopNow - Eliminada");
+        googleSMTP.enviarCorreo(usuarioEliminar.getCorreo(), "Su cuenta en ShopNow (correo: " + usuario.getCorreo() + ") ha sido eliminada satisfactoriamente.", "Cuenta eliminada - ShopNow");
     }
 
     private DtUsuarioSlim getDtUsuarioSlim(Usuario usuario) {
