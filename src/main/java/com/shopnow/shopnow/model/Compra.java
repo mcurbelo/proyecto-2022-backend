@@ -37,4 +37,7 @@ public class Compra {
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Cupon cuponAplicado;
+
+    // @Column(nullable = false, unique = true)
+    private String idTransaccion;
 }
