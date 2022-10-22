@@ -169,7 +169,7 @@ public class CompraService {
         Map<String, String> respuesta = new LinkedHashMap<>();
         Result<Transaction> resultado = braintreeUtils.hacerPago(comprador.getBraintreeCustomerId(), tarjeta.getToken(), String.valueOf(precio));
         if (resultado.isSuccess()) {
-            transaccionId = resultado.getTransaction().getId();
+            transaccionId = resultado.getTarget().getId();
         } else if (resultado.getTransaction() != null) {
             Transaction transaction = resultado.getTransaction();
             respuesta.put("Failed!", transaction.getId());
