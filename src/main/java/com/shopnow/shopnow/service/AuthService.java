@@ -2,7 +2,7 @@ package com.shopnow.shopnow.service;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.*;
-import com.google.firebase.FirebaseApp;
+import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Usuario;
@@ -17,20 +17,26 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
 @Service
 public class AuthService {
+    @Autowired
+    GoogleSMTP googleSMTP;
     @Autowired
     private UsuarioRepository usuarioRepo;
     @Autowired
@@ -39,7 +45,6 @@ public class AuthService {
     private AuthenticationManager authManager;
     @Autowired
     private PasswordEncoder passwordEncoder;
-
     private String bucketName;
     private String projectId;
     private StorageOptions storageOptions;
@@ -49,7 +54,7 @@ public class AuthService {
         bucketName = "shopnowproyecto2022.appspot.com";
         projectId = "shopnowproyecto2022";
 
-        this.storageOptions=  StorageOptions.newBuilder().setCredentials(GoogleCredentials.fromStream(new ClassPathResource("firebase-service-account.json").getInputStream()))
+        this.storageOptions = StorageOptions.newBuilder().setCredentials(GoogleCredentials.fromStream(new ClassPathResource("firebase-service-account.json").getInputStream()))
                 .setProjectId(projectId).build();
     }
 
@@ -73,16 +78,16 @@ public class AuthService {
 
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Generico usuario = Generico.builder()
-                                            .fechaNac(new Date())
-                                            .nombre(datosUsuario.getNombre())
-                                            .apellido(datosUsuario.getNombre()).correo(datosUsuario.getCorreo())
-                                            .estado(EstadoUsuario.Activo)
-                                            .imagen(urlImagen).mobileToken("")
-                                            .webToken("")
-                                            .password(encodedPass)
-                                            .telefono(datosUsuario.getTelefono())
-                                            .fechaNac(datosUsuario.getFechaNac())
-                                            .build();
+                .fechaNac(new Date())
+                .nombre(datosUsuario.getNombre())
+                .apellido(datosUsuario.getNombre()).correo(datosUsuario.getCorreo())
+                .estado(EstadoUsuario.Activo)
+                .imagen(urlImagen).mobileToken("")
+                .webToken("")
+                .password(encodedPass)
+                .telefono(datosUsuario.getTelefono())
+                .fechaNac(datosUsuario.getFechaNac())
+                .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
         return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString());
@@ -108,6 +113,34 @@ public class AuthService {
     }
 
 
+    public void recuperarContrasena(String correo) throws NoSuchAlgorithmException {
+        Usuario usuario = usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).orElse(null);
+        if (usuario != null) {
+            String chrs = "0123456789abcdefghijklmnopqrstuvwxyz-_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            SecureRandom secureRandom = SecureRandom.getInstanceStrong();
+            String token = secureRandom.ints(9, 0, chrs.length()).mapToObj(chrs::charAt)
+                    .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+            usuario.setResetPasswordToken(token);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.HOUR, 1);
+            usuario.setExpiracionPasswordToken(calendar.getTime());
+            usuarioRepo.save(usuario);
+            googleSMTP.enviarCorreo(correo, "Para reiniciar tu contraseña en el sitio ShopNow, utiliza el siguiente codigo: " + usuario.getResetPasswordToken() + " ingresandolo en el campo solicitado.\nEste código tiene validez de 1 hora.", "Solicitud de reinicio de contraseña");
+        }
+    }
+
+    public void reiniciarContrasena(String token, String nuevaContra) {
+        Usuario usuario = usuarioRepo.findByResetPasswordToken(token).orElseThrow(() -> new Excepcion("Token incorrecto"));
+        if (usuario.getExpiracionPasswordToken().before(new Date())) {
+            throw new Excepcion("Tiempo de validez del token finalizado");
+        }
+        usuario.setPassword(passwordEncoder.encode(nuevaContra));
+        usuario.setResetPasswordToken(null);
+        usuario.setResetPasswordToken(null);
+        usuarioRepo.save(usuario);
+
+    }
 
 
     /*Funciones auxiliares*/
@@ -122,7 +155,7 @@ public class AuthService {
         BlobId blobId = BlobId.of(bucketName, objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
         Blob blob = storage.create(blobInfo, Files.readAllBytes(filePath));
-        URL url = blob.signUrl( 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature());
+        URL url = blob.signUrl(15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature());
 
         String tempurl = String.format("https://firebasestorage.googleapis.com/v0/b/shopnowproyecto2022.appspot.com/o/%s?alt=media", URLEncoder.encode(objectName, StandardCharsets.UTF_8));
 

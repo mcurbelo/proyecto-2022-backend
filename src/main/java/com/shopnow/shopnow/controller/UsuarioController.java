@@ -1,19 +1,10 @@
 package com.shopnow.shopnow.controller;
 
 
-import com.shopnow.shopnow.model.Usuario;
-import com.shopnow.shopnow.model.datatypes.DtUsuario;
-import com.shopnow.shopnow.repository.UsuarioRepository;
-import com.shopnow.shopnow.service.UsuarioService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.bind.annotation.*;
-import java.util.Optional;
 import com.braintreegateway.BraintreeGateway;
-import com.shopnow.shopnow.model.datatypes.DtModificarUsuario;
-import com.shopnow.shopnow.model.datatypes.DtTarjeta;
+import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.service.UsuarioService;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -32,6 +24,8 @@ public class UsuarioController {
 
     @Autowired
     UsuarioService usuarioService;
+    @Autowired
+    BraintreeGateway gateway;
 
 
     @GetMapping("/{uuid}/infoUsuario")
@@ -54,6 +48,7 @@ public class UsuarioController {
         return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
     }
 
+
     @PutMapping("/{id}/infoBasica")
     public ResponseEntity<String> modificarInformacionBasica(@PathVariable(value = "id") UUID id, @RequestBody DtUsuario datos) throws IOException {
         try {
@@ -71,18 +66,39 @@ public class UsuarioController {
         return ResponseEntity.ok().build();
     }
 
-//    @GetMapping()
-//    public Map<String, Object> busquedaDeUsuarios(
-//            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-//            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
-//            @RequestParam(value = "sortBy", defaultValue = "apellido", required = false) String sortBy,
-//            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-//            @RequestBody(required = false) DtFiltrosUsuario filtros) {
-//        return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
-//    }
+
+    @GetMapping()
+    public Map<String, Object> busquedaDeUsuarios(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+           @RequestParam(value = "sortBy", defaultValue = "apellido", required = false) String sortBy,
+           @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestBody(required = false) DtFiltrosUsuario filtros) {
+        return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
+    }
 
     @GetMapping("/{id}/esVendedor")
     public Boolean esVendedor(@PathVariable(value = "id") UUID id) {
         return usuarioService.esvendedor(id);
+
+    @GetMapping("/{id}/tarjetas")
+    public ResponseEntity<List<CreditCardRef>> fetchTarjetas(@PathVariable(value = "id") UUID id) {
+        return ResponseEntity.ok().body(usuarioService.getTarjetas(id));
+    }
+
+    @GetMapping()
+    public Map<String, Object> busquedaDeUsuarios(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "apellido", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestBody(required = false) DtFiltrosUsuario filtros) {
+        return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> eliminarCuenta(@PathVariable(value = "id") UUID id) {
+        usuarioService.eliminarMiCuenta(id);
+        return new ResponseEntity<>("Cuenta eliminada con exito!!!", HttpStatus.OK);
     }
 }

@@ -2,12 +2,7 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
-
-import com.shopnow.shopnow.model.datatypes.DtEventoInfo;
-import com.shopnow.shopnow.model.datatypes.DtFiltros;
-import com.shopnow.shopnow.model.datatypes.DtProductoSlim;
-import com.shopnow.shopnow.model.datatypes.DtProducto;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
@@ -24,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,9 +42,6 @@ public class ProductoService {
     EventoPromocionalRepository eventoPromocionalRepository;
 
     public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes) throws Excepcion, IOException {
-        //TODO Para testear
-        categoriaRepository.save(Categoria.builder().nombre("Tecnologia").build());
-
         if (datosProducto.getFechaFin() != null && datosProducto.getFechaFin().before(new Date())) {
             throw new Excepcion("La fecha de fin es invalida");
         }
@@ -107,77 +100,56 @@ public class ProductoService {
         if (!sortBy.matches("nombre|fechaInicio|precio|permiteEnvio")) {
             throw new Excepcion("Atributo de ordenamiento invalido");
         }
-
-        EventoPromocional evento = new EventoPromocional();
-        if (filtros.getIdEventoPromocional() != null) {
-            Optional<EventoPromocional> resevento = eventoPromocionalRepository.findById(filtros.getIdEventoPromocional());
-            if (resevento.isEmpty())
-                throw new Excepcion("El id del evento no existe");
-            else
-                evento = resevento.get();
-            if (evento.getFechaFin().before(new Date()) || evento.getFechaInicio().after(new Date())) { //Si ya termino o si aun no comenzo
-                throw new Excepcion("El evento no esta disponible");
-            }
-        }
-        List<UUID> productosIdEnCategoria = new ArrayList<>();
-        if (filtros.getCategorias() != null) {
-            List<Categoria> categorias = categoriaRepository.findAllById(filtros.getCategorias());
-            List<UUID> productosFiltro = new ArrayList<>();
-            for (Categoria categoria : categorias) {
-                productosFiltro.addAll(categoria.getProductos().keySet());
-            }
-            productosIdEnCategoria = productosFiltro.stream().distinct().collect(Collectors.toList()); //Quitamos repetidos :)
-        }
-
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-
-        // create Pageable instance
         Page<Producto> productos;
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-
-        List<UUID> productosValidos = productoRepository.productosValidosParaListar(); //Obtengo todos los id's de productos validos
         List<UUID> productosCumplenFiltro;
 
-        if (filtros.getCategorias() != null && filtros.getNombre() == null && filtros.getIdEventoPromocional() == null) { // 1 0 0
-            productosCumplenFiltro = productosIdEnCategoria;
+        EventoPromocional evento;
 
-        } else if (filtros.getCategorias() == null && filtros.getNombre() != null && filtros.getIdEventoPromocional() == null) { // 0 1 0
-            productosCumplenFiltro = productoRepository.findByNombreContaining(filtros.getNombre());
+        if (filtros != null) {
+            List<UUID> productosIdEnEventoPromocional = null;
+            if (filtros.getIdEventoPromocional() != null) {
+                Optional<EventoPromocional> resevento = eventoPromocionalRepository.findById(filtros.getIdEventoPromocional());
+                if (resevento.isEmpty())
+                    throw new Excepcion("El id del evento no existe");
+                else
+                    evento = resevento.get();
+                if (evento.getFechaFin().before(new Date()) || evento.getFechaInicio().after(new Date())) { //Si ya termino o si aun no comenzo
+                    throw new Excepcion("El evento no esta disponible");
+                }
+                List<UUID> soloProductosValidos = new ArrayList<>();
+                for (Producto producto : evento.getProductos().values()) {
+                    if (producto.getEstado() == EstadoProducto.Activo && producto.getFechaFin().after(new Date()))
+                        soloProductosValidos.add(producto.getId());
+                }
+                productosIdEnEventoPromocional = soloProductosValidos;
+            }
 
-        } else if (filtros.getCategorias() == null && filtros.getNombre() == null && filtros.getIdEventoPromocional() != null) { // 0 0 1
-            productosCumplenFiltro = evento.getProductos().keySet().stream().toList();
-        } else if (filtros.getCategorias() != null && filtros.getNombre() != null && filtros.getIdEventoPromocional() == null) { // 1 1 0
-            List<UUID> productosFiltro2 = productoRepository.findByNombreContaining(filtros.getNombre());
-            productosCumplenFiltro = productosIdEnCategoria.stream()
-                    .distinct()
-                    .filter(productosFiltro2::contains)
-                    .collect(Collectors.toList());
-        } else if (filtros.getCategorias() == null && filtros.getNombre() != null && filtros.getIdEventoPromocional() != null) { // 0 1 1
-            productosCumplenFiltro = productoRepository.buscarProductoEnEventoYporNombre(filtros.getIdEventoPromocional(), filtros.getNombre());
-        } else if (filtros.getCategorias() != null && filtros.getNombre() == null && filtros.getIdEventoPromocional() != null) { // 1 0 1
-            List<UUID> productosFiltro2 = evento.getProductos().keySet().stream().toList();
-            productosCumplenFiltro = productosIdEnCategoria.stream()
-                    .distinct()
-                    .filter(productosFiltro2::contains)
-                    .collect(Collectors.toList());
-        } else if (filtros.getCategorias() != null && filtros.getNombre() != null && filtros.getIdEventoPromocional() != null) { // 1 1 1
-            List<UUID> productosFiltro2 = productoRepository.buscarProductoEnEventoYporNombre(filtros.getIdEventoPromocional(), filtros.getNombre());
-            productosCumplenFiltro = productosIdEnCategoria.stream()
-                    .distinct()
-                    .filter(productosFiltro2::contains)
-                    .collect(Collectors.toList());
-        } else { // 0 0 0
-            productosCumplenFiltro = productosValidos;
-        }
-        if (productosCumplenFiltro != productosValidos) {
-            List<UUID> productosIDParaMostar = productosValidos.stream()
-                    .distinct()
-                    .filter(productosCumplenFiltro::contains).toList();
-            productos = productoRepository.findByIdIn(productosIDParaMostar, pageable);
-        } else {
-            productos = productoRepository.findByIdIn(productosValidos, pageable);
-        }
+            List<UUID> productosIdEnCategoria = null;
+            if (filtros.getCategorias() != null) {
+                List<Categoria> categorias = categoriaRepository.findAllById(filtros.getCategorias());
+                List<Producto> productosFiltro = new ArrayList<>();
+                for (Categoria categoria : categorias) {
+                    productosFiltro.addAll(categoria.getProductos().values().stream().toList());
+                }
+                List<UUID> soloProductosValidos = new ArrayList<>();
+                for (Producto producto : productosFiltro) {
+                    if (producto.getEstado() == EstadoProducto.Activo && (producto.getFechaFin() == null || producto.getFechaFin().after(new Date()))) {
+                        soloProductosValidos.add(producto.getId());
+                    }
+                }
+                productosIdEnCategoria = soloProductosValidos.stream().distinct().collect(Collectors.toList()); //Quitamos repetidos :)
+            }
+            List<UUID> productosIdConNombre = null;
+            if (filtros.getNombre() != null) {
+                productosIdConNombre = productoRepository.productosContenganNombre(filtros.getNombre());
+            }
+            productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosIdEnCategoria, productosIdConNombre, productosIdEnEventoPromocional).stream().toList();
+            productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
 
+        } else
+            productos = productoRepository.productosValidosParaListar(pageable);
 
         List<Producto> listaDeProductos = productos.getContent();
 
@@ -191,7 +163,7 @@ public class ProductoService {
         response.put("totalPages", productos.getTotalPages());
 
         //Si se quiere obtener info de evento activo
-        if (filtros.getRecibirInfoEventoActivo()) {
+        if (filtros != null && filtros.getRecibirInfoEventoActivo() != null && filtros.getRecibirInfoEventoActivo()) {
             Optional<EventoPromocional> eventoActivo = eventoPromocionalRepository.eventoActivo();
             if (eventoActivo.isPresent()) {
                 EventoPromocional eventoInfo = eventoActivo.get();
@@ -206,7 +178,7 @@ public class ProductoService {
 
     }
 
-    
+
     public DtProducto obtenerProducto(UUID id) {
         Optional<Producto> resultado = productoRepository.findById(id);
         Producto producto;
@@ -216,14 +188,7 @@ public class ProductoService {
             producto = resultado.get();
         }
 
-        UUID idVendedor = productoRepository.vendedorProducto(id);
-        Optional<Usuario> res = usuarioRepository.findById(idVendedor);
-        Generico usuario;
-        if (res.isEmpty()) {
-            throw new Excepcion("El usuario no existe");
-        } else {
-            usuario = (Generico) res.get();
-        }
+        Generico usuario = productoRepository.vendedorProducto(id);
         if (producto.getEstado() != EstadoProducto.Activo || usuario.getEstado() != EstadoUsuario.Activo) { //Verifico que el producto se pueda mostrar y ese usuario este activo
             throw new Excepcion("Este producto no se puede visualizar en este momento");
         }
@@ -242,19 +207,91 @@ public class ProductoService {
         Map<UUID, Compra> ventas = usuario.getVentas();  //Calculo la calificacion :)
         float sumaCalificacion = 0, calificacion = 0;
         if (ventas.size() != 0) {
+            int ventasCalificacion = 1;
             for (Compra venta : ventas.values()) {
-                sumaCalificacion += venta.getInfoEntrega().getCalificacion().getPuntuacion();
+                if (venta.getInfoEntrega().getCalificaciones().isEmpty()) {
+                    continue;
+                }
+                for (Calificacion calificacionItem : venta.getInfoEntrega().getCalificaciones()) {
+                    if (calificacionItem.getAutor().getId() == usuario.getId()) {
+                        sumaCalificacion += calificacionItem.getPuntuacion();
+                        ventasCalificacion++;
+                    }
+                }
+
             }
-            calificacion = sumaCalificacion / ventas.size();
+            calificacion = sumaCalificacion / ventasCalificacion;
         }
         //TODO Descontar el precio si esta en un evento promocional
-        return new DtProducto(id, idVendedor, linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), datosVendedor.getLocales());
+        return new DtProducto(id, usuario.getId(), linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios(), nombreVendedor, calificacion, usuario.getImagen(), (producto.getPermiteEnvio()) ? datosVendedor.getLocales() : new HashMap<>());
 
     }
-private DtProductoSlim generarDtProductoSlim(Producto producto) {
-        return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio());
-        }
 
+
+    public Map<String, Object> listarMisProductos(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltosMisProductos filtros, UUID id) {
+        if (!sortBy.matches("nombre|fechaInicio|precio|permiteEnvio")) {
+            throw new Excepcion("Atributo de ordenamiento invalido");
+        }
+        List<UUID> productosCumplenFiltro;
+
+        // create Pageable instance
+        Page<Producto> productos;
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+
+        if (filtros != null) {
+            List<UUID> productosIdConFecha = null;
+            if (filtros.getFecha() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String fecha = sdf.format(filtros.getFecha());
+                productosIdConFecha = productoRepository.misProductosPorFecha(id, fecha);
+            }
+            List<UUID> productosIdConEstado = null;
+            if (filtros.getEstado() != null) {
+                productosIdConEstado = productoRepository.misProductosPorEstado(id, filtros.getEstado().name());
+            }
+            List<UUID> productosIdConNombre = null;
+            if (filtros.getNombre() != null) {
+                productosIdConNombre = productoRepository.misProductosConNombre(id, filtros.getNombre());
+            }
+            List<UUID> productosEnCategorias = null;
+            if (filtros.getCategorias() != null) {
+                productosEnCategorias = new ArrayList<>();
+                for (String categoria : filtros.getCategorias()) {
+                    productosEnCategorias.addAll(productoRepository.misProductosEnCategoria(id, categoria));
+                }
+            }
+            productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosEnCategorias, productosIdConFecha, productosIdConEstado, productosIdConNombre).stream().toList();
+            productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
+        } else
+            productos = productoRepository.misProductos(id, pageable);
+
+
+        List<Producto> listaDeProductos = productos.getContent();
+
+        List<DtMiProducto> content = listaDeProductos.stream().map(this::generarDtMiProductos).collect(Collectors.toList());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("productos", content);
+        response.put("currentPage", productos.getNumber());
+        response.put("totalItems", productos.getTotalElements());
+        response.put("totalPages", productos.getTotalPages());
+        return response;
+    }
+
+    private DtProductoSlim generarDtProductoSlim(Producto producto) {
+        return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio(), producto.getStock());
+    }
+
+    private DtMiProducto generarDtMiProductos(Producto producto) {
+        List<String> urlImagenes = new ArrayList<>();
+        for (URLimagen url : producto.getImagenesURL()) {
+            urlImagenes.add(url.getUrl());
+        }
+        List<String> categorias = productoRepository.categoriasDelProducto(producto.getId());
+        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado());
+    }
 
     private DtEventoInfo generarDtEventoInfo(EventoPromocional evento) {
         List<DtProductoSlim> infoProductos = new ArrayList<>();

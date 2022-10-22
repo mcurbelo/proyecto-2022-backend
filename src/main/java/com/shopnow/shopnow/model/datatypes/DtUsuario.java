@@ -1,16 +1,13 @@
 package com.shopnow.shopnow.model.datatypes;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.google.common.primitives.Bytes;
-import com.shopnow.shopnow.model.Calificacion;
-import lombok.Builder;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.springframework.format.annotation.DateTimeFormat;
 
-
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @SuperBuilder
 public class DtUsuario {
+
    private String correo;
    private String password;
    private String nombre;
@@ -29,5 +27,6 @@ public class DtUsuario {
    public DtImagen imagen;
    public DtDatosVendedor datosVendedor;
    private Float calificacion;
+
 
 }

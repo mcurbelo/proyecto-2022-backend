@@ -1,24 +1,22 @@
 package com.shopnow.shopnow.model.datatypes;
 
 
+import com.shopnow.shopnow.model.enumerados.TipoReclamo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-public class DtCalificacion {
-    @NotNull
-    private Float puntuacion;
+public class DtAltaReclamo {
 
-    private String comentario;
+    @NotBlank
+    private String descripcion;
 
     @NotNull
-    private UUID autor;
+    private TipoReclamo tipo;
 }

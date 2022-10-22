@@ -17,10 +17,12 @@ import javax.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig  {
+public class SecurityConfig {
 
-    @Autowired private JWTFilter filter;
-    @Autowired private MyUserDetailsService uds;
+    @Autowired
+    private JWTFilter filter;
+    @Autowired
+    private MyUserDetailsService uds;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
