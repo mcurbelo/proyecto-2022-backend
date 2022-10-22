@@ -1,9 +1,10 @@
 package com.shopnow.shopnow.service;
 
 
+import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
-import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.model.enumerados.*;
 import com.shopnow.shopnow.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,6 @@ import com.braintreegateway.CustomerRequest;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.Usuario;
 
-import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,21 +51,6 @@ public class UsuarioService {
     GoogleSMTP googleSMTP;
 
 
-    @Autowired
-    DatosVendedorRepository datosVendedorRepository;
-    @Autowired
-    TarjetasRepository tarjetasRepository;
-
-    public DtUsuario infoUsuario(String correo) {
-
-
-    @Autowired
-    CalificacionesRepository calificacionesRepository;
-    @Autowired
-    FirebaseStorageService firebaseStorageService;
-    @Autowired
-    BraintreeUtils braintreeUtils;
-
     public DtUsuario infoUsuario(String uuid){
 
         Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByIdAndEstado(UUID.fromString(uuid), EstadoUsuario.Activo);
@@ -74,21 +59,42 @@ public class UsuarioService {
 
         DtDatosVendedor datosvendedor = null;
 
-          Map<UUID, Compra> compras = usuario.getCompras();
+        /*      Obtencion de calificaciones  comprador   */
+        Map<UUID, Compra> compras = usuario.getCompras();
         float sumaCalificacionComprador = 0, calificacionComprador = 0;
         if (compras.size() != 0) {
+            int comprasCalificacion = 1;
             for (Compra compra : compras.values()) {
-                sumaCalificacionComprador += compra.getInfoEntrega().getCalificacion().getPuntuacion();
+                if (compra.getInfoEntrega().getCalificaciones().isEmpty()) {
+                    continue;
+                }
+                for (Calificacion calificacionItem : compra.getInfoEntrega().getCalificaciones()) {
+                    if (calificacionItem.getAutor().getId() == usuario.getId()) {
+                        sumaCalificacionComprador += calificacionItem.getPuntuacion();
+                        comprasCalificacion++;
+                    }
+                }
             }
             calificacionComprador = sumaCalificacionComprador / compras.size();
         }
 
+
+        /*     Informacion de la parte vendedor    */
         if(usuario.getDatosVendedor() != null){
             Map<UUID, Compra> ventas = usuario.getVentas();
             float sumaCalificacionVendedor = 0, calificacionVendedor = 0;
             if (ventas.size() != 0) {
+                int ventasCalificacion = 1;
                 for (Compra venta : ventas.values()) {
-                    sumaCalificacionVendedor += venta.getInfoEntrega().getCalificacion().getPuntuacion();
+                    if (venta.getInfoEntrega().getCalificaciones().isEmpty()) {
+                        continue;
+                    }
+                    for (Calificacion calificacionItem : venta.getInfoEntrega().getCalificaciones()) {
+                        if (calificacionItem.getAutor().getId() == usuario.getId()) {
+                            sumaCalificacionVendedor += calificacionItem.getPuntuacion();
+                            ventasCalificacion++;
+                        }
+                    }
                 }
                 calificacionVendedor = sumaCalificacionVendedor / ventas.size();
             }

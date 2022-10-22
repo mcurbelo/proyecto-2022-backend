@@ -34,9 +34,6 @@ public class UsuarioController {
         return usuario;
     }
 
-    @Autowired
-    BraintreeGateway gateway;
-
     @PutMapping("/{id}/perfil")
     public ResponseEntity<String> modificarPerfil(@PathVariable(value = "id") UUID id, @RequestPart DtModificarUsuario datos, @RequestPart(required = false) MultipartFile imagen) throws IOException {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -67,19 +64,10 @@ public class UsuarioController {
     }
 
 
-    @GetMapping()
-    public Map<String, Object> busquedaDeUsuarios(
-            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
-           @RequestParam(value = "sortBy", defaultValue = "apellido", required = false) String sortBy,
-           @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestBody(required = false) DtFiltrosUsuario filtros) {
-        return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
-    }
-
     @GetMapping("/{id}/esVendedor")
     public Boolean esVendedor(@PathVariable(value = "id") UUID id) {
         return usuarioService.esvendedor(id);
+    }
 
     @GetMapping("/{id}/tarjetas")
     public ResponseEntity<List<CreditCardRef>> fetchTarjetas(@PathVariable(value = "id") UUID id) {
