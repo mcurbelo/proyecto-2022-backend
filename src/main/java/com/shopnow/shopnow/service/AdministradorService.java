@@ -7,6 +7,7 @@ import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.repository.CompraRepository;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
@@ -42,18 +43,21 @@ public class AdministradorService {
     @Autowired
     BraintreeUtils braintreeUtils;
 
+    @Autowired
+    CompraRepository compraRepository;
+
     public void bloquearUsuario(UUID idUsuario, String motivo) {
         Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
         usuario.setEstado(EstadoUsuario.Bloqueado);
         usuarioRepository.save(usuario);
-        googleSMTP.enviarCorreo(usuario.getCorreo(), "Usted ha sido bloqueado del sitio ShopNow por el siguiente motivo:\n" + motivo + ".\nPara más información comunicarse con el soporte de la aplicación.", "Usuario bloqueado en ShopNow");
+        googleSMTP.enviarCorreo(usuario.getCorreo(), "Usted ha sido bloqueado del sitio ShopNow por el siguiente motivo:\n" + motivo + ".\nPara más información comunicarse con el soporte de la aplicación.", "Usuario bloqueado - ShopNow");
     }
 
     public void desbloquearUsuario(UUID idUsuario) {
         Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Bloqueado).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
         usuario.setEstado(EstadoUsuario.Activo);
         usuarioRepository.save(usuario);
-        googleSMTP.enviarCorreo(usuario.getCorreo(), "Usted ha sido desbloqueado del sitio ShopNow, ya puede volver a utilizar su cuenta con normalidad al recibir este mensaje.", "Usuario desbloqueado en ShopNow");
+        googleSMTP.enviarCorreo(usuario.getCorreo(), "Usted ha sido desbloqueado del sitio ShopNow, ya puede volver a utilizar su cuenta con normalidad al recibir este mensaje.", "Usuario desbloqueado - ShopNow");
     }
 
     public void eliminarUsuario(UUID idUsuario, String motivo) {
@@ -63,14 +67,18 @@ public class AdministradorService {
         }
         if (usuario instanceof Generico) {
             for (Compra compra : ((Generico) usuario).getCompras().values()) {
-                if (compra.getEstado() != EstadoCompra.Completada || compra.getEstado() != EstadoCompra.Cancelada) {
+                if (compra.getEstado() == EstadoCompra.EsperandoConfirmacion) {
+                    braintreeUtils.devolverDinero(compra.getIdTransaccion());
+                    Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
+                    googleSMTP.enviarCorreo(vendedor.getCorreo(), "La venta que usted realizó a " + usuario.getNombre() + " " + usuario.getApellido() + " (con el identificador " + compra.getId() + ") fue cancelada debido a que la cuenta del comprador ha sido eliminada del sistema.\nCualquier inconveniente comunicarse con el soporte.", "Venta cancelada - ShopNow");
                 }
             }
             for (Compra venta : ((Generico) usuario).getVentas().values()) {
-                if (venta.getEstado() != EstadoCompra.Completada || venta.getEstado() != EstadoCompra.Cancelada) {
-                    //Devolucion
-                    //Envio de correo
-                    break;
+                if (venta.getEstado() == EstadoCompra.EsperandoConfirmacion) {
+                    braintreeUtils.devolverDinero(venta.getIdTransaccion());
+                    String nombreParaMostrar = (((Generico) usuario).getDatosVendedor().getNombreEmpresa() != null) ? ((Generico) usuario).getDatosVendedor().getNombreEmpresa() : usuario.getNombre() + " " + usuario.getApellido();
+                    Generico comprador = compraRepository.obtenerComprador(venta.getId());
+                    googleSMTP.enviarCorreo(comprador.getCorreo(), "La compra que usted realizó a " + nombreParaMostrar + " fue cancelada debido a que la cuenta del vendedor ha sido eliminada del sistema. Se ha devuelto el dinero de la compra (" + venta.getId() + ") a la tarjeta con la cual realizó el pago.\nCualquier inconveniente comunicarse con el soporte.", "Compra cancelada- ShopNow");
                 }
             }
             for (Producto producto : ((Generico) usuario).getProductos().values()) {
@@ -79,7 +87,7 @@ public class AdministradorService {
         }
         usuario.setEstado(EstadoUsuario.Eliminado);
         usuarioRepository.save(usuario);
-        googleSMTP.enviarCorreo(usuario.getCorreo(), "Su cuenta ha sido eliminada del sitio ShopNow por el siguiente motivo:\n" + motivo + ".\nPara más información comunicarse con el soporte de la aplicación.", "Usuario eliminado de ShopNow");
+        googleSMTP.enviarCorreo(usuario.getCorreo(), "Su cuenta ha sido eliminada del sitio ShopNow por el siguiente motivo:\n" + motivo + ".\nPara más información comunicarse con el soporte de la aplicación.", "Usuario eliminado - ShopNow");
     }
 
     public void respuestaSolicitud(UUID idUsuario, boolean aceptar, String motivo) {
