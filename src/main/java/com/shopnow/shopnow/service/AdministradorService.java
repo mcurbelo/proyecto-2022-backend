@@ -39,6 +39,9 @@ public class AdministradorService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    BraintreeUtils braintreeUtils;
+
     public void bloquearUsuario(UUID idUsuario, String motivo) {
         Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
         usuario.setEstado(EstadoUsuario.Bloqueado);
@@ -61,9 +64,6 @@ public class AdministradorService {
         if (usuario instanceof Generico) {
             for (Compra compra : ((Generico) usuario).getCompras().values()) {
                 if (compra.getEstado() != EstadoCompra.Completada || compra.getEstado() != EstadoCompra.Cancelada) {
-                    //Devolucion
-                    //Envio de correo
-                    break;
                 }
             }
             for (Compra venta : ((Generico) usuario).getVentas().values()) {
@@ -72,6 +72,9 @@ public class AdministradorService {
                     //Envio de correo
                     break;
                 }
+            }
+            for (Producto producto : ((Generico) usuario).getProductos().values()) {
+                producto.setEstado(EstadoProducto.BloqueadoADM);
             }
         }
         usuario.setEstado(EstadoUsuario.Eliminado);
