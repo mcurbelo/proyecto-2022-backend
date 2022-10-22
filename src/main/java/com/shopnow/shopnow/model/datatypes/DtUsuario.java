@@ -2,6 +2,7 @@ package com.shopnow.shopnow.model.datatypes;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.common.primitives.Bytes;
+import com.shopnow.shopnow.model.Calificacion;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,5 +27,7 @@ public class DtUsuario {
    @JsonFormat(pattern = "DD/MM/yyyy")
    public Date fechaNac;
    public DtImagen imagen;
+   public DtDatosVendedor datosVendedor;
+   private Float calificacion;
 
 }

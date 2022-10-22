@@ -33,15 +33,13 @@ public class UsuarioController {
     @Autowired
     UsuarioService usuarioService;
 
-    @GetMapping("/obtenerInfoUsuario/{uuid}")
-    @ResponseBody
-    public DtUsuario obtenerInfoUsuario(@PathVariable String uuid) {
+
+    @GetMapping("/{uuid}/infoUsuario")
+    public DtUsuario obtenerInfoUsuario(@PathVariable("uuid") String uuid) {
         DtUsuario usuario = usuarioService.infoUsuario(uuid);
         return usuario;
     }
 
-    @Autowired
-    UsuarioService usuarioService;
     @Autowired
     BraintreeGateway gateway;
 
@@ -55,11 +53,36 @@ public class UsuarioController {
         usuarioService.modificarDatosUsuario(id, datos, imagen);
         return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
     }
+
+    @PutMapping("/{id}/infoBasica")
+    public ResponseEntity<String> modificarInformacionBasica(@PathVariable(value = "id") UUID id, @RequestBody DtUsuario datos) throws IOException {
+        try {
+            usuarioService.modificarInfoBasica(id, datos);
+            return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>("Ocurrio un error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
     @PostMapping("/{id}/tarjetas")
     public ResponseEntity<String> agregarTarjeta(@PathVariable(value = "id") UUID id, @RequestBody DtTarjeta tarjeta) {
         usuarioService.agregarTarjeta(tarjeta, id);
         return ResponseEntity.ok().build();
     }
 
+//    @GetMapping()
+//    public Map<String, Object> busquedaDeUsuarios(
+//            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+//            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+//            @RequestParam(value = "sortBy", defaultValue = "apellido", required = false) String sortBy,
+//            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+//            @RequestBody(required = false) DtFiltrosUsuario filtros) {
+//        return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
+//    }
 
+    @GetMapping("/{id}/esVendedor")
+    public Boolean esVendedor(@PathVariable(value = "id") UUID id) {
+        return usuarioService.esvendedor(id);
+    }
 }
