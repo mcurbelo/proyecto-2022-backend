@@ -18,6 +18,9 @@ import java.util.UUID;
 public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     List<Producto> findByNombreContainingIgnoreCaseAndEstado(String nombre, EstadoProducto estado);
 
+    @Query(value = "select cast(id as varchar) from producto where estado='Activo' and stock>0 and COALESCE(fecha_fin,now())>=now() and nombre like %?1%", nativeQuery = true)
+    List<UUID> productosContenganNombre(String nombre);
+
     @Modifying
     @Transactional
     @Query(value = "delete from categoria_productos where productos_key=?1", nativeQuery = true)
@@ -30,7 +33,7 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
 
     Page<Producto> findByIdIn(Iterable<UUID> ids, Pageable pageable);
 
-    @Query(value = "select producto.* from producto where estado='Activo' and stock>0 and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')",
+    @Query(value = "select producto.* from producto where estado='Activo' and stock>0  and COALESCE(fecha_fin,now())>=now() and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')",
             countQuery = "select count(*) from producto where estado='Activo' and stock>0 and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')", nativeQuery = true)
     Page<Producto> productosValidosParaListar(Pageable pageable);
 

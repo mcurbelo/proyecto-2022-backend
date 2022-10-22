@@ -120,7 +120,7 @@ public class ProductoService {
                 }
                 List<UUID> soloProductosValidos = new ArrayList<>();
                 for (Producto producto : evento.getProductos().values()) {
-                    if (producto.getEstado() == EstadoProducto.Activo)
+                    if (producto.getEstado() == EstadoProducto.Activo && producto.getFechaFin().after(new Date()))
                         soloProductosValidos.add(producto.getId());
                 }
                 productosIdEnEventoPromocional = soloProductosValidos;
@@ -135,7 +135,7 @@ public class ProductoService {
                 }
                 List<UUID> soloProductosValidos = new ArrayList<>();
                 for (Producto producto : productosFiltro) {
-                    if (producto.getEstado() == EstadoProducto.Activo) {
+                    if (producto.getEstado() == EstadoProducto.Activo && (producto.getFechaFin() == null || producto.getFechaFin().after(new Date()))) {
                         soloProductosValidos.add(producto.getId());
                     }
                 }
@@ -143,16 +143,10 @@ public class ProductoService {
             }
             List<UUID> productosIdConNombre = null;
             if (filtros.getNombre() != null) {
-                List<Producto> productosConNombre = productoRepository.findByNombreContainingIgnoreCaseAndEstado(filtros.getNombre(), EstadoProducto.Activo); //Se puede optimizar a una sola
-                productosIdConNombre = new ArrayList<>();
-                for (Producto producto : productosConNombre) {
-                    productosIdConNombre.add(producto.getId());
-                }
+                productosIdConNombre = productoRepository.productosContenganNombre(filtros.getNombre());
             }
-            {
-                productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosIdEnCategoria, productosIdConNombre, productosIdEnEventoPromocional).stream().toList();
-                productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
-            }
+            productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosIdEnCategoria, productosIdConNombre, productosIdEnEventoPromocional).stream().toList();
+            productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
 
         } else
             productos = productoRepository.productosValidosParaListar(pageable);
@@ -169,7 +163,7 @@ public class ProductoService {
         response.put("totalPages", productos.getTotalPages());
 
         //Si se quiere obtener info de evento activo
-        if (filtros != null && filtros.getRecibirInfoEventoActivo()) {
+        if (filtros != null && filtros.getRecibirInfoEventoActivo() != null && filtros.getRecibirInfoEventoActivo()) {
             Optional<EventoPromocional> eventoActivo = eventoPromocionalRepository.eventoActivo();
             if (eventoActivo.isPresent()) {
                 EventoPromocional eventoInfo = eventoActivo.get();
