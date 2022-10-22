@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -27,14 +28,16 @@ public class ComprasController {
 
 
     @PostMapping()
-    public ResponseEntity<String> nuevaCompra(@Valid @RequestBody DtCompra datos) throws FirebaseMessagingException, FirebaseAuthException {
+    public ResponseEntity<Object> nuevaCompra(@Valid @RequestBody DtCompra datos) throws FirebaseMessagingException, FirebaseAuthException {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        compraService.nuevaCompra(datos);
+        Map<String, String> respuesta = compraService.nuevaCompra(datos);
         if (!datos.getCorreoComprador().equals(email)) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-
-        return new ResponseEntity<>("Compra realizada con exito!!!", HttpStatus.OK);
+        if (respuesta.size() == 1)
+            return new ResponseEntity<>("Compra realizada con exito!!!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>(respuesta, HttpStatus.BAD_GATEWAY);
     }
 
     @PutMapping("/enviadas/{id}")
