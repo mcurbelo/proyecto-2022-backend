@@ -47,6 +47,5 @@ public class ProductoController {
     @GetMapping("/{id}")
     public DtProducto informacionProducto(@PathVariable(value = "id") UUID id) {
         return productoService.obtenerProducto(id);
-
     }
 }

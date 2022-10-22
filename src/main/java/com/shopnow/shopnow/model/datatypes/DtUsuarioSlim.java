@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
 import java.util.UUID;
 
 @Getter
@@ -14,8 +15,11 @@ import java.util.UUID;
 @ToString
 public class DtUsuarioSlim {
     private UUID id;
+    @NotBlank
     private String correo;
+    @NotBlank
     private String nombre;
+    @NotBlank
     private String apellido;
     private EstadoUsuario estadoUsuario;
 }
