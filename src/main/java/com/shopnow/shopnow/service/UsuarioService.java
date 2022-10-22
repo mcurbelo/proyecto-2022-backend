@@ -1,15 +1,23 @@
 package com.shopnow.shopnow.service;
 
-import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
-import com.shopnow.shopnow.controller.responsetypes.Excepcion;
+
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
-import com.shopnow.shopnow.model.enumerados.EstadoCompra;
-import com.shopnow.shopnow.model.enumerados.EstadoProducto;
+import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+import com.braintreegateway.BraintreeGateway;
+import com.braintreegateway.CreditCardRequest;
+import com.braintreegateway.CustomerRequest;
+import com.shopnow.shopnow.controller.responsetypes.Excepcion;
+import com.shopnow.shopnow.model.Usuario;
+
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
-import com.shopnow.shopnow.repository.DatosVendedorRepository;
-import com.shopnow.shopnow.repository.TarjetasRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,7 +29,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
+
 import java.util.*;
+
 
 @Service
 public class UsuarioService {
@@ -39,21 +50,104 @@ public class UsuarioService {
     @Autowired
     GoogleSMTP googleSMTP;
 
+
+    @Autowired
+    DatosVendedorRepository datosVendedorRepository;
+    @Autowired
+    TarjetasRepository tarjetasRepository;
+
     public DtUsuario infoUsuario(String correo) {
 
-        Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByCorreo(correo);
 
-        Usuario usuario = usuarioBaseDatos.get();
+    @Autowired
+    CalificacionesRepository calificacionesRepository;
+    @Autowired
+    FirebaseStorageService firebaseStorageService;
+    @Autowired
+    BraintreeUtils braintreeUtils;
+
+    public DtUsuario infoUsuario(String uuid){
+
+        Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByIdAndEstado(UUID.fromString(uuid), EstadoUsuario.Activo);
+
+        Generico usuario = (Generico) usuarioBaseDatos.get();
+
+        DtDatosVendedor datosvendedor = null;
+
+          Map<UUID, Compra> compras = usuario.getCompras();
+        float sumaCalificacionComprador = 0, calificacionComprador = 0;
+        if (compras.size() != 0) {
+            for (Compra compra : compras.values()) {
+                sumaCalificacionComprador += compra.getInfoEntrega().getCalificacion().getPuntuacion();
+            }
+            calificacionComprador = sumaCalificacionComprador / compras.size();
+        }
+
+        if(usuario.getDatosVendedor() != null){
+            Map<UUID, Compra> ventas = usuario.getVentas();
+            float sumaCalificacionVendedor = 0, calificacionVendedor = 0;
+            if (ventas.size() != 0) {
+                for (Compra venta : ventas.values()) {
+                    sumaCalificacionVendedor += venta.getInfoEntrega().getCalificacion().getPuntuacion();
+                }
+                calificacionVendedor = sumaCalificacionVendedor / ventas.size();
+            }
+            datosvendedor = DtDatosVendedor.builder().
+                    rut(usuario.getDatosVendedor().getRut())
+                    .nombreEmpresa(usuario.getDatosVendedor().getNombreEmpresa())
+                    .telefonoEmpresa(usuario.getDatosVendedor().getTelefonoEmpresa())
+                    .locales(usuario.getDatosVendedor().getLocales())
+                    .estadoSolicitud(usuario.getDatosVendedor().getEstadoSolicitud()).calificacion(calificacionVendedor).build();
+        }
 
         DtUsuario usuarioReturn = DtUsuario.builder()
                 .nombre(usuario.getNombre())
                 .apellido(usuario.getApellido())
                 .correo(usuario.getCorreo())
                 .imagen(DtImagen.builder().data(usuario.getImagen()).build())
-                .telefono(usuario.getTelefono()).build();
+                .telefono(usuario.getTelefono())
+                .calificacion(calificacionComprador)
+                .datosVendedor(datosvendedor).build();
 
         return usuarioReturn;
     }
+
+
+    public void modificarInfoBasica(UUID uuid, DtUsuario usuario) throws IOException {
+
+        Generico usuarioBD;
+        Optional<Usuario> res = usuarioRepository.findByIdAndEstado(uuid, EstadoUsuario.Activo);
+        if (res.isEmpty()) {
+            throw new Excepcion("El usuario no existe");
+        } else {
+            usuarioBD = (Generico) res.get();
+        }
+
+        usuarioBD.setNombre(usuario.getNombre());
+        usuarioBD.setApellido(usuario.getApellido());
+        usuarioBD.setTelefono(usuario.getTelefono());
+        usuarioBD.setCorreo(usuario.getCorreo());
+        usuarioBD.setImagen(usuario.getImagen().getData());
+
+        usuarioRepository.save(usuarioBD);
+
+    }
+
+    public boolean esvendedor(UUID id){
+        Generico usuario;
+        Optional<Usuario> res = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
+        if (res.isEmpty()) {
+            throw new Excepcion("El usuario no existe");
+        } else {
+            usuario = (Generico) res.get();
+            if(usuario.getDatosVendedor() != null){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+
 
     public void modificarDatosUsuario(UUID id, DtModificarUsuario datos, MultipartFile imagen) throws IOException {
         Generico usuario;

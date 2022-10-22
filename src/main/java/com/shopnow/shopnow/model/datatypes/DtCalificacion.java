@@ -1,5 +1,6 @@
 package com.shopnow.shopnow.model.datatypes;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

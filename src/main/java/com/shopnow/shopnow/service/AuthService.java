@@ -64,12 +64,17 @@ public class AuthService {
             return new RegistrarUsuarioResponse(false, "", "Usuario ya existente", "");
         }
 
-        String urlImagen;
-        try {
-            urlImagen = this.cargarImagen(datosUsuario);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+
+        String urlImagen = "";
+        if(datosUsuario.getImagen() != null){
+
+            try {
+                urlImagen = this.cargarImagen(datosUsuario);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+
 
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Generico usuario = Generico.builder()
