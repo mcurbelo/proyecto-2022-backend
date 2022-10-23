@@ -114,11 +114,11 @@ public class VendedorController {
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestParam(value = "estado", required = false) TipoReclamo tipo,
-            @RequestParam(value = "estado", required = false) TipoResolucion resolucion,
+            @RequestParam(value = "tipo", required = false) TipoReclamo tipo,
+            @RequestParam(value = "resolucion", required = false) TipoResolucion resolucion,
             @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fecha,
-            @RequestParam(value = "nombre", required = false) String nombreProducto,
-            @RequestParam(value = "nombre", required = false) String nombreUsuario,
+            @RequestParam(value = "nombreProducto", required = false) String nombreProducto,
+            @RequestParam(value = "nombreUsuario", required = false) String nombreUsuario,
             @PathVariable(value = "id") UUID id) {
         DtFiltroReclamo filtros;
         if (tipo == null && resolucion == null && fecha == null && nombreProducto == null && nombreUsuario == null)

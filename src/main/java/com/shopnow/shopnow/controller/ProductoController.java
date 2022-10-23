@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,7 +41,16 @@ public class ProductoController {
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "nombre", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestBody(required = false) DtFiltros filtros) {
+            @RequestParam(value = "categorias", required = false) List<String> categorias,
+            @RequestParam(value = "infoEventoActivo", required = false) Boolean infoEventoActivo,
+            @RequestParam(value = "nombre", required = false) String nombre,
+            @RequestParam(value = "idEventoPromocional", required = false) UUID idEventoPromocional
+    ) {
+        DtFiltros filtros;
+        if (categorias == null && infoEventoActivo == null && nombre == null && idEventoPromocional == null)
+            filtros = null;
+        else
+            filtros = new DtFiltros(nombre, categorias, idEventoPromocional, infoEventoActivo);
         return productoService.busquedaDeProductos(pageNo, pageSize, sortBy, sortDir, filtros);
     }
 

@@ -273,7 +273,7 @@ public class ProductoService {
         List<DtMiProducto> content = listaDeProductos.stream().map(this::generarDtMiProductos).collect(Collectors.toList());
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("productos", content);
+        response.put("misProductos", content);
         response.put("currentPage", productos.getNumber());
         response.put("totalItems", productos.getTotalElements());
         response.put("totalPages", productos.getTotalPages());
