@@ -31,13 +31,13 @@ public class AuthController {
         return authService.iniciarSesion(datos.getCorreo(), datos.getPassword());
     }
 
-    @PostMapping("/recuperarContrasena")
+    @PutMapping("/recuperarContrasena")
     public ResponseEntity<String> recuperarContrasena(@RequestParam(value = "correo") String correo) throws NoSuchAlgorithmException {
         authService.recuperarContrasena(correo);
         return new ResponseEntity<>("Accion realizada!!!", HttpStatus.OK);
     }
 
-    @PostMapping("/reiniciarContrasena")
+    @PutMapping("/reiniciarContrasena")
     public ResponseEntity<String> reiniciarContrasena(@RequestParam(value = "token") String token, @RequestParam(value = "contrasena") String contrasena) {
         authService.reiniciarContrasena(token, contrasena);
         return new ResponseEntity<>("Contraseña cambiada con exito!!!", HttpStatus.OK);
