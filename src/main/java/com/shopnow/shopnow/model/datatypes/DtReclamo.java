@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
@@ -26,4 +27,6 @@ public class DtReclamo {
     private Date fechaRealizado;
 
     private String autor;
+
+    private UUID idReclamo;
 }

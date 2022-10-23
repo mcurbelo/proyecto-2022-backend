@@ -52,8 +52,8 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "select cast(p.id as varchar) from (usuario_productos up join producto p on p.id=up.productos_key) join categoria_productos cp on p.id=cp.productos_id where up.generico_id=?1 and cp.categoria_nombre=?2", nativeQuery = true)
     List<UUID> misProductosEnCategoria(UUID id, String categoria);
 
-    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1",
-            countQuery = "select count(*) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1", nativeQuery = true)
+    @Query(value = "select p.* from producto p join usuario_productos up on p.id=up.productos_key where up.generico_id=?1",
+            countQuery = "select count(*) from producto p join usuario_productos up on p.id=up.productos_key where up.generico_id=?1", nativeQuery = true)
     Page<Producto> misProductos(UUID id, Pageable pageable);
 
     @Query(value = "select categoria_nombre from categoria_productos where productos_key=?1", nativeQuery = true)

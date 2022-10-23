@@ -277,7 +277,7 @@ public class ReclamoService {
         String nombreProducto = compra.getInfoEntrega().getProducto().getNombre();
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
         DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
-        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido());
+        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido(), reclamo.getId());
     }
 
 }
