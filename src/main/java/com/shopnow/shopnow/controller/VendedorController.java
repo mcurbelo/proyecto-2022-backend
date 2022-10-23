@@ -9,17 +9,21 @@ import com.shopnow.shopnow.model.datatypes.DtFiltroReclamo;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
+import com.shopnow.shopnow.model.enumerados.TipoReclamo;
 import com.shopnow.shopnow.model.enumerados.TipoResolucion;
 import com.shopnow.shopnow.service.CompraService;
 import com.shopnow.shopnow.service.ProductoService;
 import com.shopnow.shopnow.service.ReclamoService;
 import com.shopnow.shopnow.service.VendedorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,8 +61,17 @@ public class VendedorController {
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "nombre", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestBody(required = false) DtFiltosMisProductos filtros,
+            @RequestParam(value = "categorias", required = false) List<String> categorias,
+            @RequestParam(value = "estado", required = false) EstadoProducto estado,
+            @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fecha,
+            @RequestParam(value = "nombre", required = false) String nombre,
             @PathVariable(value = "id") UUID id) {
+        DtFiltosMisProductos filtros;
+        if (categorias == null && estado == null && fecha == null && nombre == null) {
+            filtros = null;
+        } else {
+            filtros = new DtFiltosMisProductos(fecha, nombre, categorias, estado);
+        }
         return productoService.listarMisProductos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 
@@ -76,10 +89,15 @@ public class VendedorController {
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @PathVariable(value = "id") UUID id,
-            @RequestBody(required = false) DtFiltrosVentas filtros) throws ParseException {
-
-        //TODO Validar UUID del que lo pide
+            @RequestParam(value = "estado", required = false) EstadoCompra estado,
+            @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fecha,
+            @RequestParam(value = "nombre", required = false) String nombre,
+            @PathVariable(value = "id") UUID id) throws ParseException {
+        DtFiltrosVentas filtros;
+        if (estado == null && fecha == null && nombre == null) {
+            filtros = null;
+        } else
+            filtros = new DtFiltrosVentas(nombre, fecha, estado);
         return vendedorService.historialVentas(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 
@@ -96,8 +114,17 @@ public class VendedorController {
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "fecha", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestBody(required = false) DtFiltroReclamo filtros,
+            @RequestParam(value = "estado", required = false) TipoReclamo tipo,
+            @RequestParam(value = "estado", required = false) TipoResolucion resolucion,
+            @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fecha,
+            @RequestParam(value = "nombre", required = false) String nombreProducto,
+            @RequestParam(value = "nombre", required = false) String nombreUsuario,
             @PathVariable(value = "id") UUID id) {
+        DtFiltroReclamo filtros;
+        if (tipo == null && resolucion == null && fecha == null && nombreProducto == null && nombreUsuario == null)
+            filtros = null;
+        else
+            filtros = new DtFiltroReclamo(fecha, nombreProducto, nombreUsuario, tipo, resolucion);
         return reclamoService.listarMisReclamosRecibidos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 }

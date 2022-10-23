@@ -58,7 +58,7 @@ public class VendedorService {
             producto = resultado.get();
         }
         if (producto.getEstado() == nuevoEstado) {
-            throw new Excepcion("Ya el producto ya se encuentra en ese estado");
+            throw new Excepcion("El producto ya se encuentra en ese estado");
         }
         Optional<Usuario> res = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
         Generico usuario;
