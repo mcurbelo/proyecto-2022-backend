@@ -57,13 +57,13 @@ public class CompraService {
     @Autowired
     BraintreeUtils braintreeUtils;
 
-    public Map<String, String> nuevaCompra(DtCompra datosCompra) throws FirebaseMessagingException, FirebaseAuthException {
+    public Map<String, String> nuevaCompra(DtCompra datosCompra, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
         //Validaciones RNE
 
-        if (datosCompra.getIdComprador().compareTo(datosCompra.getIdVendedor()) == 0) {
+        if (idComprador.compareTo(datosCompra.getIdVendedor()) == 0) {
             throw new Excepcion("No se puede comprar un producto a usted mismo");
         }
-        Optional<Usuario> resComprador = usuarioRepository.findByIdAndEstado(datosCompra.getIdComprador(), EstadoUsuario.Activo);
+        Optional<Usuario> resComprador = usuarioRepository.findByIdAndEstado(idComprador, EstadoUsuario.Activo);
         if (resComprador.isEmpty()) {
             throw new Excepcion("El usuario comprador no esta habilitado para realizar esta compra");
         }
@@ -164,7 +164,7 @@ public class CompraService {
         }
         df.format(precio);
 
-        //TODO PAGO TARJETA :DDDD
+        //PAGO TARJETA
         String transaccionId;
         Map<String, String> respuesta = new LinkedHashMap<>();
         Result<Transaction> resultado = braintreeUtils.hacerPago(comprador.getBraintreeCustomerId(), tarjeta.getToken(), String.valueOf(precio));
@@ -203,8 +203,8 @@ public class CompraService {
             Note notificacionVendedor = new Note("Nueva venta registrada", "Se realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.", new HashMap<>(), null);
             firebaseMessagingService.enviarNotificacion(notificacionVendedor, vendedor.getWebToken());
         }
-        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nSe realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.\n Detalles de la venta: \n" + utilService.detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Nueva venta");
-        googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nRealizó una compra de un producto, la confirmacion puede demorar hasta 72hrs despues de haber recibido este correo.\n Detalles de la compra: \n" + utilService.detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Compra realizada");
+        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nSe realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.\nDetalles de la venta: \n" + utilService.detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Nueva venta");
+        googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nRealizó una compra de un producto, la confirmacion puede demorar hasta 72hrs despues de haber recibido este correo.\nDetalles de la compra: \n" + utilService.detallesCompra(compra, vendedor, comprador, producto, datosCompra.getEsParaEnvio()), "Compra realizada");
 
         respuesta.put("success", "200");
         return respuesta;

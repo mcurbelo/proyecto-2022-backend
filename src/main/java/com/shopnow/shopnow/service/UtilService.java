@@ -38,9 +38,9 @@ public class UtilService {
                 "Producto: " + producto.getNombre() + ".\n" +
                 "Vendedor: " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\n" +
                 "Comprador: " + comprador.getNombre() + " " + comprador.getApellido() + ".\n" +
-                "Cantidad: " + compra.getInfoEntrega().getCantidad() + "." +
-                "Precio unitario: " + compra.getInfoEntrega().getPrecioUnitario() + ".\n" +
-                "Precio total: " + compra.getInfoEntrega().getCantidad() + ".\n" +
+                "Cantidad: " + compra.getInfoEntrega().getCantidad() + ".\n" +
+                "Precio unitario: $" + compra.getInfoEntrega().getPrecioUnitario() + ".\n" +
+                "Precio total: $" + compra.getInfoEntrega().getCantidad() + ".\n" +
                 "Por envio: " + ((porEnvio) ? "Sí" : "No") + ".\n" +
                 ((porEnvio) ? "Direccion envio: " : "Direccion retiro: ") + "" + compra.getInfoEntrega().getDireccionEnvioORetiro().toString() + "\n" +
                 "Estado actual: " + parseEstado(compra.getEstado()) + ".";

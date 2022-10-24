@@ -17,12 +17,6 @@ import java.util.UUID;
 public class DtCompra {
 
     @NotNull
-    private UUID idComprador; //O correo?
-
-    @NotBlank
-    private String correoComprador;
-
-    @NotNull
     private UUID idVendedor;
 
     @NotNull

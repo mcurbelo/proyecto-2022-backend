@@ -7,6 +7,7 @@ import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.TipoReclamo;
 import com.shopnow.shopnow.model.enumerados.TipoResolucion;
+import com.shopnow.shopnow.service.CompraService;
 import com.shopnow.shopnow.service.CompradorService;
 import com.shopnow.shopnow.service.ReclamoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class CompradorController {
 
     @Autowired
     ReclamoService reclamoService;
+
+    @Autowired
+    CompraService compraService;
 
 
     @PostMapping("/solicitudVendedor")
@@ -103,5 +107,13 @@ public class CompradorController {
         return reclamoService.listarMisReclamosHechos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 
+    @PostMapping("/{id}/compras")
+    public ResponseEntity<Object> nuevaCompra(@Valid @RequestBody DtCompra datos, @PathVariable(value = "id") UUID id) throws FirebaseMessagingException, FirebaseAuthException {
+        Map<String, String> respuesta = compraService.nuevaCompra(datos, id);
+        if (respuesta.size() == 1)
+            return new ResponseEntity<>("Compra realizada con exito!!!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>(respuesta, HttpStatus.BAD_GATEWAY);
+    }
 
 }
