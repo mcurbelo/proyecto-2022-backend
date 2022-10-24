@@ -27,8 +27,8 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
     @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1 and resuelto=?2", nativeQuery = true)
     List<UUID> misReclamosHechosPorResolucion(UUID id, String resuelto);
 
-    @Query(value = "Select r.* from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1",
-            countQuery = "Select count(r.*) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1", nativeQuery = true)
+    @Query(value = "Select r.* from reclamo r join usuario_reclamos u on u.reclamos_key=r.id where u.generico_id=?1",
+            countQuery = "Select count(r.*) from reclamo r join usuario_reclamos u on u.reclamos_key=r.id where u.generico_id=?1", nativeQuery = true)
     Page<Reclamo> misReclamosHechos(UUID id, Pageable pageable);
 
     Page<Reclamo> findByIdIn(List<UUID> ids, Pageable pageable);
