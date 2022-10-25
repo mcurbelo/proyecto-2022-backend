@@ -80,7 +80,7 @@ public class AuthService {
         Generico usuario = Generico.builder()
                 .fechaNac(new Date())
                 .nombre(datosUsuario.getNombre())
-                .apellido(datosUsuario.getNombre()).correo(datosUsuario.getCorreo())
+                .apellido(datosUsuario.getApellido()).correo(datosUsuario.getCorreo())
                 .estado(EstadoUsuario.Activo)
                 .imagen(urlImagen).mobileToken("")
                 .webToken("")
