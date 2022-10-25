@@ -97,7 +97,7 @@ public class ProductoService {
 
     public Map<String, Object> busquedaDeProductos(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltros filtros) {
 
-        if (!sortBy.matches("nombre|fechaInicio|precio|permiteEnvio")) {
+        if (!sortBy.matches("nombre|fecha_inicio|precio|permite_envio")) {
             throw new Excepcion("Atributo de ordenamiento invalido");
         }
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
