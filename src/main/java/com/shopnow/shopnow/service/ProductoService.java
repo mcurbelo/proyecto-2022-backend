@@ -146,7 +146,7 @@ public class ProductoService {
                 productosIdConNombre = productoRepository.productosContenganNombre(filtros.getNombre());
             }
             productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosIdEnCategoria, productosIdConNombre, productosIdEnEventoPromocional).stream().toList();
-            productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
+            productos = productoRepository.buscarEstosProductos(productosCumplenFiltro, pageable);
 
         } else
             productos = productoRepository.productosValidosParaListar(pageable);
@@ -228,7 +228,7 @@ public class ProductoService {
 
 
     public Map<String, Object> listarMisProductos(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltosMisProductos filtros, UUID id) {
-        if (!sortBy.matches("nombre|fechaInicio|precio|permiteEnvio")) {
+        if (!sortBy.matches("nombre|fecha_inicio|precio|permit_envio")) {
             throw new Excepcion("Atributo de ordenamiento invalido");
         }
         List<UUID> productosCumplenFiltro;
@@ -262,7 +262,7 @@ public class ProductoService {
                 }
             }
             productosCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), productosEnCategorias, productosIdConFecha, productosIdConEstado, productosIdConNombre).stream().toList();
-            productos = productoRepository.findByIdIn(productosCumplenFiltro, pageable);
+            productos = productoRepository.buscarEstosProductos(productosCumplenFiltro, pageable);
         } else
             productos = productoRepository.misProductos(id, pageable);
 

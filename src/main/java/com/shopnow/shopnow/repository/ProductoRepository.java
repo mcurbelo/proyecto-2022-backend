@@ -10,9 +10,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
 import java.util.List;
-
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductoRepository extends JpaRepository<Producto, UUID> {
@@ -26,6 +25,9 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "delete from categoria_productos where productos_key=?1", nativeQuery = true)
     void eliminarProductoCategoria(UUID id);
 
+    @Query(value = "Select * from producto where id in ?1", countQuery = "Select count(*) from producto where id in ?1", nativeQuery = true)
+    Page<Producto> buscarEstosProductos(Iterable<UUID> ids, Pageable pageable);
+
     Optional<Producto> findByIdAndEstado(UUID id, EstadoProducto estado);
 
     @Query(value = "select cast(id as varchar) from producto where id in (select producto_id from evento_promocional_productos where evento_promocional_id = ?1) and position(nombre in ?2)", nativeQuery = true)
@@ -34,7 +36,7 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     Page<Producto> findByIdIn(Iterable<UUID> ids, Pageable pageable);
 
     @Query(value = "select producto.* from producto where estado='Activo' and stock>0  and COALESCE(fecha_fin,now())>=now() and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')",
-            countQuery = "select count(*) from producto where estado='Activo' and stock>0 and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')", nativeQuery = true)
+            countQuery = "select count(*) from producto where estado='Activo' and stock>0 and COALESCE(fecha_fin,now())>=now() and id in (select p.id from (usuario_productos up join producto p on up.productos_key=p.id) join usuario u on u.id=up.generico_id where u.estado='Activo')", nativeQuery = true)
     Page<Producto> productosValidosParaListar(Pageable pageable);
 
     @Query(value = "SELECT b FROM Usuario b left outer join b.productos c where c.id=?1 and TYPE(b) = Generico")
