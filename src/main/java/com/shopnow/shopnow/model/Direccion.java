@@ -26,11 +26,14 @@ public class Direccion {
     @Column(nullable = false)
     private String departamento;
 
+    @Column(nullable = false)
+    private String localidad;
+
     private String notas;
 
     @Override
     public String toString() {
-        return this.calle + " " + this.numero + " ," + this.departamento;
+        return this.calle + " " + this.numero + " ," + localidad + " ," + this.departamento;
     }
 
 }

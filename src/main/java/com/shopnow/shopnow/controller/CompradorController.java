@@ -20,10 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 
 @RestController
@@ -52,6 +49,26 @@ public class CompradorController {
         if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         compradorService.agregarDireccion(datos, email);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/Direcciones")
+    public ResponseEntity<List<DtDireccion>> getDirecciones() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        List<DtDireccion> direcciones =  compradorService.obtenerDirecciones(email);
+        return ResponseEntity.ok(direcciones);
+    }
+
+    @PatchMapping ("/Direcciones")
+    public ResponseEntity<String> editarDireccion( @RequestBody DtDireccion nuevaDireccion) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try{
+            compradorService.editarDireccion(nuevaDireccion);
+            return ResponseEntity.ok("Direccion modificada con exito");
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/{id}/compras")

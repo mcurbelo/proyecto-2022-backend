@@ -1,16 +1,22 @@
 package com.shopnow.shopnow.model.datatypes;
 
+import com.shopnow.shopnow.model.Direccion;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Getter
 @Setter
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@SuperBuilder
 public class DtDireccion {
+
+    private Integer id;
 
     @NotBlank
     private String calle;
@@ -21,7 +27,16 @@ public class DtDireccion {
     @NotBlank
     private String departamento;
 
+    @NotBlank
+    private String localidad;
+
     private String notas;
     @NotNull
     private Boolean esLocal;
+
+    private List<DtDireccion> locales;
+
+    public void añadirDireccion(DtDireccion d){
+        this.locales.add(d);
+    }
 }

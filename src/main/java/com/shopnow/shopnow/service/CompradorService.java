@@ -54,6 +54,7 @@ public class CompradorService {
         Direccion direccion = Direccion.builder()
                 .calle(datos.getCalle())
                 .numero(datos.getNumero())
+                .localidad(datos.getLocalidad())
                 .departamento(datos.getDepartamento())
                 .notas(datos.getNotas())
                 .build();
@@ -74,10 +75,64 @@ public class CompradorService {
         }
     }
 
+    public List<DtDireccion> obtenerDirecciones(String correoUsuario){
+        Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
+
+        if (usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");
+        Generico usuarioCasteado = (Generico) usuario.get();
+        List<DtDireccion> direcciones =  new ArrayList<DtDireccion>();
+
+        Boolean esVendedor = usuarioCasteado.getDatosVendedor() != null;
+
+        for (Direccion direccion : usuarioCasteado.getDireccionesEnvio().values()) {
+            DtDireccion d = DtDireccion.builder()
+                    .calle(direccion.getCalle())
+                    .localidad(direccion.getLocalidad())
+                    .id(direccion.getId())
+                    .numero(direccion.getNumero())
+                    .notas(direccion.getNotas())
+                    .departamento(direccion.getDepartamento()).build();
+            if(esVendedor){
+                DatosVendedor datosVendedor = usuarioCasteado.getDatosVendedor();
+                for (Direccion direccionLocal : datosVendedor.getLocales().values()) {
+                    DtDireccion dLocal = DtDireccion.builder()
+                            .calle(direccionLocal.getCalle())
+                            .localidad(direccionLocal.getLocalidad())
+                            .id(direccionLocal.getId())
+                            .numero(direccionLocal.getNumero())
+                            .notas(direccionLocal.getNotas())
+                            .departamento(direccionLocal.getDepartamento()).build();
+                    d.añadirDireccion(dLocal);
+                }
+            }
+            direcciones.add(d);
+        }
+        return direcciones;
+
+    }
+
+    public void editarDireccion (DtDireccion nuevaDireccion){
+        Optional<Direccion> resultado = direccionRepository.findById(nuevaDireccion.getId());
+        Direccion direccion = (Direccion) resultado.get();
+
+        if(direccion.equals(null)){
+            throw new Excepcion("No existe la direccion");
+        }
+
+        direccion.setCalle(nuevaDireccion.getCalle());
+        direccion.setNumero(nuevaDireccion.getNumero());
+        direccion.setDepartamento(nuevaDireccion.getDepartamento());
+        direccion.setLocalidad(nuevaDireccion.getLocalidad());
+        direccion.setNotas(nuevaDireccion.getNotas());
+
+        direccionRepository.save(direccion);
+    }
+
     private void validarDireccion(Direccion toAdd, Direccion existingAddress) {
         if (Objects.equals(toAdd.getCalle(), existingAddress.getCalle()) &&
                 Objects.equals(toAdd.getNumero(), existingAddress.getNumero()) &&
-                Objects.equals(toAdd.getDepartamento(), existingAddress.getDepartamento()))
+                Objects.equals(toAdd.getDepartamento(), existingAddress.getDepartamento()) &&
+                Objects.equals(toAdd.getLocalidad(), existingAddress.getLocalidad()))
             throw new Excepcion("Dirección ya existente");
     }
 
@@ -133,7 +188,7 @@ public class CompradorService {
         }
         Direccion local;
         if (infoLocal != null) {
-            local = new Direccion(null, infoLocal.getCalle(), infoLocal.getNumero(), infoLocal.getDepartamento(), infoLocal.getNotas());
+            local = new Direccion(null, infoLocal.getCalle(), infoLocal.getNumero(), infoLocal.getDepartamento(), infoLocal.getLocalidad(), infoLocal.getNotas());
             direccionRepository.saveAndFlush(local);
         } else {
             local = direccionRepository.findById(idDireccion).orElseThrow(() -> new Excepcion("El identificador de direccion no existe"));
