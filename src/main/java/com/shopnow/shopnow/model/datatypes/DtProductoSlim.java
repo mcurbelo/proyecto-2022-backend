@@ -20,4 +20,6 @@ public class DtProductoSlim {
     private Float precio;
 
     private Integer stock;
+
+    private Boolean permiteEnvio;
 }
