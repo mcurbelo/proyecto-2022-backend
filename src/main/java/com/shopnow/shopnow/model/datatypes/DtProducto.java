@@ -40,4 +40,7 @@ public class DtProducto {
 
     List<Direccion> localesParaRetiro; //Necesario para el realizar compra, segun lo definido cuando hicimos el DSS
 
+    Integer stock;
+
+    Integer garantia;
 }
