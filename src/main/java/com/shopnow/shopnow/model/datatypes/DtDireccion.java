@@ -33,10 +33,4 @@ public class DtDireccion {
     private String notas;
     @NotNull
     private Boolean esLocal;
-
-    private List<DtDireccion> locales;
-
-    public void añadirDireccion(DtDireccion d){
-        this.locales.add(d);
-    }
 }

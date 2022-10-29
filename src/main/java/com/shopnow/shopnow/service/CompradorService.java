@@ -101,8 +101,8 @@ public class CompradorService {
                             .id(direccionLocal.getId())
                             .numero(direccionLocal.getNumero())
                             .notas(direccionLocal.getNotas())
-                            .departamento(direccionLocal.getDepartamento()).build();
-                    d.añadirDireccion(dLocal);
+                            .departamento(direccionLocal.getDepartamento()).esLocal(true).build();
+                    direcciones.add(dLocal);
                 }
             }
             direcciones.add(d);
