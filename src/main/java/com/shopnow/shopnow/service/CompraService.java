@@ -140,7 +140,7 @@ public class CompraService {
             else
                 idDireccion = datosCompra.getIdDireccionEnvio();
         } else {
-            if (!vendedor.getDatosVendedor().getLocales().containsKey(datosCompra.getIdDireccionEnvio()))
+            if (!vendedor.getDatosVendedor().getLocales().containsKey(datosCompra.getIdDireccionLocal()))
                 throw new Excepcion("La direccion de retiro no pertenece al vendedor");
             else
                 idDireccion = datosCompra.getIdDireccionLocal();
