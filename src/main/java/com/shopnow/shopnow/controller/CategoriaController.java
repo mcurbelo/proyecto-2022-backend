@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -26,10 +27,8 @@ public class CategoriaController {
     }
 
     @GetMapping()
-    public Map<String, List<String>> listarCategorias() {
-        Map<String, List<String>> ret = new HashMap<>();
-        ret.put("Categorias", categoriaService.listaCategorias());
-        return ret;
+    public List<DtCategoria> listarCategorias() {
+        return categoriaService.listaCategorias().stream().map(DtCategoria::new).collect(Collectors.toList());
     }
 
     @PostMapping("/cargar")
