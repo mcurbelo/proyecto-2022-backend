@@ -1,10 +1,7 @@
 package com.shopnow.shopnow.model.datatypes;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -18,8 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class DtAltaProducto {
-    @NotBlank
-    private String emailVendedor;
     @NotBlank
     private String nombreProducto;
     @NotNull
@@ -41,6 +36,4 @@ public class DtAltaProducto {
     @NotNull
     @Size(min = 1, max = 5)
     private List<String> categorias;
-    @NotNull
-    private Boolean esSolicitud;
 }

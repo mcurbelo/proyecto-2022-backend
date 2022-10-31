@@ -39,7 +39,8 @@ public class CompradorController {
 
     @PostMapping("/solicitudVendedor")
     public ResponseEntity<String> nuevaSolicitud(@Valid @RequestPart DtSolicitud datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
-        compradorService.crearSolicitud(datos, imagenes);
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        compradorService.crearSolicitud(datos, imagenes, email);
         return new ResponseEntity<>("Solicitud enviada con exito!!!", HttpStatus.OK);
     }
 
