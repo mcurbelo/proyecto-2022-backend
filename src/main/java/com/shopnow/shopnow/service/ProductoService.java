@@ -41,11 +41,11 @@ public class ProductoService {
     @Autowired
     EventoPromocionalRepository eventoPromocionalRepository;
 
-    public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes) throws Excepcion, IOException {
+    public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes, String email, boolean esSolicitud) throws Excepcion, IOException {
         if (datosProducto.getFechaFin() != null && datosProducto.getFechaFin().before(new Date())) {
             throw new Excepcion("La fecha de fin es invalida");
         }
-        Optional<Usuario> resultado = usuarioRepository.findByCorreo(datosProducto.getEmailVendedor());
+        Optional<Usuario> resultado = usuarioRepository.findByCorreo(email);
         Generico usuario;
         if (resultado.isEmpty()) {
             throw new Excepcion("El usuario no existe");
@@ -53,11 +53,11 @@ public class ProductoService {
             usuario = (Generico) resultado.get();
         }
 
-        if (!datosProducto.getEsSolicitud() && usuario.getDatosVendedor() == null) {
+        if (!esSolicitud && usuario.getDatosVendedor() == null) {
             throw new Excepcion("Funcionalidad no disponible para este usuario.");
         }
 
-        if (!datosProducto.getEsSolicitud() && usuario.getDatosVendedor().getEstadoSolicitud() != EstadoSolicitud.Aceptado)
+        if (!esSolicitud && usuario.getDatosVendedor().getEstadoSolicitud() != EstadoSolicitud.Aceptado)
             throw new Excepcion("El usuario con el correo ingresado no esta habilitado para agregar productos.");
 
         datosProducto.getCategorias().forEach(categoria -> {
@@ -79,7 +79,7 @@ public class ProductoService {
                 .descripcion(datosProducto.getDescripcion())
                 .fechaInicio(new Date())
                 .fechaFin(datosProducto.getFechaFin())
-                .estado((datosProducto.getEsSolicitud()) ? EstadoProducto.Pausado : EstadoProducto.Activo)
+                .estado((esSolicitud) ? EstadoProducto.Pausado : EstadoProducto.Activo)
                 .precio(datosProducto.getPrecio())
                 .diasGarantia(datosProducto.getDiasGarantia())
                 .permiteEnvio(datosProducto.getPermiteEnvio())

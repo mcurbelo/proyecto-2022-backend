@@ -10,8 +10,6 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @ToString
 public class DtSolicitud {
-    @Setter
-    private String email;
 
     private String nombreEmpresa;
 

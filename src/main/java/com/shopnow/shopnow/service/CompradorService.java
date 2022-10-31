@@ -136,7 +136,7 @@ public class CompradorService {
             throw new Excepcion("Dirección ya existente");
     }
 
-    public void crearSolicitud(DtSolicitud datos, MultipartFile[] imagenes) throws IOException {
+    public void crearSolicitud(DtSolicitud datos, MultipartFile[] imagenes, String email) throws IOException {
         boolean esEmpresa = contieneDatosEmpresa(datos.getNombreEmpresa(), datos.getRut(), datos.getTelefonoEmpresa());
         if (esEmpresa && !datosEmpresaValidos(datos.getNombreEmpresa(), datos.getRut(), datos.getTelefonoEmpresa())) {
             throw new Excepcion("Los datos de la empresa no estan completos");
@@ -155,7 +155,7 @@ public class CompradorService {
             throw new Excepcion("Valor RUT invalido");
         }
  */
-        Optional<Usuario> resultado = usuarioRepository.findByCorreo(datos.getEmail());
+        Optional<Usuario> resultado = usuarioRepository.findByCorreo(email);
         Generico usuario;
         if (resultado.isEmpty()) {
             throw new Excepcion("El usuario no existe");
@@ -172,10 +172,8 @@ public class CompradorService {
                 throw new Excepcion("No puedes utilizar esta funcionalidad, cuando tienes una solicitud pendiente");
             }
         }
-        if (!datos.getEmail().equals(datos.getProducto().getEmailVendedor())) {
-            throw new Excepcion("Informacion invalida");
-        }
-        productoService.agregarProducto(datos.getProducto(), imagenes);
+
+        productoService.agregarProducto(datos.getProducto(), imagenes, email, true);
 
         DtDireccion infoLocal = datos.getLocal();
         Integer idDireccion = datos.getIdDireccion();

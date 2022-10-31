@@ -16,9 +16,6 @@ import java.util.List;
 @ToString
 public class DtAltaProducto {
     @NotBlank
-    @Setter
-    private String emailVendedor;
-    @NotBlank
     private String nombreProducto;
     @NotNull
     @Min(1)
@@ -39,6 +36,4 @@ public class DtAltaProducto {
     @NotNull
     @Size(min = 1, max = 5)
     private List<String> categorias;
-    @NotNull
-    private Boolean esSolicitud;
 }

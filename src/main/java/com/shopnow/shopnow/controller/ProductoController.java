@@ -9,6 +9,7 @@ import com.shopnow.shopnow.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,10 +28,11 @@ public class ProductoController {
 
     @PostMapping()
     public ResponseEntity<String> nuevoProducto(@Valid @RequestPart DtAltaProducto datos, @RequestPart final MultipartFile[] imagenes) throws IOException {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (imagenes.length == 0 || imagenes.length > 5) {
             throw new Excepcion("Cantidad de imagenes incorrecta");
         }
-        productoService.agregarProducto(datos, imagenes);
+        productoService.agregarProducto(datos, imagenes, email, false);
         return new ResponseEntity<>("Producto agregado con exito!!!", HttpStatus.OK);
     }
 
