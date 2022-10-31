@@ -14,5 +14,5 @@ import javax.validation.constraints.NotBlank;
 public class DtCategoria {
 
     @NotBlank
-    String nombre;
+    private String nombre;
 }

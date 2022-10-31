@@ -75,12 +75,12 @@ public class CompradorService {
         }
     }
 
-    public List<DtDireccion> obtenerDirecciones(String correoUsuario){
+    public List<DtDireccion> obtenerDirecciones(String correoUsuario) {
         Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
 
         if (usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");
         Generico usuarioCasteado = (Generico) usuario.get();
-        List<DtDireccion> direcciones =  new ArrayList<DtDireccion>();
+        List<DtDireccion> direcciones = new ArrayList<DtDireccion>();
 
         Boolean esVendedor = usuarioCasteado.getDatosVendedor() != null;
 
@@ -92,7 +92,7 @@ public class CompradorService {
                     .numero(direccion.getNumero())
                     .notas(direccion.getNotas())
                     .departamento(direccion.getDepartamento()).build();
-            if(esVendedor){
+            if (esVendedor) {
                 DatosVendedor datosVendedor = usuarioCasteado.getDatosVendedor();
                 for (Direccion direccionLocal : datosVendedor.getLocales().values()) {
                     DtDireccion dLocal = DtDireccion.builder()
@@ -111,11 +111,11 @@ public class CompradorService {
 
     }
 
-    public void editarDireccion (DtDireccion nuevaDireccion){
+    public void editarDireccion(DtDireccion nuevaDireccion) {
         Optional<Direccion> resultado = direccionRepository.findById(nuevaDireccion.getId());
         Direccion direccion = (Direccion) resultado.get();
 
-        if(direccion.equals(null)){
+        if (direccion.equals(null)) {
             throw new Excepcion("No existe la direccion");
         }
 
@@ -276,10 +276,12 @@ public class CompradorService {
     }
 
     private DtCompraSlimComprador generarDtCompraSlimComprador(Compra compra) {
-        Generico vendedor = (Generico) compraRepository.obtenerVendedor(compra.getId());
-        String nombreProducto = compra.getInfoEntrega().getProducto().getNombre();
+        Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
+        Producto producto = compra.getInfoEntrega().getProducto();
+        String nombreProducto = producto.getNombre();
+        String imagen = producto.getImagenesURL().get(0).getUrl();
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
 
-        return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
+        return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), imagen, compra.getInfoEntrega().getEsEnvio());
     }
 }

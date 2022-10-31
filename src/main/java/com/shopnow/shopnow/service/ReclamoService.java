@@ -3,10 +3,7 @@ package com.shopnow.shopnow.service;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
-import com.shopnow.shopnow.model.Compra;
-import com.shopnow.shopnow.model.Generico;
-import com.shopnow.shopnow.model.Note;
-import com.shopnow.shopnow.model.Reclamo;
+import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtAltaReclamo;
 import com.shopnow.shopnow.model.datatypes.DtCompraSlimComprador;
 import com.shopnow.shopnow.model.datatypes.DtFiltroReclamo;
@@ -272,11 +269,13 @@ public class ReclamoService {
 
     private DtReclamo getDtReclamo(Reclamo reclamo) {
         Compra compra = reclamo.getCompra();
+        Producto producto = compra.getInfoEntrega().getProducto();
+
         Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
         Generico comprador = compraRepository.obtenerComprador(compra.getId());
-        String nombreProducto = compra.getInfoEntrega().getProducto().getNombre();
+        String nombreProducto = producto.getNombre();
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
-        DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
+        DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), producto.getImagenesURL().get(0).getUrl(), compra.getInfoEntrega().getEsEnvio());
         return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido(), reclamo.getId());
     }
 

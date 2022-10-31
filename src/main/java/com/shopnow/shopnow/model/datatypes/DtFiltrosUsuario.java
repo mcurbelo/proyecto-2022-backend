@@ -11,8 +11,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class DtFiltrosUsuario {
-    String nombre;
-    String apellido;
-    String correo;
-    EstadoUsuario estado;
+    private String nombre;
+    private String apellido;
+    private String correo;
+    private EstadoUsuario estado;
 }
