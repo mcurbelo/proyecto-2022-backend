@@ -22,7 +22,7 @@ public class AdministradorController {
 
 
     @PutMapping("/usuarios/{id}")
-    public ResponseEntity<String> estadoUsuario(@PathVariable(value = "id") UUID id, @Valid @RequestBody DtMotivo motivo, @RequestParam(value = "operacion") EstadoUsuario nuevoEstado) {
+    public ResponseEntity<String> cambiarEstadoUsuario(@PathVariable(value = "id") UUID id, @Valid @RequestBody DtMotivo motivo, @RequestParam(value = "operacion") EstadoUsuario nuevoEstado) {
         if (nuevoEstado == EstadoUsuario.Bloqueado)
             administradorService.bloquearUsuario(id, motivo.getMotivo());
         else if (nuevoEstado == EstadoUsuario.Activo)
