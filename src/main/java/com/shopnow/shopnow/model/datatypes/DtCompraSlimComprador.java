@@ -38,4 +38,10 @@ public class DtCompraSlimComprador {
     private String imagenURL;
 
     private Boolean esEnvio;
+
+    private Boolean puedeCompletar;
+
+    private Boolean puedeCalificar;
+
+    private Boolean puedeReclamar;
 }

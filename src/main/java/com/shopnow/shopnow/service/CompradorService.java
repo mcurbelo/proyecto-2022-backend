@@ -3,12 +3,14 @@ package com.shopnow.shopnow.service;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
+import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.CompraRepository;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
 import com.shopnow.shopnow.repository.DireccionRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -237,7 +239,7 @@ public class CompradorService {
                 comprasIdConNombreVendedor = compraRepository.comprasPorIdUsuarioYNombreVendedor(id, filtros.getNombreVendedor());
             }
             List<UUID> comprasIdConNombreProducto = null;
-            if (filtros.getNombreVendedor() != null) {
+            if (filtros.getNombreProducto() != null) {
                 comprasIdConNombreProducto = compraRepository.comprasPorIdUsuarioYNombreProducto(id, filtros.getNombreProducto());
             }
             comprasCumplenFiltro = UtilService.encontrarInterseccion(new HashSet<>(), comprasIdConEstado, comprasIdConFecha, comprasIdConNombreProducto, comprasIdConNombreVendedor).stream().toList();
@@ -248,7 +250,7 @@ public class CompradorService {
 
         List<Compra> listaDeCompras = compras.getContent();
 
-        List<DtCompraSlimComprador> content = listaDeCompras.stream().map(this::generarDtCompraSlimComprador).collect(Collectors.toList());
+        List<DtCompraSlimComprador> content = listaDeCompras.stream().map(compra -> generarDtCompraSlimComprador(compra, id)).collect(Collectors.toList());
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("compras", content);
@@ -273,13 +275,35 @@ public class CompradorService {
         return telefono != null && !telefono.isEmpty();
     }
 
-    private DtCompraSlimComprador generarDtCompraSlimComprador(Compra compra) {
+    private DtCompraSlimComprador generarDtCompraSlimComprador(Compra compra, UUID idComprador) {
         Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
         Producto producto = compra.getInfoEntrega().getProducto();
         String nombreProducto = producto.getNombre();
         String imagen = producto.getImagenesURL().get(0).getUrl();
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
+        CompraProducto infoEntrega = compra.getInfoEntrega();
 
-        return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), imagen, compra.getInfoEntrega().getEsEnvio());
+        boolean puedeCalificar = compra.getEstado() == EstadoCompra.Completada;
+        if (puedeCalificar) {
+            for (Calificacion calficacion : infoEntrega.getCalificaciones()) {
+                if (calficacion.getAutor().getId().equals(idComprador)) {
+                    puedeCalificar = false;
+                    break;
+                }
+            }
+        }
+        boolean puedeCompletar = infoEntrega.getEsEnvio() && infoEntrega.getTiempoEstimadoEnvio() != null && infoEntrega.getTiempoEstimadoEnvio().after(new Date());
+        Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
+
+        boolean puedeReclamar = compra.getEstado() == EstadoCompra.Confirmada || compra.getEstado() == EstadoCompra.Completada;
+        if (puedeReclamar) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(fechaEntrega);
+            calendar.add(Calendar.DATE, producto.getDiasGarantia());
+            if (new Date().after(calendar.getTime()))
+                puedeReclamar = false;
+        }
+        return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, infoEntrega.getCantidad(), compra.getFecha(),
+                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar);
     }
 }

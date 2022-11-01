@@ -36,7 +36,7 @@ public interface CompraRepository extends JpaRepository<Compra, UUID> {
     @Query(value = "select cast(id as varchar) from compra c join usuario_compras u on c.id=u.compras_key where c.estado=?1 and u.generico_id=?2", nativeQuery = true)
     List<UUID> comprasPorEstadoYIdusuario(String estado, UUID usuario);
 
-    @Query(value = "select cast(uc.compras_key as varchar) from usuario_compras uc join (usuario vendedor join usuario_ventas uv on id=generico_id) ON uv.ventas_key=uc.compras_key where uc.generico_id=?1 and vendedor.nombre=?2", nativeQuery = true)
+    @Query(value = "select cast(uc.compras_key as varchar) from usuario_compras uc join (usuario vendedor join usuario_ventas uv on id=generico_id) ON uv.ventas_key=uc.compras_key join datos_vendedor ON vendedor.datos_vendedor_id=datos_vendedor.id where uc.generico_id=?1 and Coalesce(datos_vendedor.nombre_empresa,vendedor.nombre)=?2", nativeQuery = true)
     List<UUID> comprasPorIdUsuarioYNombreVendedor(UUID idComprador, String nombre);
 
     @Query(value = "Select cast(c.id as varchar) from (Compra c join usuario_compras uc on uc.compras_key=c.id) join (compra_producto cp join producto p on p.id=cp.producto_id)on cp.id=c.entrega_info where uc.generico_id=?1 and p.nombre like %?2%", nativeQuery = true)
