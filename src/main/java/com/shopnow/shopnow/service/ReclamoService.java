@@ -91,7 +91,7 @@ public class ReclamoService {
             Note note = new Note("Nuevo reclamo", "Hay un nuevo reclamo sin resolver, ve hacia la sección 'Mis reclamos' para mas información", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(note, vendedor.getWebToken());
         }
-        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + nombreParaMostrar + ".\n Tiene un nuevo reclamo en una compra (identificador:" + compra.getId() + ") Visite el sitio y vaya a la sección 'Mis reclamos' para poder realizar acciones.", "Nuevo reclamo - " + reclamo.getId());
+        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + nombreParaMostrar + ".\nTiene un nuevo reclamo en una compra (identificador: " + compra.getId() + "). Visite el sitio y vaya a la sección 'Mis reclamos' para poder realizar acciones.", "Nuevo reclamo - " + reclamo.getId() + " - ShopNow");
     }
 
     public void gestionReclamo(UUID idVenta, UUID idReclamo, UUID idVendedor, TipoResolucion resolucion) throws FirebaseMessagingException, FirebaseAuthException {
