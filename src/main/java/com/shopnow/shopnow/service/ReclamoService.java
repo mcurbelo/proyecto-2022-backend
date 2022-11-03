@@ -275,7 +275,7 @@ public class ReclamoService {
         Generico comprador = compraRepository.obtenerComprador(compra.getId());
         String nombreProducto = producto.getNombre();
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
-        DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), producto.getImagenesURL().get(0).getUrl(), compra.getInfoEntrega().getEsEnvio(), null, null, null);
+        DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), producto.getImagenesURL().get(0).getUrl(), compra.getInfoEntrega().getEsEnvio(), null, null, null, null);
         return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido(), reclamo.getId());
     }
 

@@ -18,6 +18,6 @@ public class Categoria {
     private String nombre;
 
     @Builder.Default
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Map<UUID, Producto> productos = new HashMap<>();
 }

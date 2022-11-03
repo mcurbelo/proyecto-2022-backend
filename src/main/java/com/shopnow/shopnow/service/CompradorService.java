@@ -304,6 +304,6 @@ public class CompradorService {
                 puedeReclamar = false;
         }
         return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, infoEntrega.getCantidad(), compra.getFecha(),
-                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar);
+                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar, fechaEntrega);
     }
 }

@@ -189,7 +189,7 @@ public class ProductoService {
         }
 
         Generico usuario = productoRepository.vendedorProducto(id);
-        if (producto.getEstado() != EstadoProducto.Activo || usuario.getEstado() != EstadoUsuario.Activo) { //Verifico que el producto se pueda mostrar y ese usuario este activo
+        if (producto.getEstado() != EstadoProducto.Activo || usuario.getEstado() != EstadoUsuario.Activo || (producto.getFechaFin() != null && producto.getFechaFin().before(new Date()))) { //Verifico que el producto se pueda mostrar y ese usuario este activo
             throw new Excepcion("Este producto no se puede visualizar en este momento");
         }
 
