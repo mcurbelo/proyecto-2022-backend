@@ -1,16 +1,15 @@
 package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
-import com.shopnow.shopnow.model.Compra;
-import com.shopnow.shopnow.model.Generico;
-import com.shopnow.shopnow.model.Producto;
-import com.shopnow.shopnow.model.Usuario;
+import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtCompraSlimVendedor;
 import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
+import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.*;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -118,7 +117,7 @@ public class VendedorService {
 
         List<Compra> listaDeVentas = ventas.getContent();
 
-        List<DtCompraSlimVendedor> content = listaDeVentas.stream().map(this::getDtCompraSlim).toList();
+        List<DtCompraSlimVendedor> content = listaDeVentas.stream().map(venta -> getDtCompraSlim(venta, id)).toList();
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("ventas", content);
@@ -129,12 +128,30 @@ public class VendedorService {
         return response;
     }
 
-    private DtCompraSlimVendedor getDtCompraSlim(Compra compra) {
+    private DtCompraSlimVendedor getDtCompraSlim(Compra compra, UUID idVendedor) {
         Usuario comprador = compraRepository.obtenerComprador(compra.getId());
+        Producto producto = compra.getInfoEntrega().getProducto();
+
+        String imagen = producto.getImagenesURL().get(0).getUrl();
+        CompraProducto infoEntrega = compra.getInfoEntrega();
+
+        boolean puedeCalificar = compra.getEstado() == EstadoCompra.Completada;
+        if (puedeCalificar) {
+            for (Calificacion calficacion : infoEntrega.getCalificaciones()) {
+                if (calficacion.getAutor().getId().equals(idVendedor)) {
+                    puedeCalificar = false;
+                    break;
+                }
+            }
+        }
+
+        boolean puedeCompletar = infoEntrega.getEsEnvio() && infoEntrega.getTiempoEstimadoEnvio() != null && infoEntrega.getTiempoEstimadoEnvio().after(new Date());
+        Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
+
         return new DtCompraSlimVendedor(compra.getId(), comprador.getId(), comprador.getNombre() + " " + comprador.getApellido(),
                 compra.getInfoEntrega().getProducto().getNombre(),
                 compra.getInfoEntrega().getCantidad(), compra.getFecha(),
-                compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario());
+                compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), imagen, fechaEntrega, puedeCalificar, puedeCompletar, infoEntrega.getEsEnvio());
     }
 }
 

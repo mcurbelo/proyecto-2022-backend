@@ -14,6 +14,7 @@ import com.shopnow.shopnow.model.enumerados.TipoResolucion;
 import com.shopnow.shopnow.repository.CompraRepository;
 import com.shopnow.shopnow.repository.ReclamoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -72,7 +73,7 @@ public class ReclamoService {
 
         Integer diasGarantia = compra.getInfoEntrega().getProducto().getDiasGarantia();
         Calendar cal = Calendar.getInstance();
-        cal.setTime(compra.getFecha());
+        cal.setTime(ObjectUtils.firstNonNull(compra.getInfoEntrega().getHorarioRetiroLocal(), compra.getInfoEntrega().getTiempoEstimadoEnvio()));
         cal.add(Calendar.DATE, diasGarantia);
         Date fechaLimite = cal.getTime();
         if (new Date().after(fechaLimite)) {

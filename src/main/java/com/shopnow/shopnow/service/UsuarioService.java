@@ -2,22 +2,15 @@ package com.shopnow.shopnow.service;
 
 
 import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
+import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
-import com.shopnow.shopnow.model.enumerados.*;
-import com.shopnow.shopnow.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
-
-import com.braintreegateway.BraintreeGateway;
-import com.braintreegateway.CreditCardRequest;
-import com.braintreegateway.CustomerRequest;
-import com.shopnow.shopnow.controller.responsetypes.Excepcion;
-import com.shopnow.shopnow.model.Usuario;
-
+import com.shopnow.shopnow.model.enumerados.EstadoCompra;
+import com.shopnow.shopnow.model.enumerados.EstadoProducto;
+import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.repository.DatosVendedorRepository;
+import com.shopnow.shopnow.repository.TarjetasRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,8 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Optional;
-
 import java.util.*;
 
 
@@ -51,7 +42,7 @@ public class UsuarioService {
     GoogleSMTP googleSMTP;
 
 
-    public DtUsuario infoUsuario(String uuid){
+    public DtUsuario infoUsuario(String uuid) {
 
         Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByIdAndEstado(UUID.fromString(uuid), EstadoUsuario.Activo);
 
@@ -80,7 +71,7 @@ public class UsuarioService {
 
 
         /*     Informacion de la parte vendedor    */
-        if(usuario.getDatosVendedor() != null){
+        if (usuario.getDatosVendedor() != null) {
             Map<UUID, Compra> ventas = usuario.getVentas();
             float sumaCalificacionVendedor = 0, calificacionVendedor = 0;
             if (ventas.size() != 0) {
@@ -132,23 +123,23 @@ public class UsuarioService {
         usuarioBD.setNombre(usuario.getNombre());
         usuarioBD.setApellido(usuario.getApellido());
         usuarioBD.setTelefono(usuario.getTelefono());
-        usuarioBD.setCorreo(usuario.getCorreo());
+        usuarioBD.setCorreo(usuario.getCorreo()); //Validacion
         usuarioBD.setImagen(usuario.getImagen().getData());
 
         usuarioRepository.save(usuarioBD);
 
     }
 
-    public boolean esvendedor(UUID id){
+    public boolean esvendedor(UUID id) {
         Generico usuario;
         Optional<Usuario> res = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
         if (res.isEmpty()) {
             throw new Excepcion("El usuario no existe");
         } else {
             usuario = (Generico) res.get();
-            if(usuario.getDatosVendedor() != null){
+            if (usuario.getDatosVendedor() != null) {
                 return true;
-            }else{
+            } else {
                 return false;
             }
         }

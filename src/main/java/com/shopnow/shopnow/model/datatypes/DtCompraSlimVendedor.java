@@ -16,22 +16,33 @@ import java.util.UUID;
 @ToString
 public class DtCompraSlimVendedor {
 
-    public UUID idCompra;
+    private UUID idCompra;
 
-    public UUID idComprador;
+    private UUID idComprador;
 
-    public String nombreComprador;
+    private String nombreComprador;
 
-    public String nombreProducto;
+    private String nombreProducto;
 
-    public Integer cantidad;
+    private Integer cantidad;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
-    public Date fecha;
+    private Date fecha;
 
-    public EstadoCompra estadoCompra;
+    private EstadoCompra estadoCompra;
 
-    public Float montoTotal;
+    private Float montoTotal;
 
-    public Float montoUnitario;
+    private Float montoUnitario;
+
+    private String imagenURL;
+
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private Date fechaEntrega;
+
+    private Boolean puedeCalificar;
+
+    private Boolean puedeCompletar;
+
+    private Boolean esEnvio;
 }
