@@ -86,28 +86,31 @@ public class CompradorService {
 
         Boolean esVendedor = usuarioCasteado.getDatosVendedor() != null;
 
-        for (Direccion direccion : usuarioCasteado.getDireccionesEnvio().values()) {
-            DtDireccion d = DtDireccion.builder()
-                    .calle(direccion.getCalle())
-                    .localidad(direccion.getLocalidad())
-                    .id(direccion.getId())
-                    .numero(direccion.getNumero())
-                    .notas(direccion.getNotas())
-                    .departamento(direccion.getDepartamento()).build();
-            if (esVendedor) {
-                DatosVendedor datosVendedor = usuarioCasteado.getDatosVendedor();
-                for (Direccion direccionLocal : datosVendedor.getLocales().values()) {
-                    DtDireccion dLocal = DtDireccion.builder()
-                            .calle(direccionLocal.getCalle())
-                            .localidad(direccionLocal.getLocalidad())
-                            .id(direccionLocal.getId())
-                            .numero(direccionLocal.getNumero())
-                            .notas(direccionLocal.getNotas())
-                            .departamento(direccionLocal.getDepartamento()).esLocal(true).build();
-                    direcciones.add(dLocal);
-                }
+        if (esVendedor) {
+            DatosVendedor datosVendedor = usuarioCasteado.getDatosVendedor();
+            for (Direccion direccionLocal : datosVendedor.getLocales().values()) {
+                DtDireccion dLocal = DtDireccion.builder()
+                        .calle(direccionLocal.getCalle())
+                        .localidad(direccionLocal.getLocalidad())
+                        .id(direccionLocal.getId())
+                        .numero(direccionLocal.getNumero())
+                        .notas(direccionLocal.getNotas())
+                        .departamento(direccionLocal.getDepartamento()).esLocal(true).build();
+                direcciones.add(dLocal);
             }
-            direcciones.add(d);
+        }
+
+        for (Direccion direccion : usuarioCasteado.getDireccionesEnvio().values()) {
+            if(!direcciones.stream().anyMatch(dire -> dire.getId() == direccion.getId())) {
+                DtDireccion d = DtDireccion.builder()
+                        .calle(direccion.getCalle())
+                        .localidad(direccion.getLocalidad())
+                        .id(direccion.getId())
+                        .numero(direccion.getNumero())
+                        .notas(direccion.getNotas())
+                        .departamento(direccion.getDepartamento()).build();
+                direcciones.add(d);
+            }
         }
         return direcciones;
 
