@@ -33,7 +33,7 @@ public class Direccion {
 
     @Override
     public String toString() {
-        return this.calle + " " + this.numero + " ," + localidad + " ," + this.departamento;
+        return this.calle + " " + this.numero + ", " + localidad + ", " + this.departamento;
     }
 
 }

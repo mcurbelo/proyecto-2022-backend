@@ -44,7 +44,9 @@ public class DtCompraSlimComprador {
     private Boolean puedeCalificar;
 
     private Boolean puedeReclamar;
-    
+
     @JsonFormat(pattern = "dd/MM/yyyy")
     private Date fechaEntrega;
+
+    private String direccionEntrega;
 }

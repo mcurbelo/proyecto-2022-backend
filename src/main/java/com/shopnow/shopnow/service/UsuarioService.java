@@ -54,7 +54,7 @@ public class UsuarioService {
         Map<UUID, Compra> compras = usuario.getCompras();
         float sumaCalificacionComprador = 0, calificacionComprador = 0;
         if (compras.size() != 0) {
-            int comprasCalificacion = 1;
+            int comprasCalificacion = 0;
             for (Compra compra : compras.values()) {
                 if (compra.getInfoEntrega().getCalificaciones().isEmpty()) {
                     continue;
@@ -66,7 +66,10 @@ public class UsuarioService {
                     }
                 }
             }
-            calificacionComprador = sumaCalificacionComprador / compras.size();
+            if (comprasCalificacion == 0)
+                calificacionComprador = 0;
+            else
+                calificacionComprador = sumaCalificacionComprador / comprasCalificacion;
         }
 
 
@@ -87,7 +90,10 @@ public class UsuarioService {
                         }
                     }
                 }
-                calificacionVendedor = sumaCalificacionVendedor / ventas.size();
+                if (ventasCalificacion == 0)
+                    calificacionVendedor = 0;
+                else
+                    calificacionVendedor = sumaCalificacionVendedor / ventasCalificacion;
             }
             datosvendedor = DtDatosVendedor.builder().
                     rut(usuario.getDatosVendedor().getRut())

@@ -151,7 +151,7 @@ public class VendedorService {
         Map<UUID, Compra> compras = comprador.getCompras();
         float sumaCalificacion = 0, calificacion = 0;
         if (compras.size() != 0) {
-            int ventasCalificacion = 1;
+            int ventasCalificacion = 0;
             for (Compra compraRealizada : compras.values()) {
                 if (compraRealizada.getInfoEntrega().getCalificaciones().isEmpty()) {
                     continue;
@@ -163,7 +163,10 @@ public class VendedorService {
                     }
                 }
             }
-            calificacion = sumaCalificacion / ventasCalificacion;
+            if (ventasCalificacion == 0)
+                calificacion = 0;
+            else
+                calificacion = sumaCalificacion / ventasCalificacion;
         }
 
 

@@ -207,7 +207,7 @@ public class ProductoService {
         Map<UUID, Compra> ventas = usuario.getVentas();  //Calculo la calificacion :)
         float sumaCalificacion = 0, calificacion = 0;
         if (ventas.size() != 0) {
-            int ventasCalificacion = 1;
+            int ventasCalificacion = 0;
             for (Compra venta : ventas.values()) {
                 if (venta.getInfoEntrega().getCalificaciones().isEmpty()) {
                     continue;
@@ -220,7 +220,10 @@ public class ProductoService {
                 }
 
             }
-            calificacion = sumaCalificacion / ventasCalificacion;
+            if (ventasCalificacion == 0)
+                calificacion = 0;
+            else
+                calificacion = sumaCalificacion / ventasCalificacion;
         }
         //TODO Descontar el precio si esta en un evento promocional
         return new DtProducto(id, usuario.getId(), linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios().values().stream().toList(), nombreVendedor, calificacion, usuario.getImagen(), (producto.getPermiteEnvio()) ? datosVendedor.getLocales().values().stream().toList() : new ArrayList<>(), producto.getStock(), producto.getDiasGarantia());

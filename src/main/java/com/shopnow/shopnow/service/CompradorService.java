@@ -101,7 +101,7 @@ public class CompradorService {
         }
 
         for (Direccion direccion : usuarioCasteado.getDireccionesEnvio().values()) {
-            if(!direcciones.stream().anyMatch(dire -> dire.getId() == direccion.getId())) {
+            if (!direcciones.stream().anyMatch(dire -> dire.getId() == direccion.getId())) {
                 DtDireccion d = DtDireccion.builder()
                         .calle(direccion.getCalle())
                         .localidad(direccion.getLocalidad())
@@ -307,6 +307,6 @@ public class CompradorService {
                 puedeReclamar = false;
         }
         return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, infoEntrega.getCantidad(), compra.getFecha(),
-                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar, fechaEntrega);
+                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar, fechaEntrega, infoEntrega.getDireccionEnvioORetiro().toString());
     }
 }
