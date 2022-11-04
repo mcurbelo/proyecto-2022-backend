@@ -60,7 +60,7 @@ public class UsuarioService {
                     continue;
                 }
                 for (Calificacion calificacionItem : compra.getInfoEntrega().getCalificaciones()) {
-                    if (calificacionItem.getAutor().getId() == usuario.getId()) {
+                    if (calificacionItem.getAutor().getId().compareTo(usuario.getId()) != 0) {
                         sumaCalificacionComprador += calificacionItem.getPuntuacion();
                         comprasCalificacion++;
                     }
@@ -81,7 +81,7 @@ public class UsuarioService {
                         continue;
                     }
                     for (Calificacion calificacionItem : venta.getInfoEntrega().getCalificaciones()) {
-                        if (calificacionItem.getAutor().getId() == usuario.getId()) {
+                        if (calificacionItem.getAutor().getId().compareTo(usuario.getId()) != 0) {
                             sumaCalificacionVendedor += calificacionItem.getPuntuacion();
                             ventasCalificacion++;
                         }

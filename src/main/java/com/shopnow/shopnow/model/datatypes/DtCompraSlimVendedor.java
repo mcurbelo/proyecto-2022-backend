@@ -16,7 +16,7 @@ import java.util.UUID;
 @ToString
 public class DtCompraSlimVendedor {
 
-    private UUID idCompra;
+    private UUID idVenta;
 
     private UUID idComprador;
 
@@ -45,4 +45,8 @@ public class DtCompraSlimVendedor {
     private Boolean puedeCompletar;
 
     private Boolean esEnvio;
+
+    private String direccionEntrega;
+
+    private float calificacionComprador;
 }

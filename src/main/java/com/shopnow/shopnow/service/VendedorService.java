@@ -129,7 +129,7 @@ public class VendedorService {
     }
 
     private DtCompraSlimVendedor getDtCompraSlim(Compra compra, UUID idVendedor) {
-        Usuario comprador = compraRepository.obtenerComprador(compra.getId());
+        Generico comprador = compraRepository.obtenerComprador(compra.getId());
         Producto producto = compra.getInfoEntrega().getProducto();
 
         String imagen = producto.getImagenesURL().get(0).getUrl();
@@ -145,13 +145,32 @@ public class VendedorService {
             }
         }
 
-        boolean puedeCompletar = infoEntrega.getEsEnvio() && infoEntrega.getTiempoEstimadoEnvio() != null && infoEntrega.getTiempoEstimadoEnvio().after(new Date());
         Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
+        boolean puedeCompletar = compra.getEstado() != EstadoCompra.Completada && fechaEntrega != null && fechaEntrega.before(new Date());
+
+        Map<UUID, Compra> compras = comprador.getCompras();
+        float sumaCalificacion = 0, calificacion = 0;
+        if (compras.size() != 0) {
+            int ventasCalificacion = 1;
+            for (Compra compraRealizada : compras.values()) {
+                if (compraRealizada.getInfoEntrega().getCalificaciones().isEmpty()) {
+                    continue;
+                }
+                for (Calificacion calificacionItem : compraRealizada.getInfoEntrega().getCalificaciones()) {
+                    if (calificacionItem.getAutor().getId().compareTo(comprador.getId()) != 0) {
+                        sumaCalificacion += calificacionItem.getPuntuacion();
+                        ventasCalificacion++;
+                    }
+                }
+            }
+            calificacion = sumaCalificacion / ventasCalificacion;
+        }
+
 
         return new DtCompraSlimVendedor(compra.getId(), comprador.getId(), comprador.getNombre() + " " + comprador.getApellido(),
                 compra.getInfoEntrega().getProducto().getNombre(),
                 compra.getInfoEntrega().getCantidad(), compra.getFecha(),
-                compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), imagen, fechaEntrega, puedeCalificar, puedeCompletar, infoEntrega.getEsEnvio());
+                compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), imagen, fechaEntrega, puedeCalificar, puedeCompletar, infoEntrega.getEsEnvio(), infoEntrega.getDireccionEnvioORetiro().toString(), calificacion);
     }
 }
 

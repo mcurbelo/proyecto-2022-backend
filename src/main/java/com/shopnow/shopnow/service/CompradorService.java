@@ -295,7 +295,7 @@ public class CompradorService {
                 }
             }
         }
-        boolean puedeCompletar = infoEntrega.getEsEnvio() && infoEntrega.getTiempoEstimadoEnvio() != null && infoEntrega.getTiempoEstimadoEnvio().after(new Date());
+        boolean puedeCompletar = compra.getEstado() != EstadoCompra.Completada && infoEntrega.getEsEnvio() && infoEntrega.getTiempoEstimadoEnvio() != null && infoEntrega.getTiempoEstimadoEnvio().before(new Date());
         Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
 
         boolean puedeReclamar = compra.getEstado() == EstadoCompra.Confirmada || compra.getEstado() == EstadoCompra.Completada;

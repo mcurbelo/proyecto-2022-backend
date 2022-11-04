@@ -213,7 +213,7 @@ public class ProductoService {
                     continue;
                 }
                 for (Calificacion calificacionItem : venta.getInfoEntrega().getCalificaciones()) {
-                    if (calificacionItem.getAutor().getId() == usuario.getId()) {
+                    if (calificacionItem.getAutor().getId().compareTo(usuario.getId()) != 0) {
                         sumaCalificacion += calificacionItem.getPuntuacion();
                         ventasCalificacion++;
                     }
