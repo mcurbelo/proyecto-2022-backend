@@ -21,7 +21,7 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
     @Query(value = "Select cast (r.id as varchar) from (((usuario_reclamos u join reclamo r on reclamos_key=id) join (compra c join compra_producto cp on c.entrega_info=cp.id) on r.compra_id=c.id)) join producto p on p.id=cp.producto_id where u.generico_id=?1 and p.nombre like %?2%", nativeQuery = true)
     List<UUID> misReclamosHechosPorNombreProducto(UUID id, String nombre);
 
-    @Query(value = "Select cast (r.id as varchar) from (usuario_ventas uv join usuario u on uv.generico_id=u.id) join (usuario_reclamos ur join reclamo r on reclamos_key=id) on r.compra_id=ventas_key where ur.generico_id=?1 and u.nombre like %?2% ", nativeQuery = true)
+    @Query(value = "Select cast (r.id as varchar) from ((usuario_ventas uv join usuario u on uv.generico_id=u.id) join (usuario_reclamos ur join reclamo r on reclamos_key=id) on r.compra_id=ventas_key) join datos_vendedor dv on u.datos_vendedor_id= dv.id where ur.generico_id=?1 and coalesce(dv.nombre_empresa,u.nombre) like %?2% ", nativeQuery = true)
     List<UUID> misReclamosHechosPorNombreVendedor(UUID id, String nombre);
 
     @Query(value = "Select cast (id as varchar) from usuario_reclamos u join reclamo r on reclamos_key=id where u.generico_id=?1 and resuelto=?2", nativeQuery = true)

@@ -261,10 +261,18 @@ public class CompraService {
         }
 
         //Logica
-        if (nuevoEstado == EstadoCompra.Confirmada && venta.getInfoEntrega().getEsEnvio())  //Es un envio
-            venta.getInfoEntrega().setTiempoEstimadoEnvio(datosEntregaRetiro.getFechayHoraEntrega());
-        else //Es un retiro
-            venta.getInfoEntrega().setHorarioRetiroLocal(datosEntregaRetiro.getFechayHoraRetiro());
+        if (nuevoEstado == EstadoCompra.Confirmada) {
+            if (venta.getInfoEntrega().getEsEnvio())  //Es un envio
+                venta.getInfoEntrega().setTiempoEstimadoEnvio(datosEntregaRetiro.getFechayHoraEntrega());
+            else
+                venta.getInfoEntrega().setHorarioRetiroLocal(datosEntregaRetiro.getFechayHoraRetiro());
+        }
+        if (nuevoEstado == EstadoCompra.Cancelada) {
+            boolean success = braintreeUtils.devolverDinero(venta.getIdTransaccion());
+            if (!success) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "No se puede realizar la devolución del dinero");
+            }
+        }
 
         venta.setEstado(nuevoEstado);
         Generico comprador = compraRepository.obtenerComprador(idVenta);

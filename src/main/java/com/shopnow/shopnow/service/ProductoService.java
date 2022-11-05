@@ -135,7 +135,7 @@ public class ProductoService {
                 }
                 List<UUID> soloProductosValidos = new ArrayList<>();
                 for (Producto producto : productosFiltro) {
-                    if (producto.getEstado() == EstadoProducto.Activo && (producto.getFechaFin() == null || producto.getFechaFin().after(new Date()))) {
+                    if (producto.getEstado() == EstadoProducto.Activo && (producto.getFechaFin() == null || producto.getFechaFin().after(new Date())) && producto.getStock() > 0) {
                         soloProductosValidos.add(producto.getId());
                     }
                 }

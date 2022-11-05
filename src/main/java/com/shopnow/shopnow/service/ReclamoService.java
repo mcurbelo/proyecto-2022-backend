@@ -4,10 +4,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.DtAltaReclamo;
-import com.shopnow.shopnow.model.datatypes.DtCompraSlimComprador;
-import com.shopnow.shopnow.model.datatypes.DtFiltroReclamo;
-import com.shopnow.shopnow.model.datatypes.DtReclamo;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.model.enumerados.TipoResolucion;
@@ -271,13 +268,19 @@ public class ReclamoService {
     private DtReclamo getDtReclamo(Reclamo reclamo) {
         Compra compra = reclamo.getCompra();
         Producto producto = compra.getInfoEntrega().getProducto();
+        CompraProducto infoEntrega = compra.getInfoEntrega();
+
+        Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
 
         Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
         Generico comprador = compraRepository.obtenerComprador(compra.getId());
         String nombreProducto = producto.getNombre();
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
-        DtCompraSlimComprador infoCompra = new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(), compra.getFecha(), compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), producto.getImagenesURL().get(0).getUrl(), compra.getInfoEntrega().getEsEnvio(), null, null, null, null, null);
-        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido(), reclamo.getId());
+        DtInfoCompra infoCompra = new DtInfoCompra(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, compra.getInfoEntrega().getCantidad(),
+                compra.getFecha(), compra.getEstado(), infoEntrega.getPrecioTotal(),
+                infoEntrega.getPrecioUnitario(),
+                fechaEntrega, infoEntrega.getDireccionEnvioORetiro().toString(), infoEntrega.getEsEnvio(), vendedor.getImagen(), comprador.getImagen(), producto.getImagenesURL().get(0).getUrl());
+        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido(), reclamo.getId(), reclamo.getDescripcion());
     }
 
 }

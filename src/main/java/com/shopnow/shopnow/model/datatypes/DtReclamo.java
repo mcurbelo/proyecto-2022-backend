@@ -17,7 +17,7 @@ import java.util.UUID;
 @ToString
 public class DtReclamo {
 
-    private DtCompraSlimComprador datosCompra;
+    private DtInfoCompra datosCompra;
 
     private TipoReclamo tipo;
 
@@ -29,4 +29,6 @@ public class DtReclamo {
     private String autor;
 
     private UUID idReclamo;
+
+    private String descripcion;
 }
