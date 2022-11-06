@@ -49,4 +49,6 @@ public class DtCompraSlimComprador {
     private Date fechaEntrega;
 
     private String direccionEntrega;
+
+    private Boolean garantiaActiva;
 }

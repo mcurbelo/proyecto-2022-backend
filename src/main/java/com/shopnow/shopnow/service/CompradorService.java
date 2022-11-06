@@ -303,14 +303,21 @@ public class CompradorService {
         Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
 
         boolean puedeReclamar = compra.getEstado() == EstadoCompra.Confirmada || compra.getEstado() == EstadoCompra.Completada;
-        if (puedeReclamar && !reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto)) {
+        boolean garantiaActiva = compra.getEstado() == EstadoCompra.Completada;
+        if (puedeReclamar) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(fechaEntrega);
             calendar.add(Calendar.DATE, producto.getDiasGarantia());
-            if (new Date().after(calendar.getTime()))
+            if (new Date().after(calendar.getTime())) {
                 puedeReclamar = false;
+                garantiaActiva = false;
+            }
+            if (reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto)) {
+                puedeReclamar = false;
+            }
         }
+
         return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, infoEntrega.getCantidad(), compra.getFecha(),
-                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar, fechaEntrega, infoEntrega.getDireccionEnvioORetiro().toString());
+                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar, fechaEntrega, infoEntrega.getDireccionEnvioORetiro().toString(), garantiaActiva);
     }
 }
