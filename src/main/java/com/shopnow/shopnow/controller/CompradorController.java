@@ -56,18 +56,18 @@ public class CompradorController {
     public ResponseEntity<List<DtDireccion>> getDirecciones() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        List<DtDireccion> direcciones =  compradorService.obtenerDirecciones(email);
+        List<DtDireccion> direcciones = compradorService.obtenerDirecciones(email);
         return ResponseEntity.ok(direcciones);
     }
 
-    @PatchMapping ("/Direcciones")
-    public ResponseEntity<String> editarDireccion( @RequestBody DtDireccion nuevaDireccion) {
+    @PatchMapping("/Direcciones")
+    public ResponseEntity<String> editarDireccion(@RequestBody DtDireccion nuevaDireccion) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        try{
+        try {
             compradorService.editarDireccion(nuevaDireccion);
             return ResponseEntity.ok("Direccion modificada con exito");
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -83,10 +83,8 @@ public class CompradorController {
             @RequestParam(value = "nombreProducto", required = false) String nombreProducto,
             @RequestParam(value = "nombreVendedor", required = false) String nombreVendedor,
             @PathVariable(value = "id") UUID id) {
-        DtFiltrosCompras filtros;
-        if (estado == null && fecha == null && nombreProducto == null && nombreVendedor == null)
-            filtros = null;
-        else
+        DtFiltrosCompras filtros = null;
+        if (estado != null || fecha != null || nombreProducto != null || nombreVendedor != null)
             filtros = new DtFiltrosCompras(fecha, nombreVendedor, nombreProducto, estado);
         return compradorService.historialDeCompras(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
@@ -117,10 +115,8 @@ public class CompradorController {
             @RequestParam(value = "nombreProducto", required = false) String nombreProducto,
             @RequestParam(value = "nombreUsuario", required = false) String nombreUsuario,
             @PathVariable(value = "id") UUID id) {
-        DtFiltroReclamo filtros;
-        if (tipo == null && resolucion == null && fecha == null && nombreProducto == null && nombreUsuario == null)
-            filtros = null;
-        else
+        DtFiltroReclamo filtros = null;
+        if (tipo != null || resolucion != null || fecha != null || nombreProducto != null || nombreUsuario != null)
             filtros = new DtFiltroReclamo(fecha, nombreProducto, nombreUsuario, tipo, resolucion);
         return reclamoService.listarMisReclamosHechos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }

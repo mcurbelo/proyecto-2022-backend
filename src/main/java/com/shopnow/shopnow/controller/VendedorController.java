@@ -66,12 +66,9 @@ public class VendedorController {
             @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fecha,
             @RequestParam(value = "nombre", required = false) String nombre,
             @PathVariable(value = "id") UUID id) {
-        DtFiltosMisProductos filtros;
-        if (categorias == null && estado == null && fecha == null && nombre == null) {
-            filtros = null;
-        } else {
+        DtFiltosMisProductos filtros = null;
+        if (categorias != null || estado != null || fecha != null || nombre != null)
             filtros = new DtFiltosMisProductos(fecha, nombre, categorias, estado);
-        }
         return productoService.listarMisProductos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
 
@@ -93,10 +90,8 @@ public class VendedorController {
             @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fecha,
             @RequestParam(value = "nombre", required = false) String nombre,
             @PathVariable(value = "id") UUID id) throws ParseException {
-        DtFiltrosVentas filtros;
-        if (estado == null && fecha == null && nombre == null) {
-            filtros = null;
-        } else
+        DtFiltrosVentas filtros = null;
+        if (estado != null || fecha != null || nombre != null)
             filtros = new DtFiltrosVentas(nombre, fecha, estado);
         return vendedorService.historialVentas(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
@@ -120,10 +115,8 @@ public class VendedorController {
             @RequestParam(value = "nombreProducto", required = false) String nombreProducto,
             @RequestParam(value = "nombreUsuario", required = false) String nombreUsuario,
             @PathVariable(value = "id") UUID id) {
-        DtFiltroReclamo filtros;
-        if (tipo == null && resolucion == null && fecha == null && nombreProducto == null && nombreUsuario == null)
-            filtros = null;
-        else
+        DtFiltroReclamo filtros = null;
+        if (tipo != null || resolucion != null || fecha != null || nombreProducto != null || nombreUsuario != null)
             filtros = new DtFiltroReclamo(fecha, nombreProducto, nombreUsuario, tipo, resolucion);
         return reclamoService.listarMisReclamosRecibidos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }

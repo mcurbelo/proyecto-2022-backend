@@ -4,6 +4,7 @@ package com.shopnow.shopnow.controller;
 import com.braintreegateway.BraintreeGateway;
 import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
 import com.shopnow.shopnow.model.datatypes.*;
+import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class UsuarioController {
         try {
             usuarioService.modificarInfoBasica(id, datos);
             return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
-        }catch (Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>("Ocurrio un error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -80,7 +81,14 @@ public class UsuarioController {
             @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "apellido", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
-            @RequestBody(required = false) DtFiltrosUsuario filtros) {
+            @RequestParam(value = "nombre", required = false) String nombre,
+            @RequestParam(value = "apellido", required = false) String apellido,
+            @RequestParam(value = "correo", required = false) String correo,
+            @RequestParam(value = "estado", required = false) EstadoUsuario estado) {
+        DtFiltrosUsuario filtros = null;
+        if (nombre != null || apellido != null || correo != null || estado != null)
+            filtros = new DtFiltrosUsuario(nombre, apellido, correo, estado);
+
         return usuarioService.listadoDeUsuarios(pageNo, pageSize, sortBy, sortDir, filtros);
     }
 

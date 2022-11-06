@@ -48,10 +48,8 @@ public class ProductoController {
             @RequestParam(value = "nombre", required = false) String nombre,
             @RequestParam(value = "idEventoPromocional", required = false) UUID idEventoPromocional
     ) {
-        DtFiltros filtros;
-        if (categorias == null && infoEventoActivo == null && nombre == null && idEventoPromocional == null)
-            filtros = null;
-        else
+        DtFiltros filtros = null;
+        if (categorias != null || infoEventoActivo != null || nombre != null || idEventoPromocional != null)
             filtros = new DtFiltros(nombre, categorias, idEventoPromocional, infoEventoActivo);
         return productoService.busquedaDeProductos(pageNo, pageSize, sortBy, sortDir, filtros);
     }
