@@ -146,7 +146,7 @@ public class VendedorService {
         }
 
         Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
-        boolean puedeCompletar = compra.getEstado() != EstadoCompra.Completada && fechaEntrega != null && fechaEntrega.before(new Date());
+        boolean puedeCompletar = compra.getEstado() != EstadoCompra.Completada && compra.getEstado() != EstadoCompra.Devolucion && fechaEntrega != null && fechaEntrega.before(new Date());
 
         Map<UUID, Compra> compras = comprador.getCompras();
         float sumaCalificacion = 0, calificacion = 0;

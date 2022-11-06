@@ -68,6 +68,10 @@ public class ReclamoService {
             throw new Excepcion("A esta compra no se le pueden realizar reclamos");
         }
 
+        if (reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto)) {
+            throw new Excepcion("Solo se puede tener un reclamo activo por compra");
+        }
+
         Integer diasGarantia = compra.getInfoEntrega().getProducto().getDiasGarantia();
         Calendar cal = Calendar.getInstance();
         cal.setTime(ObjectUtils.firstNonNull(compra.getInfoEntrega().getHorarioRetiroLocal(), compra.getInfoEntrega().getTiempoEstimadoEnvio()));
@@ -114,11 +118,13 @@ public class ReclamoService {
             }
             reclamo.setResuelto(TipoResolucion.Devolucion);
             reclamoRepository.save(reclamo);
+            compra.setEstado(EstadoCompra.Devolucion);
+            compraRepository.save(compra);
             if (!comprador.getWebToken().equals("")) {
-                notificacionComprador = new Note("Reclamo resuelto: Devolucion", "Uno de tus reclamos ah sido marcado como resuelto, ve a 'Mis reclamos' para obtener mas información.", new HashMap<>(), "");
+                notificacionComprador = new Note("Reclamo resuelto: Devolución", "Uno de tus reclamos ah sido marcado como resuelto, ve a 'Mis reclamos' para obtener mas información.", new HashMap<>(), "");
                 firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
             }
-            googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\n El reclamo hacia la compra (identificador:" + idVenta + ") ha sido marcado como resuelto vía devolución de dinero.", "Reclamo resuelto - " + reclamo.getId());
+            googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\n El reclamo hacia la compra (identificador:" + idVenta + ") ha sido marcado como resuelto vía devolución de dinero.", "Reclamo resuelto - " + reclamo.getId());
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Funcionalidad no implementada");
             //Todo Notificacion al comprador

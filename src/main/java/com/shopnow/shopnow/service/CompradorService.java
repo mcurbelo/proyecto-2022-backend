@@ -2,14 +2,15 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.*;
+import com.shopnow.shopnow.model.datatypes.DtCompraSlimComprador;
+import com.shopnow.shopnow.model.datatypes.DtDireccion;
+import com.shopnow.shopnow.model.datatypes.DtFiltrosCompras;
+import com.shopnow.shopnow.model.datatypes.DtSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
-import com.shopnow.shopnow.repository.CompraRepository;
-import com.shopnow.shopnow.repository.DatosVendedorRepository;
-import com.shopnow.shopnow.repository.DireccionRepository;
-import com.shopnow.shopnow.repository.UsuarioRepository;
+import com.shopnow.shopnow.model.enumerados.TipoResolucion;
+import com.shopnow.shopnow.repository.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -47,6 +48,9 @@ public class CompradorService {
 
     @Autowired
     FirebaseStorageService firebaseStorageService;
+
+    @Autowired
+    ReclamoRepository reclamoRepository;
 
     public void agregarDireccion(DtDireccion datos, String correoUsuario) {
         Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
@@ -295,11 +299,11 @@ public class CompradorService {
                 }
             }
         }
-        boolean puedeCompletar = compra.getEstado() != EstadoCompra.Completada && infoEntrega.getEsEnvio() && infoEntrega.getTiempoEstimadoEnvio() != null && infoEntrega.getTiempoEstimadoEnvio().before(new Date());
+        boolean puedeCompletar = compra.getEstado() != EstadoCompra.Completada && compra.getEstado() != EstadoCompra.Devolucion && infoEntrega.getEsEnvio() && infoEntrega.getTiempoEstimadoEnvio() != null && infoEntrega.getTiempoEstimadoEnvio().before(new Date());
         Date fechaEntrega = ObjectUtils.firstNonNull(infoEntrega.getHorarioRetiroLocal(), infoEntrega.getTiempoEstimadoEnvio());
 
         boolean puedeReclamar = compra.getEstado() == EstadoCompra.Confirmada || compra.getEstado() == EstadoCompra.Completada;
-        if (puedeReclamar) {
+        if (puedeReclamar && !reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto)) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(fechaEntrega);
             calendar.add(Calendar.DATE, producto.getDiasGarantia());
