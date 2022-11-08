@@ -3,7 +3,10 @@ package com.shopnow.shopnow.controller;
 
 import com.braintreegateway.BraintreeGateway;
 import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
-import com.shopnow.shopnow.model.datatypes.*;
+import com.shopnow.shopnow.model.datatypes.DtFiltrosUsuario;
+import com.shopnow.shopnow.model.datatypes.DtModificarUsuario;
+import com.shopnow.shopnow.model.datatypes.DtTarjeta;
+import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,30 +34,31 @@ public class UsuarioController {
 
     @GetMapping("/{uuid}/infoUsuario")
     public DtUsuario obtenerInfoUsuario(@PathVariable("uuid") String uuid) {
-        DtUsuario usuario = usuarioService.infoUsuario(uuid);
-        return usuario;
+        return usuarioService.infoUsuario(uuid);
     }
 
     @PutMapping("/{id}/perfil")
-    public ResponseEntity<String> modificarPerfil(@PathVariable(value = "id") UUID id, @RequestPart DtModificarUsuario datos, @RequestPart(required = false) MultipartFile imagen) throws IOException {
+    public ResponseEntity<String> modificarPerfil(@PathVariable(value = "id") UUID id, @RequestBody DtModificarUsuario datos) throws IOException {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         //TODO Para cuando utilicemos 100% los token
         //   if(!email.equals(correo)){
         //      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         //}
-        usuarioService.modificarDatosUsuario(id, datos, imagen);
+        usuarioService.modificarDatosUsuario(id, datos);
         return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}/perfil/imagen")
+    public ResponseEntity<String> modifcarImagen(@PathVariable(value = "id") UUID id, @RequestPart MultipartFile imagen) throws IOException {
+        usuarioService.modificarImagen(id, imagen);
+        return new ResponseEntity<>("Imagen modificada con exito!!!", HttpStatus.OK);
     }
 
 
     @PutMapping("/{id}/infoBasica")
     public ResponseEntity<String> modificarInformacionBasica(@PathVariable(value = "id") UUID id, @RequestBody DtUsuario datos) throws IOException {
-        try {
-            usuarioService.modificarInfoBasica(id, datos);
-            return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Ocurrio un error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        usuarioService.modificarInfoBasica(id, datos);
+        return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
     }
 
 

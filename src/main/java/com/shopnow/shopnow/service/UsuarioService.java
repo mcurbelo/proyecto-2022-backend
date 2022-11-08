@@ -46,32 +46,19 @@ public class UsuarioService {
 
         Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByIdAndEstado(UUID.fromString(uuid), EstadoUsuario.Activo);
 
-        Generico usuario = (Generico) usuarioBaseDatos.get();
+        Generico usuario = (Generico) usuarioBaseDatos.orElseThrow(() -> new Excepcion("El usuario no existe"));
 
         DtDatosVendedor datosvendedor = null;
 
         /*      Obtencion de calificaciones  comprador   */
-        Map<UUID, Compra> compras = usuario.getCompras();
+        Map<UUID, Calificacion> calificaciones = usuario.getCalificaciones();
         float sumaCalificacionComprador = 0, calificacionComprador = 0;
-        if (compras.size() != 0) {
-            int comprasCalificacion = 0;
-            for (Compra compra : compras.values()) {
-                if (compra.getInfoEntrega().getCalificaciones().isEmpty()) {
-                    continue;
-                }
-                for (Calificacion calificacionItem : compra.getInfoEntrega().getCalificaciones()) {
-                    if (calificacionItem.getAutor().getId().compareTo(usuario.getId()) != 0) {
-                        sumaCalificacionComprador += calificacionItem.getPuntuacion();
-                        comprasCalificacion++;
-                    }
-                }
+        if (calificaciones.size() != 0) {
+            for (Calificacion calificacion : calificaciones.values()) {
+                sumaCalificacionComprador += calificacion.getPuntuacion();
             }
-            if (comprasCalificacion == 0)
-                calificacionComprador = 0;
-            else
-                calificacionComprador = sumaCalificacionComprador / comprasCalificacion;
+            calificacionComprador = sumaCalificacionComprador / calificaciones.size();
         }
-
 
         /*     Informacion de la parte vendedor    */
         if (usuario.getDatosVendedor() != null) {
@@ -103,7 +90,7 @@ public class UsuarioService {
                     .estadoSolicitud(usuario.getDatosVendedor().getEstadoSolicitud()).calificacion(calificacionVendedor).build();
         }
 
-        DtUsuario usuarioReturn = DtUsuario.builder()
+        return DtUsuario.builder()
                 .nombre(usuario.getNombre())
                 .apellido(usuario.getApellido())
                 .correo(usuario.getCorreo())
@@ -111,8 +98,6 @@ public class UsuarioService {
                 .telefono(usuario.getTelefono())
                 .calificacion(calificacionComprador)
                 .datosVendedor(datosvendedor).build();
-
-        return usuarioReturn;
     }
 
 
@@ -125,15 +110,26 @@ public class UsuarioService {
         } else {
             usuarioBD = (Generico) res.get();
         }
+        if (!usuario.getCorreo().equals(usuarioBD.getCorreo()) && usuarioRepository.existsByCorreoAndEstado(usuario.getCorreo(), EstadoUsuario.Activo))
+            throw new Excepcion("El correo ya esta en uso");
 
+        usuarioBD.setCorreo(usuario.getCorreo());
         usuarioBD.setNombre(usuario.getNombre());
         usuarioBD.setApellido(usuario.getApellido());
         usuarioBD.setTelefono(usuario.getTelefono());
-        usuarioBD.setCorreo(usuario.getCorreo()); //Validacion
-        usuarioBD.setImagen(usuario.getImagen().getData());
 
         usuarioRepository.save(usuarioBD);
 
+    }
+
+    public void modificarImagen(UUID idUsuario, MultipartFile imagen) throws IOException {
+        if (imagen.isEmpty()) {
+            throw new Excepcion("No se envio ninguna imagen");
+        }
+        Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no esta disponible para esta funcionalidad."));
+        String newUrl = firebaseStorageService.uploadFile(imagen, idUsuario + "--imgPerfil");
+        usuario.setImagen(newUrl);
+        usuarioRepository.save(usuario);
     }
 
     public boolean esvendedor(UUID id) {
@@ -143,16 +139,12 @@ public class UsuarioService {
             throw new Excepcion("El usuario no existe");
         } else {
             usuario = (Generico) res.get();
-            if (usuario.getDatosVendedor() != null) {
-                return true;
-            } else {
-                return false;
-            }
+            return usuario.getDatosVendedor() != null;
         }
     }
 
 
-    public void modificarDatosUsuario(UUID id, DtModificarUsuario datos, MultipartFile imagen) throws IOException {
+    public void modificarDatosUsuario(UUID id, DtModificarUsuario datos) throws IOException {
         Generico usuario;
         Optional<Usuario> res = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
         if (res.isEmpty()) {
@@ -167,19 +159,13 @@ public class UsuarioService {
                 usuario.setCorreo(datos.getCorreo());
         }
 
-        if (imagen != null && !imagen.isEmpty()) { //Solo se cambia el link
-            String idImagen = UUID.randomUUID().toString();
-            String link = firebaseStorageService.uploadFile(imagen, idImagen + "-UsuarioImg");
-            usuario.setImagen(link);
-        }
-
         if (datos.getContrasenaVieja() != null && datos.getContrasenaNueva() != null) {
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
             if (encoder.matches(datos.getContrasenaVieja(), usuario.getPassword())) {
                 String nuevaContrasena = encoder.encode(datos.getContrasenaNueva());
                 usuario.setPassword(nuevaContrasena);
             } else {
-                throw new Excepcion("Contraseña antigua incorrecta. No se realizó la modificacion");
+                throw new Excepcion("Contraseña actual incorrecta. No se realizó la modificación.");
             }
         }
         if (datos.getTelefonoContacto() != null)
@@ -194,7 +180,7 @@ public class UsuarioService {
             }
         */
             if (datos.getNombreEmpresa() != null && datosVendedorRepository.existsByNombreEmpresa(datos.getNombreEmpresa()))
-                throw new Excepcion("El nombre de la empresa ya existe");
+                throw new Excepcion("El nombre de la empresa ya existe.");
             else
                 usuario.getDatosVendedor().setNombreEmpresa(datos.getNombreEmpresa());
 
@@ -205,7 +191,6 @@ public class UsuarioService {
         }
 
         usuarioRepository.save(usuario);
-
     }
 
     //TODO Verificar tarjeta duplicada para el usuario y verificar tarjeta existente en el sistema en general
