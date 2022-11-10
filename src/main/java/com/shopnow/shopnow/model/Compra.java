@@ -40,4 +40,6 @@ public class Compra {
 
     @Column(nullable = false, unique = true)
     private String idTransaccion;
+
+    private String idChat;
 }

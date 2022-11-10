@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
+import com.shopnow.shopnow.model.datatypes.DtChat;
 import com.shopnow.shopnow.model.datatypes.DtCompra;
 import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
@@ -338,6 +339,31 @@ public class CompraService {
         if (!comprador.getMobileToken().equals(""))
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
         googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
+    }
+
+    public void crearChat (DtChat datosChat, String emailUsuario) throws Excepcion{
+//        Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByCorreoAndEstado(emailUsuario, EstadoUsuario.Activo);
+//        if (usuarioBaseDatos.isEmpty()) {
+//            throw new Excepcion("El usuario no esta habilitado");
+//        }
+//        Generico usuario = (Generico) usuarioBaseDatos.get();
+
+        Compra compra = (Compra) compraRepository.findById(UUID.fromString(datosChat.getIdCompra())).get();
+        if (compra == null) {
+            throw new Excepcion("La compra no exite");
+        }
+        compra.setIdChat(datosChat.getIdChat());
+        compraRepository.save(compra);
+
+    }
+    public String obtenerChat (String idCompra){
+        Compra compra = (Compra) compraRepository.findById(UUID.fromString(idCompra)).get();
+        if (compra == null) {
+            throw new Excepcion("La compra no exite");
+        }else{
+            return compra.getIdChat();
+        }
+
     }
 
 
