@@ -2,6 +2,8 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
+import com.shopnow.shopnow.model.datatypes.DtMiProducto;
+import com.shopnow.shopnow.model.datatypes.DtSolicitudPendiente;
 import com.shopnow.shopnow.model.datatypes.DtUsuarioSlim;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
@@ -12,6 +14,10 @@ import com.shopnow.shopnow.repository.DatosVendedorRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,8 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class AdministradorService {
@@ -45,6 +50,9 @@ public class AdministradorService {
 
     @Autowired
     CompraRepository compraRepository;
+
+    @Autowired
+    UtilService utilService;
 
     public void bloquearUsuario(UUID idUsuario, String motivo) {
         Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
@@ -150,5 +158,52 @@ public class AdministradorService {
                 .build();
         usuarioRepository.save(administrador);
         googleSMTP.enviarCorreo(administrador.getCorreo(), "Se ha creado su cuenta de administrador con los siguientes datos de inicio de sesión\n\nCorreo: " + datos.getCorreo() + "\nContraseña: " + contrasena + "", "Nueva cuenta de adminstrador - ShopNow");
+    }
+
+
+    public Map<String, Object> listadoSolicitudes(int pageNo, int pageSize, String sortBy, String sortDir) {
+
+        if (!sortBy.matches("id")) {
+            throw new Excepcion("Atributo de ordenamiento invalido");
+        }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<DatosVendedor> solicitudes = datosVendedorRepository.findByEstadoSolicitud(EstadoSolicitud.Pendiente, pageable);
+
+
+        List<DatosVendedor> listaDeUsuarios = solicitudes.getContent();
+
+        List<DtSolicitudPendiente> content = listaDeUsuarios.stream().map(this::getDtSolicitudPendiente).toList();
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("solicitudes", content);
+        response.put("currentPage", solicitudes.getNumber());
+        response.put("totalItems", solicitudes.getTotalElements());
+        response.put("totalPages", solicitudes.getTotalPages());
+
+        return response;
+    }
+
+    private DtSolicitudPendiente getDtSolicitudPendiente(DatosVendedor datosVendedor) {
+        Generico solicitante = datosVendedorRepository.obtenerSolicitante(datosVendedor.getId());
+        Producto productoBase = solicitante.getProductos().values().stream().findFirst().orElseThrow(() -> new Excepcion("Error obteniendo la informacion de la solicitud."));
+        DtMiProducto productoInfo = utilService.generarDtMiProductos(productoBase);
+
+        Map<UUID, Calificacion> calificaciones = solicitante.getCalificaciones();
+        float sumaCalificacionComprador = 0, calificacionComprador = 0;
+        if (calificaciones.size() != 0) {
+            for (Calificacion calificacion : calificaciones.values()) {
+                sumaCalificacionComprador += calificacion.getPuntuacion();
+            }
+            calificacionComprador = sumaCalificacionComprador / calificaciones.size();
+        }
+        Direccion local = datosVendedor.getLocales().values().stream().findFirst().orElseThrow(() -> new Excepcion("Error obteniendo la informacion de la solicitud."));
+
+        return new DtSolicitudPendiente(datosVendedor.getId(), productoInfo, solicitante.getNombre() + " " + solicitante.getApellido(),
+                calificacionComprador, solicitante.getImagen(), solicitante.getCorreo(), solicitante.getTelefono(),
+                datosVendedor.getNombreEmpresa(), datosVendedor.getTelefonoEmpresa(), datosVendedor.getRut(), local.toString());
     }
 }

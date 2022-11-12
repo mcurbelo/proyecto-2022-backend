@@ -41,6 +41,9 @@ public class ProductoService {
     @Autowired
     EventoPromocionalRepository eventoPromocionalRepository;
 
+    @Autowired
+    UtilService utilService;
+
     public void agregarProducto(DtAltaProducto datosProducto, MultipartFile[] imagenes, String email, boolean esSolicitud) throws Excepcion, IOException {
         if (datosProducto.getFechaFin() != null && datosProducto.getFechaFin().before(new Date())) {
             throw new Excepcion("La fecha de fin es invalida");
@@ -272,7 +275,7 @@ public class ProductoService {
 
         List<Producto> listaDeProductos = productos.getContent();
 
-        List<DtMiProducto> content = listaDeProductos.stream().map(this::generarDtMiProductos).collect(Collectors.toList());
+        List<DtMiProducto> content = listaDeProductos.stream().map((producto) -> utilService.generarDtMiProductos(producto)).collect(Collectors.toList());
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("misProductos", content);
@@ -333,14 +336,6 @@ public class ProductoService {
         return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio(), producto.getStock(), producto.getPermiteEnvio());
     }
 
-    private DtMiProducto generarDtMiProductos(Producto producto) {
-        List<String> urlImagenes = new ArrayList<>();
-        for (URLimagen url : producto.getImagenesURL()) {
-            urlImagenes.add(url.getUrl());
-        }
-        List<String> categorias = productoRepository.categoriasDelProducto(producto.getId());
-        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado(), producto.getDescripcion(), producto.getPermiteEnvio());
-    }
 
     private DtEventoInfo generarDtEventoInfo(EventoPromocional evento) {
         List<DtProductoSlim> infoProductos = new ArrayList<>();

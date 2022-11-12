@@ -3,14 +3,22 @@ package com.shopnow.shopnow.service;
 import com.shopnow.shopnow.model.Compra;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Producto;
+import com.shopnow.shopnow.model.URLimagen;
+import com.shopnow.shopnow.model.datatypes.DtMiProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
+import com.shopnow.shopnow.repository.ProductoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 public class UtilService {
 
+    @Autowired
+    ProductoRepository productoRepository;
 
     @SafeVarargs
     public static <T, C extends Collection<T>> C encontrarInterseccion(C newCollection, Collection<T>... collections) {
@@ -51,5 +59,14 @@ public class UtilService {
             return "Esperando confirmación";
         else
             return estadoCompra.toString();
+    }
+
+    DtMiProducto generarDtMiProductos(Producto producto) {
+        List<String> urlImagenes = new ArrayList<>();
+        for (URLimagen url : producto.getImagenesURL()) {
+            urlImagenes.add(url.getUrl());
+        }
+        List<String> categorias = productoRepository.categoriasDelProducto(producto.getId());
+        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado(), producto.getDescripcion(), producto.getPermiteEnvio());
     }
 }

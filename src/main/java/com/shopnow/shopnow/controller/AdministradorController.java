@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -42,5 +43,14 @@ public class AdministradorController {
     public ResponseEntity<String> nuevoAdministrador(@Valid @RequestBody DtUsuarioSlim datos) throws NoSuchAlgorithmException {
         administradorService.crearAdministrador(datos);
         return new ResponseEntity<>("Accion realizada con exito!!!", HttpStatus.OK);
+    }
+
+    @GetMapping("/solicitudes")
+    public Map<String, Object> solicitudesVendedor(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "dsc", required = false) String sortDir) {
+        return administradorService.listadoSolicitudes(pageNo, pageSize, sortBy, sortDir);
     }
 }
