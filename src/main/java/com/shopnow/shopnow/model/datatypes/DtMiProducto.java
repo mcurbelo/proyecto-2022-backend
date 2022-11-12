@@ -35,4 +35,7 @@ public class DtMiProducto {
 
     private EstadoProducto estado;
 
+    private String descripcion;
+
+    private Boolean permiteEnvio;
 }

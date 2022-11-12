@@ -1,10 +1,12 @@
 package com.shopnow.shopnow.model.datatypes;
 
-import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.util.Date;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -12,6 +14,10 @@ import lombok.ToString;
 @ToString
 public class DtModificarProducto {
 
-
-    private EstadoProducto nuevoEstadoProducto;
+    private String descripcion;
+    private Date fechaFin;
+    private Integer stock;
+    private Float precio;
+    private List<Integer> imagenesQuitar;
+    private Boolean permiteEnvio;
 }

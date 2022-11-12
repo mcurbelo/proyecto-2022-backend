@@ -3,10 +3,7 @@ package com.shopnow.shopnow.controller;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
-import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
-import com.shopnow.shopnow.model.datatypes.DtFiltosMisProductos;
-import com.shopnow.shopnow.model.datatypes.DtFiltroReclamo;
-import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.TipoReclamo;
@@ -20,7 +17,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -120,4 +119,14 @@ public class VendedorController {
             filtros = new DtFiltroReclamo(fecha, nombreProducto, nombreUsuario, tipo, resolucion);
         return reclamoService.listarMisReclamosRecibidos(pageNo, pageSize, sortBy, sortDir, filtros, id);
     }
+
+    @PutMapping("/{id}/productos/{idProducto}")
+    public ResponseEntity<String> modificarProducto(@PathVariable(value = "id") UUID idVendedor,
+                                                    @PathVariable(value = "idProducto") UUID idProducto,
+                                                    @RequestPart DtModificarProducto datos,
+                                                    @RequestPart MultipartFile[] imagenes) throws IOException {
+        productoService.editarProducto(idProducto, idVendedor, datos, imagenes);
+        return new ResponseEntity<>("Producto modificado con éxito!!!", HttpStatus.OK);
+    }
+
 }

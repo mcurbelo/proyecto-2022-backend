@@ -231,7 +231,7 @@ public class ProductoService {
 
 
     public Map<String, Object> listarMisProductos(int pageNo, int pageSize, String sortBy, String sortDir, DtFiltosMisProductos filtros, UUID id) {
-        if (!sortBy.matches("nombre|fecha_inicio|precio|permit_envio")) {
+        if (!sortBy.matches("nombre|fecha_inicio|precio|permite_envio")) {
             throw new Excepcion("Atributo de ordenamiento invalido");
         }
         List<UUID> productosCumplenFiltro;
@@ -282,6 +282,53 @@ public class ProductoService {
         return response;
     }
 
+    public void editarProducto(UUID idProducto, UUID idVendedor, DtModificarProducto nuevosDatos, MultipartFile[] imagenes) throws IOException {
+        Producto producto = productoRepository.findById(idProducto).orElseThrow(() -> new Excepcion("El producto no existe"));
+        Generico vendedor = (Generico) usuarioRepository.findByIdAndEstado(idVendedor, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El vendedor no esta habilitado"));
+
+        if (!vendedor.getProductos().containsKey(idProducto))
+            throw new Excepcion("El vendedor no contiene este producto");
+
+        if (nuevosDatos.getDescripcion() != null)
+            producto.setDescripcion(nuevosDatos.getDescripcion());
+
+        if (nuevosDatos.getFechaFin() != null)
+            producto.setFechaFin(nuevosDatos.getFechaFin());
+
+        if (nuevosDatos.getFechaFin() != null) {
+            producto.setFechaFin(nuevosDatos.getFechaFin());
+        }
+        if (nuevosDatos.getPrecio() != null) {
+            producto.setPrecio(nuevosDatos.getPrecio());
+        }
+
+        if (nuevosDatos.getImagenesQuitar() != null && nuevosDatos.getImagenesQuitar().size() > 0) {
+            List<URLimagen> imagenesEliminar = new ArrayList<>();
+
+            for (Integer indice : nuevosDatos.getImagenesQuitar()) {
+                imagenesEliminar.add(producto.getImagenesURL().get(indice));
+            }
+            producto.getImagenesURL().removeAll(imagenesEliminar);
+
+        }
+
+        if (imagenes != null) {
+            String idImagen = UUID.randomUUID().toString();
+            int i = 0;
+            for (MultipartFile imagen : imagenes) {
+                if (imagen.getSize() > 0 && !imagen.getName().equals(""))
+                    producto.getImagenesURL().add(i, new URLimagen(firebaseStorageService.uploadFile(imagen, idImagen + "--img" + i)));
+                i++;
+            }
+
+        }
+
+        if (nuevosDatos.getPermiteEnvio() != null) {
+            producto.setPermiteEnvio(nuevosDatos.getPermiteEnvio());
+        }
+        productoRepository.save(producto);
+    }
+
     private DtProductoSlim generarDtProductoSlim(Producto producto) {
         return new DtProductoSlim(producto.getId(), producto.getNombre(), producto.getImagenesURL().get(0).getUrl(), producto.getPrecio(), producto.getStock(), producto.getPermiteEnvio());
     }
@@ -292,7 +339,7 @@ public class ProductoService {
             urlImagenes.add(url.getUrl());
         }
         List<String> categorias = productoRepository.categoriasDelProducto(producto.getId());
-        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado());
+        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado(), producto.getDescripcion(), producto.getPermiteEnvio());
     }
 
     private DtEventoInfo generarDtEventoInfo(EventoPromocional evento) {
