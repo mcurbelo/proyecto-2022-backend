@@ -4,12 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class DtSolicitudPendiente {
 
     private Integer id;
+
+    private UUID idSolicitante;
 
     private DtMiProducto producto;
 

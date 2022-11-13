@@ -107,6 +107,10 @@ public class AdministradorService {
             throw new Excepcion("Usuario seleccionado no disponible para esta funcionalidad");
         }
 
+        if (!aceptar && motivo == null) {
+            throw new Excepcion("Se debe ingresar un motico si se rechaza la solicitud");
+        }
+
         if (aceptar) {
             ((Generico) usuario).getDatosVendedor().setEstadoSolicitud(EstadoSolicitud.Aceptado);
             usuarioRepository.save(usuario);
@@ -133,13 +137,12 @@ public class AdministradorService {
                 producto = res.get();
             else
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error en el sistema");
-            //Borrar imagenes de Storage?
             producto.getImagenesURL().clear();
             productoRepository.saveAndFlush(producto);
             productoRepository.eliminarProductoCategoria(idProducto);
             productoRepository.delete(producto);
             datosVendedorRepository.deleteById(datosVendedorViejo);
-            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ah sido rechazada, motivo:\n\n" + motivo + "\n\nPara mas información comunicarse con el soporte de la página.", "Solicitud de vendedor rechazada");
+            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ha sido rechazada, motivo:\n\n" + motivo + "\n\nPara mas información comunicarse con el soporte de la página.", "Solicitud de vendedor rechazada - ShopNow");
         }
     }
 
@@ -202,7 +205,7 @@ public class AdministradorService {
         }
         Direccion local = datosVendedor.getLocales().values().stream().findFirst().orElseThrow(() -> new Excepcion("Error obteniendo la informacion de la solicitud."));
 
-        return new DtSolicitudPendiente(datosVendedor.getId(), productoInfo, solicitante.getNombre() + " " + solicitante.getApellido(),
+        return new DtSolicitudPendiente(datosVendedor.getId(), solicitante.getId(), productoInfo, solicitante.getNombre() + " " + solicitante.getApellido(),
                 calificacionComprador, solicitante.getImagen(), solicitante.getCorreo(), solicitante.getTelefono(),
                 datosVendedor.getNombreEmpresa(), datosVendedor.getTelefonoEmpresa(), datosVendedor.getRut(), local.toString());
     }

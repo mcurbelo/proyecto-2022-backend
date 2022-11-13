@@ -34,8 +34,8 @@ public class AdministradorController {
     }
 
     @PutMapping("/usuarios/{id}/solicitudes")
-    public ResponseEntity<String> revisarSolicitudNuevoVendedor(@PathVariable(value = "id") UUID id, @RequestParam(value = "aceptar") Boolean accion, @RequestBody DtMotivo motivo) {
-        administradorService.respuestaSolicitud(id, accion, motivo.getMotivo());
+    public ResponseEntity<String> revisarSolicitudNuevoVendedor(@PathVariable(value = "id") UUID id, @RequestParam(value = "aceptar") Boolean accion, @RequestBody(required = false) DtMotivo motivo) {
+        administradorService.respuestaSolicitud(id, accion, (motivo != null) ? motivo.getMotivo() : null);
         return new ResponseEntity<>("Accion realizada con exito!!!", HttpStatus.OK);
     }
 

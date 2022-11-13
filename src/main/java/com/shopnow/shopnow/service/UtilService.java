@@ -67,6 +67,6 @@ public class UtilService {
             urlImagenes.add(url.getUrl());
         }
         List<String> categorias = productoRepository.categoriasDelProducto(producto.getId());
-        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado(), producto.getDescripcion(), producto.getPermiteEnvio());
+        return new DtMiProducto(producto.getId(), producto.getNombre(), urlImagenes, producto.getFechaInicio(), producto.getFechaFin(), categorias, producto.getPrecio(), producto.getStock(), producto.getEstado(), producto.getDescripcion(), producto.getPermiteEnvio(), producto.getDiasGarantia());
     }
 }

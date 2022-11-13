@@ -38,4 +38,6 @@ public class DtMiProducto {
     private String descripcion;
 
     private Boolean permiteEnvio;
+
+    private Integer garantia;
 }
