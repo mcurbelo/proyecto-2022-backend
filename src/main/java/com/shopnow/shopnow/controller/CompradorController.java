@@ -52,6 +52,18 @@ public class CompradorController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/Direccion/{id}")
+    public ResponseEntity<Object> borrarDireccion(@PathVariable("id") String id) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try{
+            compradorService.borrarDireccion(id, email);
+            return ResponseEntity.ok().build();
+        }catch(Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/Direcciones")
     public ResponseEntity<List<DtDireccion>> getDirecciones() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

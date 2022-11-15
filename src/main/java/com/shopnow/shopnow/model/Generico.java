@@ -42,7 +42,7 @@ public class Generico extends Usuario {
     @Builder.Default
     private Map<UUID, Calificacion> calificaciones = new HashMap<>();
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @Builder.Default
     private Map<Integer, Direccion> direccionesEnvio = new HashMap<>();
 

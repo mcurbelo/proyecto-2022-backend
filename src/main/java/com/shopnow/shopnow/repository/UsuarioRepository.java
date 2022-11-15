@@ -20,13 +20,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     Optional<Usuario> findByIdAndEstado(UUID id, EstadoUsuario estado);
 
-    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1%", nativeQuery = true)
+    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1% and estado = 'Eliminado'" , nativeQuery = true)
     List<UUID> usuariosConNombre(String nombre);
 
-    @Query(value = "select cast(id as varchar) from usuario where apellido like %?1%", nativeQuery = true)
+//    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1%" and estado != 'Eliminado', nativeQuery = true)
+//    List<UUID> usuariosConNombre(String nombre);
+
+    @Query(value = "select cast(id as varchar) from usuario where apellido like %?1% and estado = 'Eliminado'", nativeQuery = true)
     List<UUID> usuariosConApellido(String nombre);
 
-    @Query(value = "select cast(id as varchar) from usuario where correo like %?1%", nativeQuery = true)
+    @Query(value = "select cast(id as varchar) from usuario where correo like %?1% and estado = 'Eliminado'", nativeQuery = true)
     List<UUID> usuariosConCorreo(String correo);
 
     @Query(value = "select cast(id as varchar) from usuario where estado=?1", nativeQuery = true)
@@ -34,7 +37,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     Page<Usuario> findByIdIn(List<UUID> ids, Pageable pageable);
 
-    @Query(value = "select * from usuario", countQuery = "select count(*) from usuario", nativeQuery = true)
+    @Query(value = "select * from usuario where estado != 'Eliminado'", countQuery = "select count(*) from usuario where estado != 'Eliminado'", nativeQuery = true)
     Page<Usuario> todosLosUsuarios(Pageable pageable);
     
     Optional<Usuario> findByResetPasswordToken(String id);

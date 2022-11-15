@@ -81,6 +81,26 @@ public class CompradorService {
         }
     }
 
+    public String borrarDireccion(String id, String email) throws Exception{
+        Generico generico = (Generico) usuarioRepository.findByCorreo(email).get();
+        Direccion direccion = (Direccion) direccionRepository.findById(Integer.parseInt(id)).get();
+        if(direccion == null || generico == null){
+            throw new Exception("Error al borrar");
+        }else{
+            if(generico.getDatosVendedor() != null){
+                Map<Integer, Direccion> direccionesLocales = generico.getDatosVendedor().getLocales();
+                direccionesLocales.remove(id);
+                generico.getDatosVendedor().setLocales(direccionesLocales);
+            }
+            Map<Integer, Direccion> direcciones = generico.getDireccionesEnvio();
+            direcciones.remove(Integer.parseInt(id));
+            generico.setDireccionesEnvio(direcciones);
+            usuarioRepository.save(generico);
+//            direccionRepository.delete(direccion);
+            return "Borrado con exito";
+        }
+    }
+
     public List<DtDireccion> obtenerDirecciones(String correoUsuario) {
         Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
 
