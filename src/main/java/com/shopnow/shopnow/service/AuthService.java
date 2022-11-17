@@ -4,10 +4,12 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.*;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
+import com.shopnow.shopnow.model.Administrador;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.model.enumerados.Rol;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import com.shopnow.shopnow.security.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,12 +63,12 @@ public class AuthService {
     public RegistrarUsuarioResponse registrarUsuario(DtUsuario datosUsuario) {
         //validaciones
         if (usuarioRepo.findByCorreoAndEstado(datosUsuario.getCorreo(), EstadoUsuario.Activo).isPresent()) {
-            return new RegistrarUsuarioResponse(false, "", "Usuario ya existente", "");
+            return new RegistrarUsuarioResponse(false, "", "Usuario ya existente", "", null);
         }
 
 
         String urlImagen = "";
-        if(datosUsuario.getImagen() != null){
+        if (datosUsuario.getImagen() != null) {
 
             try {
                 urlImagen = this.cargarImagen(datosUsuario);
@@ -90,10 +92,10 @@ public class AuthService {
                 .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
-        return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString());
+        return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString(), Rol.Usuario);
     }
 
-    public Map<String, String> iniciarSesion(String correo, String password) {
+    public Map<String, String> iniciarSesion(String correo, String password, String tokenWeb, String tokenMobile) {
         if (usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).isEmpty()) {
             throw new RuntimeException("Credenciales invalidas");
         }
@@ -102,12 +104,24 @@ public class AuthService {
             UsernamePasswordAuthenticationToken authInputToken = new UsernamePasswordAuthenticationToken(correo, password);
             authManager.authenticate(authInputToken);
             Map<String, String> response = new HashMap<>(Collections.emptyMap());
-            Optional<Usuario> usuario = usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo);
-            usuario.ifPresent(value -> response.put("uuid", value.getId().toString()));
+            Usuario usuario = usuarioRepo.findByCorreoAndEstado(correo, EstadoUsuario.Activo).orElseThrow();
+            response.put("uuid", usuario.getId().toString());
             String token = jwtUtil.generateToken(correo, response.get("uuid"));
             response.put("jwt-token", token);
+            if (tokenWeb != null) {
+                usuarioRepo.quitarTokenWeb(tokenWeb);
+                usuario.setWebToken(tokenWeb);
+                usuarioRepo.save(usuario);
+            }
+            if (tokenMobile != null) {
+                usuarioRepo.quitarTokenMobile(tokenMobile);
+                usuario.setMobileToken(tokenMobile);
+                usuarioRepo.save(usuario);
+
+            }
+            response.put("rol", String.valueOf((usuario instanceof Administrador) ? Rol.ADM : Rol.Usuario));
             return response;
-        } catch (AuthenticationException authExc) {
+        } catch (AuthenticationException | NoSuchElementException authExc) {
             throw new RuntimeException("Credenciales invalidas");
         }
     }
@@ -171,5 +185,4 @@ public class AuthService {
         fos.close();
         return file;
     }
-
 }

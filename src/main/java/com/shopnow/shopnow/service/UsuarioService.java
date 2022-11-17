@@ -46,6 +46,12 @@ public class UsuarioService {
 
         Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByIdAndEstado(UUID.fromString(uuid), EstadoUsuario.Activo);
 
+        if (usuarioBaseDatos.isPresent() && usuarioBaseDatos.get() instanceof Administrador adm) {
+            return DtUsuario.builder()
+                    .nombre(adm.getNombre())
+                    .build();
+        }
+
         Generico usuario = (Generico) usuarioBaseDatos.orElseThrow(() -> new Excepcion("El usuario no existe"));
 
         DtDatosVendedor datosvendedor = null;
@@ -139,7 +145,7 @@ public class UsuarioService {
             throw new Excepcion("El usuario no existe");
         } else {
             usuario = (Generico) res.get();
-            return usuario.getDatosVendedor() != null;
+            return usuario.getDatosVendedor() != null && usuario.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado;
         }
     }
 

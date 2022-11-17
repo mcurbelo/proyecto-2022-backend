@@ -49,7 +49,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}/perfil/imagen")
-    public ResponseEntity<String> modifcarImagen(@PathVariable(value = "id") UUID id, @RequestPart MultipartFile imagen) throws IOException {
+    public ResponseEntity<String> modificarImagen(@PathVariable(value = "id") UUID id, @RequestPart MultipartFile imagen) throws IOException {
         usuarioService.modificarImagen(id, imagen);
         return new ResponseEntity<>("Imagen modificada con exito!!!", HttpStatus.OK);
     }
@@ -101,4 +101,5 @@ public class UsuarioController {
         usuarioService.eliminarMiCuenta(id);
         return new ResponseEntity<>("Cuenta eliminada con exito!!!", HttpStatus.OK);
     }
+
 }

@@ -158,6 +158,8 @@ public class AdministradorService {
                 .nombre(datos.getNombre())
                 .apellido(datos.getApellido())
                 .password(passwordEncoder.encode(contrasena))
+                .estado(EstadoUsuario.Activo)
+                .imagen("")
                 .build();
         usuarioRepository.save(administrador);
         googleSMTP.enviarCorreo(administrador.getCorreo(), "Se ha creado su cuenta de administrador con los siguientes datos de inicio de sesión\n\nCorreo: " + datos.getCorreo() + "\nContraseña: " + contrasena + "", "Nueva cuenta de adminstrador - ShopNow");

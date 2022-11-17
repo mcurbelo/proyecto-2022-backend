@@ -5,8 +5,10 @@ import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,7 +22,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     Optional<Usuario> findByIdAndEstado(UUID id, EstadoUsuario estado);
 
-    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1% and estado = 'Eliminado'" , nativeQuery = true)
+    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1% and estado = 'Eliminado'", nativeQuery = true)
     List<UUID> usuariosConNombre(String nombre);
 
 //    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1%" and estado != 'Eliminado', nativeQuery = true)
@@ -39,6 +41,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     @Query(value = "select * from usuario where estado != 'Eliminado'", countQuery = "select count(*) from usuario where estado != 'Eliminado'", nativeQuery = true)
     Page<Usuario> todosLosUsuarios(Pageable pageable);
-    
+
     Optional<Usuario> findByResetPasswordToken(String id);
+
+    @Modifying
+    @Transactional
+    @Query(value = "Update USUARIO set web_token='' where web_token=?1", nativeQuery = true)
+    void quitarTokenWeb(String token);
+
+    @Modifying
+    @Transactional
+    @Query(value = "Update USUARIO set web_mobile='' where web_mobile=?1", nativeQuery = true)
+    void quitarTokenMobile(String token);
 }
