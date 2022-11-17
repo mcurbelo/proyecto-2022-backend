@@ -22,20 +22,23 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     Optional<Usuario> findByIdAndEstado(UUID id, EstadoUsuario estado);
 
-    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1% and estado = 'Eliminado'", nativeQuery = true)
+    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1% and estado != 'Eliminado'", nativeQuery = true)
     List<UUID> usuariosConNombre(String nombre);
 
 //    @Query(value = "select cast(id as varchar) from usuario where nombre like %?1%" and estado != 'Eliminado', nativeQuery = true)
 //    List<UUID> usuariosConNombre(String nombre);
 
-    @Query(value = "select cast(id as varchar) from usuario where apellido like %?1% and estado = 'Eliminado'", nativeQuery = true)
+    @Query(value = "select cast(id as varchar) from usuario where apellido like %?1% and estado != 'Eliminado'", nativeQuery = true)
     List<UUID> usuariosConApellido(String nombre);
 
-    @Query(value = "select cast(id as varchar) from usuario where correo like %?1% and estado = 'Eliminado'", nativeQuery = true)
+    @Query(value = "select cast(id as varchar) from usuario where correo like %?1% and estado != 'Eliminado'", nativeQuery = true)
     List<UUID> usuariosConCorreo(String correo);
 
     @Query(value = "select cast(id as varchar) from usuario where estado=?1", nativeQuery = true)
     List<UUID> usuariosConEstado(String estado);
+
+    @Query(value = "SELECT cast(id as varchar) FROM (Select lower(concat(nombre, apellido)) as nom, * FROM usuario) as nombreconcat where nom like %?1%", nativeQuery = true)
+    List<UUID> usuarioNombreApellido(String nombre);
 
     Page<Usuario> findByIdIn(List<UUID> ids, Pageable pageable);
 

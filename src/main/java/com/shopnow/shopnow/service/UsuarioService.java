@@ -252,17 +252,17 @@ public class UsuarioService {
 
         if (filtros != null) {
             List<UUID> usuariosIdConNombre = null;
-            if (filtros.getNombre() != null) {
-                usuariosIdConNombre = usuarioRepository.usuariosConNombre(filtros.getNombre());
+            if (filtros.getNombre() != null && filtros.getNombre() != "") {
+                usuariosIdConNombre = usuarioRepository.usuarioNombreApellido(filtros.getNombre().toLowerCase());
                 if (usuariosIdConNombre.isEmpty()) isEmpty = true;
             }
             List<UUID> usuariosIdConApellido = null;
-            if (filtros.getApellido() != null && !isEmpty) {
+            if (filtros.getApellido() != null && !isEmpty && filtros.getApellido() != "") {
                 usuariosIdConApellido = usuarioRepository.usuariosConApellido(filtros.getApellido());
                 if (usuariosIdConApellido.isEmpty()) isEmpty = true;
             }
             List<UUID> usuariosIdConCorreo = null;
-            if (filtros.getCorreo() != null && !isEmpty) {
+            if (filtros.getCorreo() != null && !isEmpty && filtros.getCorreo() != "") {
                 usuariosIdConCorreo = usuarioRepository.usuariosConCorreo(filtros.getCorreo());
                 if (usuariosIdConCorreo.isEmpty()) isEmpty = true;
             }
