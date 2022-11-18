@@ -89,7 +89,7 @@ public class CompradorService {
         } else {
             if (generico.getDatosVendedor() != null) {
                 Map<Integer, Direccion> direccionesLocales = generico.getDatosVendedor().getLocales();
-                direccionesLocales.remove(id);
+                direccionesLocales.remove(Integer.parseInt(id));
                 generico.getDatosVendedor().setLocales(direccionesLocales);
             }
             Map<Integer, Direccion> direcciones = generico.getDireccionesEnvio();
