@@ -21,10 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/vendedores")
@@ -129,4 +126,12 @@ public class VendedorController {
         return new ResponseEntity<>("Producto modificado con éxito!!!", HttpStatus.OK);
     }
 
+    @GetMapping("/{id}/estadisiticas")
+    public Map<String, Object> estaditicasVendedor(@PathVariable(value = "id") UUID idVendedor) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("balance", vendedorService.balanceVendedor(idVendedor, null, null, true));
+        response.put("top10", vendedorService.topTeenProductosVendidos(idVendedor, null, null, true));
+        response.put("mejoresCalificados", vendedorService.productosMejoresCalificados(idVendedor, null, null, true));
+        return response;
+    }
 }

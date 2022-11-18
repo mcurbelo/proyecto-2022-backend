@@ -2,8 +2,7 @@ package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.DtCompraSlimVendedor;
-import com.shopnow.shopnow.model.datatypes.DtFiltrosVentas;
+import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class VendedorService {
@@ -127,6 +127,66 @@ public class VendedorService {
 
         return response;
     }
+
+    public DtBalance balanceVendedor(UUID idUsuario, Date fechaInicio, Date fechaFin, Boolean historico) {
+        Generico usuario = (Generico) usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no esta disponible para utilizar esta funcionaldiad"));
+        float totalGanado = 0.00f, ganadoPorEnvio = 0.00f, ganadoPorRetiro = 0.00f;
+        int cantidadPorEnvio = 0, cantidadPorRetiro = 0;
+        List<Compra> ventas;
+        if (historico) {
+            ventas = usuarioRepository.ventasTotalesCompletadas(usuario.getId());
+        } else {
+            ventas = usuarioRepository.ventasPorFechaCompletadas(usuario.getId(), fechaInicio, fechaFin);
+        }
+        for (Compra venta : ventas) {
+            totalGanado += venta.getInfoEntrega().getPrecioTotal();
+            if (venta.getInfoEntrega().getEsEnvio()) {
+                ganadoPorEnvio += venta.getInfoEntrega().getPrecioTotal();
+                cantidadPorEnvio++;
+            } else {
+                ganadoPorRetiro += venta.getInfoEntrega().getPrecioTotal();
+                cantidadPorRetiro++;
+            }
+        }
+        return new DtBalance(totalGanado, ganadoPorEnvio, ganadoPorRetiro, cantidadPorEnvio, cantidadPorRetiro);
+    }
+
+    public List<DtTopProductosVendidos> topTeenProductosVendidos(UUID idUsuario, Date fechaInicio, Date fechaFin, Boolean historico) {
+        Generico usuario = (Generico) usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no esta disponible para utilizar esta funcionaldiad"));
+        if (historico) {
+            return usuarioRepository.topteenProductosVendidos(usuario.getId()).stream().map(tupla -> new DtTopProductosVendidos(
+                            tupla.get(0, String.class),
+                            tupla.get(1, Integer.class)
+                    ))
+                    .collect(Collectors.toList());
+        } else {
+            return usuarioRepository.topteenProductosVendidosEntreFecha(usuario.getId(), fechaInicio, fechaFin).stream().map(tupla -> new DtTopProductosVendidos(
+                            tupla.get(0, String.class),
+                            tupla.get(1, Integer.class)
+                    ))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public List<DtProductosMejoresCalificados> productosMejoresCalificados(UUID idUsuario, Date fechaInicio, Date fechaFin, Boolean historico) {
+        Generico usuario = (Generico) usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no esta disponible para utilizar esta funcionaldiad"));
+        if (historico) {
+            return usuarioRepository.promedioCalificacionPorProducto(usuario.getId()).stream().map(tupla -> new DtProductosMejoresCalificados(
+                            tupla.get(0, String.class),
+                            tupla.get(1, Float.class),
+                            tupla.get(2, Integer.class)
+                    ))
+                    .collect(Collectors.toList());
+        } else {
+            return usuarioRepository.promedioCalificacionPorProductoEntreFecha(usuario.getId(), fechaInicio, fechaFin).stream().map(tupla -> new DtProductosMejoresCalificados(
+                            tupla.get(0, String.class),
+                            tupla.get(1, Float.class),
+                            tupla.get(2, Integer.class)
+                    ))
+                    .collect(Collectors.toList());
+        }
+    }
+
 
     private DtCompraSlimVendedor getDtCompraSlim(Compra compra, UUID idVendedor) {
         Generico comprador = compraRepository.obtenerComprador(compra.getId());
