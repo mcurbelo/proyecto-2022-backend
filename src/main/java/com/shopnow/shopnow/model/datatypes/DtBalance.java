@@ -10,6 +10,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class DtBalance {
-    Float totalGanado, ganadoPorEnvio, ganadoPorRetiro;
+    Float totalGanado, ganadoPorEnvio, ganadoPorRetiro, perdidoPorComision;
     Integer cantidadPorEnvio, cantidadPorRetiro;
 }

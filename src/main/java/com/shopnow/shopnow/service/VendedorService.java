@@ -130,8 +130,9 @@ public class VendedorService {
 
     public DtBalance balanceVendedor(UUID idUsuario, Date fechaInicio, Date fechaFin, Boolean historico) {
         Generico usuario = (Generico) usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no esta disponible para utilizar esta funcionaldiad"));
-        float totalGanado = 0.00f, ganadoPorEnvio = 0.00f, ganadoPorRetiro = 0.00f;
+        float totalGanado = 0.00f, ganadoPorEnvio = 0.00f, ganadoPorRetiro = 0.00f, perdidoPorComision = 0.00f;
         int cantidadPorEnvio = 0, cantidadPorRetiro = 0;
+        float comisionShopNow = 0.05f;
         List<Compra> ventas;
         if (historico) {
             ventas = usuarioRepository.ventasTotalesCompletadas(usuario.getId());
@@ -139,16 +140,19 @@ public class VendedorService {
             ventas = usuarioRepository.ventasPorFechaCompletadas(usuario.getId(), fechaInicio, fechaFin);
         }
         for (Compra venta : ventas) {
-            totalGanado += venta.getInfoEntrega().getPrecioTotal();
+            float comision = venta.getInfoEntrega().getPrecioTotal() * comisionShopNow;
+            perdidoPorComision += comision;
+            totalGanado += venta.getInfoEntrega().getPrecioTotal() - comision;
+
             if (venta.getInfoEntrega().getEsEnvio()) {
-                ganadoPorEnvio += venta.getInfoEntrega().getPrecioTotal();
+                ganadoPorEnvio += venta.getInfoEntrega().getPrecioTotal() - comision;
                 cantidadPorEnvio++;
             } else {
-                ganadoPorRetiro += venta.getInfoEntrega().getPrecioTotal();
+                ganadoPorRetiro += venta.getInfoEntrega().getPrecioTotal() - comision;
                 cantidadPorRetiro++;
             }
         }
-        return new DtBalance(totalGanado, ganadoPorEnvio, ganadoPorRetiro, cantidadPorEnvio, cantidadPorRetiro);
+        return new DtBalance(totalGanado, ganadoPorEnvio, ganadoPorRetiro, perdidoPorComision, cantidadPorEnvio, cantidadPorRetiro);
     }
 
     public List<DtTopProductosVendidos> topTeenProductosVendidos(UUID idUsuario, Date fechaInicio, Date fechaFin, Boolean historico) {

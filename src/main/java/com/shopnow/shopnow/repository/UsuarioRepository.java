@@ -75,7 +75,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     @Query(value = "select p.nombre, CAST (SUM(cp.cantidad) AS INTEGER) as cantidad " +
             "from ((compra c join usuario_ventas uv on id=ventas_key) " +
             "join compra_producto cp on c.entrega_info=cp.id) join producto p on p.id=cp.producto_id " +
-            "where uv.generico_id=?1 date(c.fecha)>=cast(?2 as date) and date(c.fecha)<=cast(?3 as date) and c.estado='Completada' " +
+            "where uv.generico_id=?1 and date(c.fecha)>=cast(?2 as date) and date(c.fecha)<=cast(?3 as date) and c.estado='Completada' " +
             "group by p.nombre order by cantidad DESC LIMIT 10", nativeQuery = true)
     List<Tuple> topteenProductosVendidosEntreFecha(UUID idUsuario, Date fechaInicio, Date fechaFin);
 
@@ -97,7 +97,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
             "join producto p on p.id=cp.producto_id) " +
             "join compra_producto_calificaciones cpc on cpc.compra_producto_id=cp.id) " +
             "join calificacion cal on cpc.calificaciones_id=cal.id and cal.autor_id!=?1 " +
-            "where uv.generico_id=?1 and c.estado='Completada'  date(c.fecha)>=cast(?2 as date) and date(c.fecha)<=cast(?3 as date)" +
+            "where uv.generico_id=?1 and c.estado='Completada' and date(c.fecha)>=cast(?2 as date) and date(c.fecha)<=cast(?3 as date)" +
             "group by p.nombre order by promedio DESC LIMIT 10", nativeQuery = true)
     List<Tuple> promedioCalificacionPorProductoEntreFecha(UUID idUsuario, Date fechaInicio, Date fechaFin);
 

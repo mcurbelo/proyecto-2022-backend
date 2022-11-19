@@ -4,10 +4,7 @@ package com.shopnow.shopnow.controller;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.model.datatypes.*;
-import com.shopnow.shopnow.model.enumerados.EstadoCompra;
-import com.shopnow.shopnow.model.enumerados.EstadoProducto;
-import com.shopnow.shopnow.model.enumerados.TipoReclamo;
-import com.shopnow.shopnow.model.enumerados.TipoResolucion;
+import com.shopnow.shopnow.model.enumerados.*;
 import com.shopnow.shopnow.service.CompraService;
 import com.shopnow.shopnow.service.ProductoService;
 import com.shopnow.shopnow.service.ReclamoService;
@@ -126,12 +123,22 @@ public class VendedorController {
         return new ResponseEntity<>("Producto modificado con éxito!!!", HttpStatus.OK);
     }
 
-    @GetMapping("/{id}/estadisiticas")
-    public Map<String, Object> estaditicasVendedor(@PathVariable(value = "id") UUID idVendedor) {
+    @GetMapping("/{id}/estadisiticas/{opcion}")
+    public Map<String, Object> estadisticasVendedor(@PathVariable(value = "id") UUID idVendedor,
+                                                    @PathVariable(value = "opcion") EstVendedor opcion,
+                                                    @RequestParam(value = "fechaInicio", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaInicio,
+                                                    @RequestParam(value = "fechaFin", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaFin) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("balance", vendedorService.balanceVendedor(idVendedor, null, null, true));
-        response.put("top10", vendedorService.topTeenProductosVendidos(idVendedor, null, null, true));
-        response.put("mejoresCalificados", vendedorService.productosMejoresCalificados(idVendedor, null, null, true));
+        boolean esHistorico = fechaInicio == null && fechaFin == null;
+
+        if (opcion == EstVendedor.Todas || opcion == EstVendedor.Balance)
+            response.put("balance", vendedorService.balanceVendedor(idVendedor, fechaInicio, fechaFin, esHistorico));
+
+        if (opcion == EstVendedor.Todas || opcion == EstVendedor.Top10ProdVendidos)
+            response.put("top10", vendedorService.topTeenProductosVendidos(idVendedor, fechaInicio, fechaFin, esHistorico));
+
+        if (opcion == EstVendedor.Todas || opcion == EstVendedor.Top10ProdCalificados)
+            response.put("mejoresCalificados", vendedorService.productosMejoresCalificados(idVendedor, fechaInicio, fechaFin, esHistorico));
         return response;
     }
 }
