@@ -1,6 +1,7 @@
 package com.shopnow.shopnow.service;
 
 import com.braintreegateway.*;
+import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Tarjeta;
 import com.shopnow.shopnow.model.datatypes.DtTarjeta;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
 
 @Component
 public class BraintreeUtils {
@@ -34,6 +37,23 @@ public class BraintreeUtils {
                 .expirationDate(tarjeta.getCardExpiration());
         Result<CreditCard> result = gateway.creditCard().create(request);
         if (result.isSuccess()) {
+            boolean existeTarjeta = false;
+            String tarjetaRecienAgregadaId = result.getTarget().getUniqueNumberIdentifier();
+            String tarjetaRecienAgregadaToken = result.getTarget().getToken();
+            Customer customer = gateway.customer().find(customerId);
+            List<CreditCard> tarjetas = customer.getCreditCards();
+            for (CreditCard tarjetaCustomer : tarjetas) {
+                if (Objects.equals(tarjetaCustomer.getUniqueNumberIdentifier(), tarjetaRecienAgregadaId) &&
+                        !Objects.equals(tarjetaRecienAgregadaToken, tarjetaCustomer.getToken())) {
+                    existeTarjeta = true;
+                    gateway.creditCard().delete(tarjetaRecienAgregadaToken);
+                    break;
+                }
+            }
+            if (existeTarjeta) {
+                throw new Excepcion("Este método de pago ya existe");
+            }
+
             return Tarjeta.builder().token(result.getTarget().getToken())
                     .last4(result.getTarget().getLast4())
                     .vencimiento(result.getTarget().getExpirationDate())
