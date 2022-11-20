@@ -156,6 +156,15 @@ public class AuthService {
 
     }
 
+    public boolean verificarCodigo (String codigo){
+        Usuario usuario = usuarioRepo.findByResetPasswordToken(codigo).orElseThrow(() -> new Excepcion("Token incorrecto"));
+        if (usuario.getExpiracionPasswordToken().before(new Date())) {
+            throw new Excepcion("Tiempo de validez del token finalizado");
+        }else{
+            return true;
+        }
+    }
+
 
     /*Funciones auxiliares*/
 
