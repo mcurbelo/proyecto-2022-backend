@@ -1,6 +1,8 @@
 package com.shopnow.shopnow.repository;
 
+import com.shopnow.shopnow.model.Administrador;
 import com.shopnow.shopnow.model.Compra;
+import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import org.springframework.data.domain.Page;
@@ -101,4 +103,18 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
             "group by p.nombre order by promedio DESC LIMIT 10", nativeQuery = true)
     List<Tuple> promedioCalificacionPorProductoEntreFecha(UUID idUsuario, Date fechaInicio, Date fechaFin);
 
+    @Query(value = "SELECT u FROM Usuario u where TYPE(u) = Generico")
+    List<Generico> usuariosSistema();
+
+    @Query(value = "SELECT u FROM Usuario u where TYPE(u) = Generico and fechaRegistro>=?1 and fechaRegistro<=?2")
+    List<Generico> usuariosSistemaRango(Date fechaInicio, Date fechaFin);
+
+    @Query(value = "SELECT u FROM Usuario u where TYPE(u) = Administrador")
+    List<Administrador> administradoresSistema();
+
+    @Query(value = "SELECT u FROM Usuario u where TYPE(u) = Administrador and u.fechaRegistro>=?1 and u.fechaRegistro<=?2")
+    List<Administrador> administradoresSistemaRango(Date fechaInicio, Date fechaFin);
+
+    @Query("SELECT COUNT(u) FROM Usuario u")
+    Integer totalUsuarios();
 }

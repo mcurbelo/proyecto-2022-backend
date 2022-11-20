@@ -53,7 +53,8 @@ public abstract class Usuario {
     private String telefono;
 
     private String resetPasswordToken;
-    
+
     private Date expiracionPasswordToken;
 
+    private Date fechaRegistro;
 }

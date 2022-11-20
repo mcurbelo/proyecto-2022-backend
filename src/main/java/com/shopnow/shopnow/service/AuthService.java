@@ -88,6 +88,7 @@ public class AuthService {
                 .webToken("")
                 .password(encodedPass)
                 .telefono(datosUsuario.getTelefono())
+                .fechaRegistro(new Date())
                 .fechaNac(datosUsuario.getFechaNac())
                 .build();
         usuarioRepo.save(usuario);

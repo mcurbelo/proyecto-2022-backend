@@ -1,18 +1,12 @@
 package com.shopnow.shopnow.service;
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.DtMiProducto;
-import com.shopnow.shopnow.model.datatypes.DtSolicitudPendiente;
-import com.shopnow.shopnow.model.datatypes.DtUsuarioSlim;
-import com.shopnow.shopnow.model.enumerados.EstadoCompra;
-import com.shopnow.shopnow.model.enumerados.EstadoProducto;
-import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
-import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
-import com.shopnow.shopnow.repository.CompraRepository;
-import com.shopnow.shopnow.repository.DatosVendedorRepository;
-import com.shopnow.shopnow.repository.ProductoRepository;
-import com.shopnow.shopnow.repository.UsuarioRepository;
+import com.shopnow.shopnow.model.datatypes.*;
+import com.shopnow.shopnow.model.enumerados.*;
+import com.shopnow.shopnow.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,6 +47,12 @@ public class AdministradorService {
 
     @Autowired
     UtilService utilService;
+
+    @Autowired
+    ReclamoRepository reclamoRepository;
+
+    @Autowired
+    FirebaseMessagingService firebaseMessagingService;
 
     public void bloquearUsuario(UUID idUsuario, String motivo) {
         Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
@@ -160,6 +160,7 @@ public class AdministradorService {
                 .password(passwordEncoder.encode(contrasena))
                 .estado(EstadoUsuario.Activo)
                 .imagen("")
+                .fechaRegistro(new Date())
                 .build();
         usuarioRepository.save(administrador);
         googleSMTP.enviarCorreo(administrador.getCorreo(), "Se ha creado su cuenta de administrador con los siguientes datos de inicio de sesión\n\nCorreo: " + datos.getCorreo() + "\nContraseña: " + contrasena + "", "Nueva cuenta de adminstrador - ShopNow");
@@ -191,6 +192,180 @@ public class AdministradorService {
 
         return response;
     }
+
+
+    public void deshacerCompra(UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
+        Compra compra = compraRepository.findById(idCompra).orElseThrow(() -> new Excepcion("La compra/venta no existe."));
+
+        if (compra.getEstado() == EstadoCompra.Devolucion || compra.getEstado() == EstadoCompra.Cancelada) {
+            throw new Excepcion("Esta compra/venta no se puede reembolsar. Ya que la compra no está en un estado valído.");
+        }
+
+        if (!reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto)) {
+            throw new Excepcion("Esta compra/venta no se puede reembolsar. Se necesita un reclamo en estado de 'No resuelto'");
+        }
+
+        braintreeUtils.devolverDinero(compra.getIdTransaccion());
+        compra.setEstado(EstadoCompra.Devolucion);
+        compraRepository.save(compra);
+
+        Generico comprador = compraRepository.obtenerComprador(compra.getId());
+        Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
+
+        if (!comprador.getWebToken().equals("")) {
+            Note notificacionComprador = new Note("Compa reembolsada", "Una de tus compras ha sido reembolsada por un administrador", new HashMap<>(), "");
+            firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
+        }
+        googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nLa compra (identificador:" + compra.getId() + ") ha sido reembolsada por un administrador. Ya se ha iniciado la transacción de devolución de dinero. Detalles:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()), "Compra reembolsada - ShopNow");
+
+        if (!vendedor.getWebToken().equals("")) {
+            Note notificacionVendedor = new Note("Venta reembolsada", "Una de tus ventas ha sido reembolsada por un administrador", new HashMap<>(), "");
+            firebaseMessagingService.enviarNotificacion(notificacionVendedor, vendedor.getWebToken());
+        }
+        googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nLa venta (identificador:" + compra.getId() + ") ha sido reembolsada por un administrador. Ya se ha iniciado la transacción de devolución de dinero. Detalles:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()), "Venta reembolsada - ShopNow");
+    }
+
+    public void infoCompraParaReembolso(UUID idCompra) {
+        Compra compra = compraRepository.findById(idCompra).orElseThrow(() -> new Excepcion("La compra/venta no existe."));
+        //TODO hacer
+
+    }
+
+    public Map<String, Object> estadisticaUsuarios(Date fechaInicio, Date fechaFin, Boolean historico) {
+        List<Generico> usuarios;
+        List<Administrador> administradores;
+        int cantidadVendedores = 0, cantidadSoloCompradores = 0, cantidadActivos = 0, cantidadBloqueados = 0, cantidadEliminados = 0,
+                cantidadAdministradores = 0, cantidadAdmActivos = 0, cantidadAdmBloqueados = 0, cantidadAdmEliminados = 0;
+        Map<String, Object> response = new LinkedHashMap<>();
+        int total = usuarioRepository.totalUsuarios();
+
+        if (historico) {
+            usuarios = usuarioRepository.usuariosSistema();
+            administradores = usuarioRepository.administradoresSistema();
+        } else {
+            usuarios = usuarioRepository.usuariosSistemaRango(fechaInicio, fechaFin);
+            administradores = usuarioRepository.administradoresSistemaRango(fechaInicio, fechaFin);
+
+        }
+        response.put("total", total);
+        response.put("muestra", usuarios.size() + administradores.size());
+
+        for (Generico usuario : usuarios) {
+            if (usuario.getDatosVendedor() == null || usuario.getDatosVendedor().getEstadoSolicitud() != EstadoSolicitud.Aceptado) {
+                cantidadSoloCompradores++;
+            }
+            if (usuario.getDatosVendedor() != null && usuario.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado) {
+                cantidadVendedores++;
+            }
+
+            if (usuario.getEstado() == EstadoUsuario.Activo)
+                cantidadActivos++;
+            else if (usuario.getEstado() == EstadoUsuario.Bloqueado)
+                cantidadBloqueados++;
+            else
+                cantidadEliminados++;
+        }
+
+        DtUsuarioEst usuariosEst = new DtUsuarioEst(cantidadVendedores, cantidadSoloCompradores, cantidadActivos, cantidadBloqueados, cantidadEliminados);
+        response.put("usuarios", usuariosEst);
+
+        for (Administrador administrador : administradores) {
+            if (administrador.getEstado() == EstadoUsuario.Activo)
+                cantidadAdmActivos++;
+            else if (administrador.getEstado() == EstadoUsuario.Bloqueado)
+                cantidadAdmBloqueados++;
+            else
+                cantidadAdmEliminados++;
+        }
+
+        DtAdminEst usuariosAdm = new DtAdminEst(cantidadAdministradores, cantidadAdmActivos, cantidadAdmBloqueados, cantidadAdmEliminados);
+        response.put("admins", usuariosAdm);
+
+
+        return response;
+    }
+
+    public Map<String, Object> estaditicasVentas(Date fechaInicio, Date fechaFin, Boolean historico) {
+        List<Compra> compras;
+        int cantidadCompletadas = 0, cantidadCancelados = 0, cantidadRembolsada = 0, cantidadAceptada = 0, cantidadPendiente = 0, total = 0;
+        total = compraRepository.totalCompras();
+
+
+        if (historico) {
+            compras = compraRepository.findAll();
+        } else {
+            compras = compraRepository.comprasPorRango(fechaInicio, fechaFin);
+
+
+        }
+        for (Compra compra : compras) {
+            if (compra.getEstado() == EstadoCompra.Completada)
+                cantidadCompletadas++;
+            else if (compra.getEstado() == EstadoCompra.Cancelada)
+                cantidadCancelados++;
+            else if (compra.getEstado() == EstadoCompra.Devolucion)
+                cantidadRembolsada++;
+            else if (compra.getEstado() == EstadoCompra.Confirmada)
+                cantidadAceptada++;
+            else
+                cantidadPendiente++;
+        }
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("completadas", cantidadCompletadas);
+        response.put("canceladas", cantidadCancelados);
+        response.put("reembolsadas", cantidadRembolsada);
+        response.put("aceptadas", cantidadAceptada);
+        response.put("pendientes", cantidadPendiente);
+        response.put("total", total);
+        response.put("muestra", compras.size());
+        return response;
+    }
+
+    public Map<String, Object> estadisticasReclamos(Date fechaInicio, Date fechaFin, Boolean historico) {
+        List<Reclamo> reclamos;
+        int resueltosPorChat = 0, resueltosPorDevolucion = 0, noResueltos = 0,
+                tipoDesperfecto = 0, tipoRepeticionIncoveniente = 0, tipoProductoNoRecibo = 0,
+                tipoProductoErroneo = 0, tipoOtro = 0, total = 0;
+        total = reclamoRepository.totalReclamos();
+
+        if (historico) {
+            reclamos = reclamoRepository.findAll();
+        } else {
+            reclamos = reclamoRepository.reclamosPorRango(fechaInicio, fechaFin);
+        }
+        for (Reclamo reclamo : reclamos) {
+            if (reclamo.getResuelto() == TipoResolucion.Devolucion)
+                resueltosPorDevolucion++;
+            if (reclamo.getResuelto() == TipoResolucion.NoResuelto)
+                noResueltos++;
+            if (reclamo.getResuelto() == TipoResolucion.PorChat)
+                resueltosPorChat++;
+            if (reclamo.getTipo() == TipoReclamo.Otro)
+                tipoOtro++;
+            if (reclamo.getTipo() == TipoReclamo.DesperfectoProducto)
+                tipoDesperfecto++;
+            if (reclamo.getTipo() == TipoReclamo.RepticionIncoveniente)
+                tipoRepeticionIncoveniente++;
+            if (reclamo.getTipo() == TipoReclamo.ProductoNoRecibido)
+                tipoProductoNoRecibo++;
+            if (reclamo.getTipo() == TipoReclamo.ProducoErroneo)
+                tipoProductoErroneo++;
+        }
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("resueltosChat", resueltosPorChat);
+        response.put("resueltosDevolucion", resueltosPorDevolucion);
+        response.put("noResueltos", noResueltos);
+        response.put("tipoDesperfecto", tipoDesperfecto);
+        response.put("tipoRepeticion", tipoRepeticionIncoveniente);
+        response.put("tipoProductoNoRecibo", tipoProductoNoRecibo);
+        response.put("tipoProductoErroneo", tipoProductoErroneo);
+        response.put("tipoOtro", tipoOtro);
+        response.put("muestra", reclamos.size());
+        response.put("total", total);
+
+        return response;
+    }
+
 
     private DtSolicitudPendiente getDtSolicitudPendiente(DatosVendedor datosVendedor) {
         Generico solicitante = datosVendedorRepository.obtenerSolicitante(datosVendedor.getId());

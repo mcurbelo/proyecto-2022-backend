@@ -2,15 +2,19 @@ package com.shopnow.shopnow.controller;
 
 import com.shopnow.shopnow.model.datatypes.DtMotivo;
 import com.shopnow.shopnow.model.datatypes.DtUsuarioSlim;
+import com.shopnow.shopnow.model.enumerados.EstAdm;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.service.AdministradorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,11 +48,9 @@ public class AdministradorController {
         try {
             administradorService.crearAdministrador(datos);
             return new ResponseEntity<>("Accion realizada con exito!!!", HttpStatus.OK);
-        }catch (Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>("Ocurrio un error al intentar crear el usuario", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-
     }
 
     @GetMapping("/solicitudes")
@@ -59,4 +61,23 @@ public class AdministradorController {
             @RequestParam(value = "sortDir", defaultValue = "dsc", required = false) String sortDir) {
         return administradorService.listadoSolicitudes(pageNo, pageSize, sortBy, sortDir);
     }
+
+    @GetMapping("/estadisticas/{opcion}")
+    public Map<String, Object> estadisticasVendedor(@PathVariable(value = "opcion") EstAdm opcion,
+                                                    @RequestParam(value = "fechaInicio", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaInicio,
+                                                    @RequestParam(value = "fechaFin", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaFin) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        boolean esHistorico = fechaInicio == null && fechaFin == null;
+
+        if (opcion == EstAdm.Todas || opcion == EstAdm.Ventas)
+            response.put("ventas", administradorService.estaditicasVentas(fechaInicio, fechaFin, esHistorico));
+
+        if (opcion == EstAdm.Todas || opcion == EstAdm.Reclamos)
+            response.put("reclamos", administradorService.estadisticasReclamos(fechaInicio, fechaFin, esHistorico));
+
+        if (opcion == EstAdm.Todas || opcion == EstAdm.Usuarios)
+            response.put("usuarios", administradorService.estadisticaUsuarios(fechaInicio, fechaFin, esHistorico));
+        return response;
+    }
+
 }

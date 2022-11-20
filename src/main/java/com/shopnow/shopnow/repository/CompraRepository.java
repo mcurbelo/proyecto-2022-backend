@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,4 +50,9 @@ public interface CompraRepository extends JpaRepository<Compra, UUID> {
     @Query(value = "SELECT b FROM Usuario b left outer join b.ventas c where c.id=?1 and TYPE(b) = Generico")
     Generico obtenerVendedor(UUID idCompra);
 
+    @Query(value = "select c from Compra c where fecha>=?1 and fecha<=?2")
+    List<Compra> comprasPorRango(Date fechaInicio, Date fechaFin);
+
+    @Query("SELECT COUNT(c) FROM Compra c")
+    Integer totalCompras();
 }

@@ -123,7 +123,7 @@ public class VendedorController {
         return new ResponseEntity<>("Producto modificado con éxito!!!", HttpStatus.OK);
     }
 
-    @GetMapping("/{id}/estadisiticas/{opcion}")
+    @GetMapping("/{id}/estadisticas/{opcion}")
     public Map<String, Object> estadisticasVendedor(@PathVariable(value = "id") UUID idVendedor,
                                                     @PathVariable(value = "opcion") EstVendedor opcion,
                                                     @RequestParam(value = "fechaInicio", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaInicio,

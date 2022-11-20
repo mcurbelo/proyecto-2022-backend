@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,4 +57,10 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
     Page<Reclamo> misReclamosRecibidos(UUID id, Pageable pageable);
 
     Boolean existsByCompraAndResuelto(Compra compra, TipoResolucion resolucion);
+
+    @Query(value = "SELECT r FROM Reclamo r where fecha>=?1 and fecha<=?2")
+    List<Reclamo> reclamosPorRango(Date fechaInicio, Date fechaFin);
+
+    @Query("SELECT COUNT(r) FROM Reclamo r")
+    Integer totalReclamos();
 }
