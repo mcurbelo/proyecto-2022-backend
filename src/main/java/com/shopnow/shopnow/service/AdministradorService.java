@@ -204,7 +204,6 @@ public class AdministradorService {
         if (!reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto)) {
             throw new Excepcion("Esta compra/venta no se puede reembolsar. Se necesita un reclamo en estado de 'No resuelto'");
         }
-
         braintreeUtils.devolverDinero(compra.getIdTransaccion());
         compra.setEstado(EstadoCompra.Devolucion);
         compraRepository.save(compra);
@@ -225,11 +224,6 @@ public class AdministradorService {
         googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + vendedor.getNombre() + " " + vendedor.getApellido() + ".\nLa venta (identificador:" + compra.getId() + ") ha sido reembolsada por un administrador. Ya se ha iniciado la transacción de devolución de dinero. Detalles:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()), "Venta reembolsada - ShopNow");
     }
 
-    public void infoCompraParaReembolso(UUID idCompra) {
-        Compra compra = compraRepository.findById(idCompra).orElseThrow(() -> new Excepcion("La compra/venta no existe."));
-        //TODO hacer
-
-    }
 
     public Map<String, Object> estadisticaUsuarios(Date fechaInicio, Date fechaFin, Boolean historico) {
         List<Generico> usuarios;

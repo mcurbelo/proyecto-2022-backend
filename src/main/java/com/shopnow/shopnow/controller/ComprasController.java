@@ -5,6 +5,7 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.datatypes.DtCalificacion;
 import com.shopnow.shopnow.model.datatypes.DtChat;
+import com.shopnow.shopnow.model.datatypes.DtCompraDeshacer;
 import com.shopnow.shopnow.service.CalificacionService;
 import com.shopnow.shopnow.service.CompraService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,30 +42,34 @@ public class ComprasController {
     }
 
     @PostMapping("/iniciarChat")
-    public ResponseEntity<String> iniciarChat (@RequestBody DtChat datosChat){
+    public ResponseEntity<String> iniciarChat(@RequestBody DtChat datosChat) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        try{
+        try {
             compraService.crearChat(datosChat, email);
-        }catch (Excepcion e){
+        } catch (Excepcion e) {
             return new ResponseEntity<>("Error al inicar el chat", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>("Chat Iniciado", HttpStatus.OK);
     }
 
     @GetMapping("/chat/{idcompra}")
-    public ResponseEntity<String> obtenerChat (@PathVariable(value = "idcompra") String idcompra){
+    public ResponseEntity<String> obtenerChat(@PathVariable(value = "idcompra") String idcompra) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(email.isEmpty()){
+        if (email.isEmpty()) {
             return new ResponseEntity<>("Usuario desconocido", HttpStatus.FORBIDDEN);
         }
-        try{
+        try {
             String idChat = compraService.obtenerChat(idcompra);
             return new ResponseEntity<>(idChat, HttpStatus.OK);
-        }catch (Excepcion e){
+        } catch (Excepcion e) {
             return new ResponseEntity<>("Error al obtener el chat", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
+    @GetMapping("/{idCompra}")
+    public DtCompraDeshacer infoCompra(@PathVariable(value = "idCompra") UUID idCompra) {
+        return compraService.infoCompraParaReembolso(idCompra);
+    }
 
 }

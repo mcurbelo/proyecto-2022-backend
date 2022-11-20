@@ -1,5 +1,7 @@
 package com.shopnow.shopnow.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.model.datatypes.DtMotivo;
 import com.shopnow.shopnow.model.datatypes.DtUsuarioSlim;
 import com.shopnow.shopnow.model.enumerados.EstAdm;
@@ -63,9 +65,9 @@ public class AdministradorController {
     }
 
     @GetMapping("/estadisticas/{opcion}")
-    public Map<String, Object> estadisticasVendedor(@PathVariable(value = "opcion") EstAdm opcion,
-                                                    @RequestParam(value = "fechaInicio", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaInicio,
-                                                    @RequestParam(value = "fechaFin", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaFin) {
+    public Map<String, Object> estadisticasAdm(@PathVariable(value = "opcion") EstAdm opcion,
+                                               @RequestParam(value = "fechaInicio", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaInicio,
+                                               @RequestParam(value = "fechaFin", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaFin) {
         Map<String, Object> response = new LinkedHashMap<>();
         boolean esHistorico = fechaInicio == null && fechaFin == null;
 
@@ -79,5 +81,12 @@ public class AdministradorController {
             response.put("usuarios", administradorService.estadisticaUsuarios(fechaInicio, fechaFin, esHistorico));
         return response;
     }
+
+    @PutMapping("/reembolsos/{idCompra}")
+    public ResponseEntity<String> reembolsarCompra(@PathVariable(value = "idCOmpra") UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
+        administradorService.deshacerCompra(idCompra);
+        return new ResponseEntity<>("Accion realizada con exito!!!", HttpStatus.OK);
+    }
+
 
 }

@@ -35,8 +35,6 @@ public class DtCompraDeshacer {
 
     private Float montoUnitario;
 
-    private String imagenURL;
-
     private Boolean esEnvio;
 
     private Boolean tieneReclamoNoResuelto;

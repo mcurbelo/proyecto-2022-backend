@@ -8,11 +8,9 @@ import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtChat;
 import com.shopnow.shopnow.model.datatypes.DtCompra;
+import com.shopnow.shopnow.model.datatypes.DtCompraDeshacer;
 import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
-import com.shopnow.shopnow.model.enumerados.EstadoCompra;
-import com.shopnow.shopnow.model.enumerados.EstadoProducto;
-import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
-import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.model.enumerados.*;
 import com.shopnow.shopnow.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,6 +55,9 @@ public class CompraService {
 
     @Autowired
     BraintreeUtils braintreeUtils;
+
+    @Autowired
+    ReclamoRepository reclamoRepository;
 
     public Map<String, String> nuevaCompra(DtCompra datosCompra, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
         //Validaciones RNE
@@ -341,7 +342,7 @@ public class CompraService {
         googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
 
-    public void crearChat (DtChat datosChat, String emailUsuario) throws Excepcion{
+    public void crearChat(DtChat datosChat, String emailUsuario) throws Excepcion {
 //        Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByCorreoAndEstado(emailUsuario, EstadoUsuario.Activo);
 //        if (usuarioBaseDatos.isEmpty()) {
 //            throw new Excepcion("El usuario no esta habilitado");
@@ -356,13 +357,41 @@ public class CompraService {
         compraRepository.save(compra);
 
     }
-    public String obtenerChat (String idCompra){
+
+    public String obtenerChat(String idCompra) {
         Compra compra = (Compra) compraRepository.findById(UUID.fromString(idCompra)).get();
         if (compra == null) {
             throw new Excepcion("La compra no exite");
-        }else{
+        } else {
             return compra.getIdChat();
         }
+
+    }
+
+    public DtCompraDeshacer infoCompraParaReembolso(UUID idCompra) {
+        Compra compra = compraRepository.findById(idCompra).orElseThrow(() -> new Excepcion("La compra/venta no existe."));
+        Generico comprador = compraRepository.obtenerComprador(idCompra);
+        Generico vendedor = compraRepository.obtenerVendedor(idCompra);
+        CompraProducto infoCompra = compra.getInfoEntrega();
+
+        String nombreVendedor;
+        if (vendedor.getDatosVendedor().getNombreEmpresa() == null) {
+            nombreVendedor = vendedor.getNombre() + " " + vendedor.getApellido();
+        } else {
+            nombreVendedor = vendedor.getDatosVendedor().getNombreEmpresa();
+        }
+        boolean reclamoNoResuelto = reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto);
+
+        boolean garantiaActiva = compra.getEstado() == EstadoCompra.Completada;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(infoCompra.getHorarioRetiroLocal());
+        calendar.add(Calendar.DATE, infoCompra.getProducto().getDiasGarantia());
+        if (new Date().after(calendar.getTime()))
+            garantiaActiva = false;
+
+        return new DtCompraDeshacer(compra.getId(), comprador.getNombre() + " " + comprador.getApellido(), nombreVendedor, infoCompra.getProducto().getNombre(),
+                infoCompra.getCantidad(), compra.getFecha(), compra.getEstado(), infoCompra.getPrecioTotal(), infoCompra.getPrecioUnitario(), infoCompra.getEsEnvio(),
+                reclamoNoResuelto, infoCompra.getHorarioRetiroLocal(), infoCompra.getDireccionEnvioORetiro().toString(), garantiaActiva);
 
     }
 
