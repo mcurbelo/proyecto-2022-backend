@@ -116,7 +116,7 @@ public class UsuarioService {
         } else {
             usuarioBD = (Generico) res.get();
         }
-        if (!usuario.getCorreo().equals(usuarioBD.getCorreo()) && usuarioRepository.existsByCorreoAndEstado(usuario.getCorreo(), EstadoUsuario.Activo))
+        if (usuario.getCorreo() != null && !usuario.getCorreo().equals(usuarioBD.getCorreo()) && usuarioRepository.existsByCorreoAndEstado(usuario.getCorreo(), EstadoUsuario.Activo))
             throw new Excepcion("El correo ya esta en uso");
 
         usuarioBD.setCorreo(usuario.getCorreo());

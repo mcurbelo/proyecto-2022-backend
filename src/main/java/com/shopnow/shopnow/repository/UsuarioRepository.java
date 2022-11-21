@@ -59,7 +59,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     @Modifying
     @Transactional
-    @Query(value = "Update USUARIO set web_mobile='' where web_mobile=?1", nativeQuery = true)
+    @Query(value = "Update USUARIO set mobile_token='' where mobile_token=?1", nativeQuery = true)
     void quitarTokenMobile(String token);
 
     @Query(value = "SELECT v FROM Usuario u left outer join u.ventas v where u.id=?1 and TYPE(u) = Generico and v.fecha>=?2 and v.fecha<=?3 and v.estado='Completada'")
