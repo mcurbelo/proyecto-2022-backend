@@ -83,10 +83,9 @@ public class AdministradorController {
     }
 
     @PutMapping("/reembolsos/{idCompra}")
-    public ResponseEntity<String> reembolsarCompra(@PathVariable(value = "idCOmpra") UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
+    public ResponseEntity<String> reembolsarCompra(@PathVariable(value = "idCompra") UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
         administradorService.deshacerCompra(idCompra);
         return new ResponseEntity<>("Accion realizada con exito!!!", HttpStatus.OK);
     }
-
 
 }

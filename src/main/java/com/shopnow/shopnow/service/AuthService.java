@@ -77,6 +77,11 @@ public class AuthService {
             }
         }
 
+        if (datosUsuario.getTokenWeb() != null)
+            usuarioRepo.quitarTokenWeb(datosUsuario.getTokenWeb());
+
+        if (datosUsuario.getTokenMobile() != null)
+            usuarioRepo.quitarTokenMobile(datosUsuario.getTokenMobile());
 
         String encodedPass = passwordEncoder.encode(datosUsuario.getPassword());
         Generico usuario = Generico.builder()
@@ -90,6 +95,8 @@ public class AuthService {
                 .telefono(datosUsuario.getTelefono())
                 .fechaRegistro(new Date())
                 .fechaNac(datosUsuario.getFechaNac())
+                .webToken(datosUsuario.getTokenWeb())
+                .mobileToken(datosUsuario.getTokenMobile())
                 .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
@@ -157,11 +164,11 @@ public class AuthService {
 
     }
 
-    public boolean verificarCodigo (String codigo){
+    public boolean verificarCodigo(String codigo) {
         Usuario usuario = usuarioRepo.findByResetPasswordToken(codigo).orElseThrow(() -> new Excepcion("Token incorrecto"));
         if (usuario.getExpiracionPasswordToken().before(new Date())) {
             throw new Excepcion("Tiempo de validez del token finalizado");
-        }else{
+        } else {
             return true;
         }
     }

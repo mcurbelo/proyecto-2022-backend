@@ -141,12 +141,7 @@ public class CompradorService {
     }
 
     public void editarDireccion(DtDireccion nuevaDireccion) {
-        Optional<Direccion> resultado = direccionRepository.findById(nuevaDireccion.getId());
-        Direccion direccion = (Direccion) resultado.get();
-
-        if (direccion.equals(null)) {
-            throw new Excepcion("No existe la direccion");
-        }
+        Direccion direccion = direccionRepository.findById(nuevaDireccion.getId()).orElseThrow(() -> new Excepcion("No existe la direccion"));
 
         direccion.setCalle(nuevaDireccion.getCalle());
         direccion.setNumero(nuevaDireccion.getNumero());

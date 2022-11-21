@@ -24,6 +24,7 @@ public class DtUsuario {
     private String telefono;
     private Float calificacion;
     private Rol rol;
-
+    private String tokenWeb;
+    private String tokenMobile;
 
 }

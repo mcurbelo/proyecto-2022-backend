@@ -39,7 +39,7 @@ public class DtCompraDeshacer {
 
     private Boolean tieneReclamoNoResuelto;
 
-    @JsonFormat(pattern = "dd/MM/yyyy")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private Date fechaEntrega;
 
     private String direccionEntrega;

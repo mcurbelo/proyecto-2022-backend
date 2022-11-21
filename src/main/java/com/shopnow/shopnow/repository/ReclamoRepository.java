@@ -51,7 +51,6 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
     @Query(value = "select cast (id as varchar) from reclamo where resuelto=?2 and compra_id in (select ventas_key from usuario_ventas where generico_id=?1)", nativeQuery = true)
     List<UUID> reclamosRecibidosPorEstado(UUID id, String resolucion);
 
-
     @Query(value = "select reclamo.* from reclamo where compra_id in (select ventas_key from usuario_ventas where generico_id=?1)",
             countQuery = "select reclamo.* from reclamo where compra_id in (select ventas_key from usuario_ventas where generico_id=?1)", nativeQuery = true)
     Page<Reclamo> misReclamosRecibidos(UUID id, Pageable pageable);
@@ -63,4 +62,6 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, UUID> {
 
     @Query("SELECT COUNT(r) FROM Reclamo r")
     Integer totalReclamos();
+
+    List<Reclamo> findByCompra(Compra compra);
 }
