@@ -77,7 +77,7 @@ public class BraintreeUtils {
     public boolean devolverDinero(String idTransaccion) {
         Transaction.Status status = gateway.transaction().find(idTransaccion).getStatus();
         Result<Transaction> result;
-        if (status == Transaction.Status.SETTLED) {
+        if (status == Transaction.Status.SETTLED || status == Transaction.Status.SETTLING) {
             result = gateway.transaction().refund(idTransaccion);
         } else {
             result = gateway.transaction().voidTransaction(idTransaccion);

@@ -8,6 +8,7 @@ import com.shopnow.shopnow.model.Administrador;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Usuario;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
+import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.model.enumerados.Rol;
 import com.shopnow.shopnow.repository.UsuarioRepository;
@@ -100,7 +101,7 @@ public class AuthService {
                 .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
-        return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString(), Rol.Usuario);
+        return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString(), Rol.Comprador);
     }
 
     public Map<String, String> iniciarSesion(String correo, String password, String tokenWeb, String tokenMobile) {
@@ -127,7 +128,15 @@ public class AuthService {
                 usuarioRepo.save(usuario);
 
             }
-            response.put("rol", String.valueOf((usuario instanceof Administrador) ? Rol.ADM : Rol.Usuario));
+            if (usuario instanceof Administrador)
+                response.put("rol", String.valueOf(Rol.ADM));
+            else {
+                Generico generico = (Generico) usuario;
+                if (generico.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado)
+                    response.put("rol", String.valueOf(Rol.Vendedor));
+                else
+                    response.put("rol", String.valueOf(Rol.Comprador));
+            }
             return response;
         } catch (AuthenticationException | NoSuchElementException authExc) {
             throw new RuntimeException("Credenciales invalidas");

@@ -288,16 +288,16 @@ public class CompraService {
         Note noteComprador;
         String mensaje, asunto;
         if (nuevoEstado == EstadoCompra.Confirmada) {
-            noteComprador = new Note("Compra confirmada", "La compra hecha a " + nombreParaMostrar + " a sido confirmada!!! Ve hacia 'Historial de compras' para obtener más información de la entrega/retiro o iniciar chat con vendedor.", new HashMap<>(), null);
-            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido confirmada (Identificador: " + venta.getId() + ")!!! Ve hacia 'Historial de compras' en la pagina web o en tu dispositivo movil para obtener más información de la entrega/retiro.";
+            noteComprador = new Note("Compra confirmada", "La compra hecha a " + nombreParaMostrar + " a sido confirmada!!! Ve hacia 'Mis compras' para obtener más información de la entrega/retiro o iniciar chat con vendedor.", new HashMap<>(), null);
+            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido confirmada (Identificador: " + venta.getId() + ")!!! Ve hacia 'Mis compras' en la pagina web o en tu dispositivo movil para obtener más información de la entrega/retiro.";
             asunto = "Estado de compra actualizado";
         } else if (nuevoEstado == EstadoCompra.Cancelada) {
             noteComprador = new Note("Compra cancelada", "La compra hecha a " + nombreParaMostrar + " a sido cancelada!!! Revisa tu correo para conocer el motivo." + vendedor.getCorreo() + "", new HashMap<>(), null);
-            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido cancelada (Identificador: " + venta.getId() + ")!!!\n Motivo:\n" + datosEntregaRetiro.getMotivo() + "\n Para mas información ponerse en contacto con el vendedor:\n Correo: " + vendedor.getCorreo() + ".";
+            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido cancelada (Identificador: " + venta.getId() + ")!!!\nMotivo:\n" + datosEntregaRetiro.getMotivo() + "\n Para mas información ponerse en contacto con el vendedor:\n Correo: " + vendedor.getCorreo() + ".";
             asunto = "Estado de compra actualizado";
         } else {
-            noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", new HashMap<>(), null);
-            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + venta.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(venta, vendedor, comprador, venta.getInfoEntrega().getProducto(), venta.getInfoEntrega().getEsEnvio()) + "";
+            noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Mis compras' para calificar al vendedor o realizar reclamos.", new HashMap<>(), null);
+            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + venta.getId() + ")!!! Ve hacia 'Mis compras' para calificar al vendedor o realizar reclamos.\nDetalles de la compra:\n" + utilService.detallesCompra(venta, vendedor, comprador, venta.getInfoEntrega().getProducto(), venta.getInfoEntrega().getEsEnvio()) + "";
             asunto = "Compra completada";
         }
         if (!comprador.getWebToken().equals(""))

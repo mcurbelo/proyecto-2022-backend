@@ -5,10 +5,7 @@ import com.shopnow.shopnow.controller.responsetypes.CreditCardRef;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
-import com.shopnow.shopnow.model.enumerados.EstadoCompra;
-import com.shopnow.shopnow.model.enumerados.EstadoProducto;
-import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
-import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
+import com.shopnow.shopnow.model.enumerados.*;
 import com.shopnow.shopnow.repository.DatosVendedorRepository;
 import com.shopnow.shopnow.repository.TarjetasRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
@@ -49,6 +46,7 @@ public class UsuarioService {
         if (usuarioBaseDatos.isPresent() && usuarioBaseDatos.get() instanceof Administrador adm) {
             return DtUsuario.builder()
                     .nombre(adm.getNombre())
+                    .rol(Rol.ADM)
                     .build();
         }
 
@@ -252,17 +250,17 @@ public class UsuarioService {
 
         if (filtros != null) {
             List<UUID> usuariosIdConNombre = null;
-            if (filtros.getNombre() != null && filtros.getNombre() != "") {
+            if (filtros.getNombre() != null && !filtros.getNombre().equals("")) {
                 usuariosIdConNombre = usuarioRepository.usuarioNombreApellido(filtros.getNombre().toLowerCase());
                 if (usuariosIdConNombre.isEmpty()) isEmpty = true;
             }
             List<UUID> usuariosIdConApellido = null;
-            if (filtros.getApellido() != null && !isEmpty && filtros.getApellido() != "") {
+            if (filtros.getApellido() != null && !filtros.getApellido().equals("")) {
                 usuariosIdConApellido = usuarioRepository.usuariosConApellido(filtros.getApellido());
                 if (usuariosIdConApellido.isEmpty()) isEmpty = true;
             }
             List<UUID> usuariosIdConCorreo = null;
-            if (filtros.getCorreo() != null && !isEmpty && filtros.getCorreo() != "") {
+            if (filtros.getCorreo() != null && !isEmpty && !filtros.getCorreo().equals("")) {
                 usuariosIdConCorreo = usuarioRepository.usuariosConCorreo(filtros.getCorreo());
                 if (usuariosIdConCorreo.isEmpty()) isEmpty = true;
             }
