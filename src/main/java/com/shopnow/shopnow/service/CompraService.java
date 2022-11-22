@@ -275,7 +275,6 @@ public class CompraService {
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "No se puede realizar la devolución del dinero");
             }
         }
-
         venta.setEstado(nuevoEstado);
         Generico comprador = compraRepository.obtenerComprador(idVenta);
         compraRepository.save(venta);
@@ -293,7 +292,7 @@ public class CompraService {
             asunto = "Estado de compra actualizado";
         } else if (nuevoEstado == EstadoCompra.Cancelada) {
             noteComprador = new Note("Compra cancelada", "La compra hecha a " + nombreParaMostrar + " a sido cancelada!!! Revisa tu correo para conocer el motivo." + vendedor.getCorreo() + "", new HashMap<>(), null);
-            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido cancelada (Identificador: " + venta.getId() + ")!!!\nMotivo:\n" + datosEntregaRetiro.getMotivo() + "\n Para mas información ponerse en contacto con el vendedor:\n Correo: " + vendedor.getCorreo() + ".";
+            mensaje = "La compra hecha a " + nombreParaMostrar + " a sido cancelada (Identificador: " + venta.getId() + ")!!!\nMotivo:\n" + datosEntregaRetiro.getMotivo() + "\nPara más información ponerse en contacto con el vendedor:\nCorreo: " + vendedor.getCorreo() + ".";
             asunto = "Estado de compra actualizado";
         } else {
             noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Mis compras' para calificar al vendedor o realizar reclamos.", new HashMap<>(), null);

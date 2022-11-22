@@ -55,4 +55,7 @@ public interface CompraRepository extends JpaRepository<Compra, UUID> {
 
     @Query("SELECT COUNT(c) FROM Compra c")
     Integer totalCompras();
+
+    @Query(value = "select cast(id as varchar) from compra where estado='EsperandoConfirmacion' and round((EXTRACT(EPOCH FROM now()) - EXTRACT(EPOCH FROM compra.fecha))/3600) > 48", nativeQuery = true)
+    List<UUID> comprasInactivas();
 }
