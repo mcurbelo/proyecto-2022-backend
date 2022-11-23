@@ -37,7 +37,7 @@ public class DtCompraSlimVendedor {
 
     private String imagenURL;
 
-    @JsonFormat(pattern = "dd/MM/yyyy")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private Date fechaEntrega;
 
     private Boolean puedeCalificar;

@@ -162,7 +162,7 @@ public class CompraService {
         float precio = producto.getPrecio();
         DecimalFormat df = new DecimalFormat("0.00");
         if (cupon != null) {
-            precio = (float) (precio - (precio * (cupon.getDescuento() / 100.00))); //Esta dudoso esto
+            precio = (float) (precio - (precio * (cupon.getDescuento() / 100.00)));
         }
         df.format(precio);
 
@@ -274,6 +274,9 @@ public class CompraService {
             if (!success) {
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "No se puede realizar la devolución del dinero");
             }
+            Producto producto = venta.getInfoEntrega().getProducto();
+            producto.setStock(producto.getStock() + venta.getInfoEntrega().getCantidad());
+            productoRepository.save(producto);
         }
         venta.setEstado(nuevoEstado);
         Generico comprador = compraRepository.obtenerComprador(idVenta);
@@ -341,30 +344,70 @@ public class CompraService {
         googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
 
-    public void crearChat(DtChat datosChat, String emailUsuario) throws Excepcion {
-//        Optional<Usuario> usuarioBaseDatos = usuarioRepository.findByCorreoAndEstado(emailUsuario, EstadoUsuario.Activo);
-//        if (usuarioBaseDatos.isEmpty()) {
-//            throw new Excepcion("El usuario no esta habilitado");
-//        }
-//        Generico usuario = (Generico) usuarioBaseDatos.get();
-
-        Compra compra = (Compra) compraRepository.findById(UUID.fromString(datosChat.getIdCompra())).get();
-        if (compra == null) {
-            throw new Excepcion("La compra no exite");
-        }
+    public void crearChat(DtChat datosChat, String emailUsuario) throws Excepcion, FirebaseMessagingException, FirebaseAuthException {
+        Compra compra = compraRepository.findById(UUID.fromString(datosChat.getIdCompra())).orElseThrow(() -> new Excepcion("La compra no existe"));
         compra.setIdChat(datosChat.getIdChat());
         compraRepository.save(compra);
 
+        Generico comprador = compraRepository.obtenerComprador(UUID.fromString(datosChat.getIdCompra()));
+        Generico vendedor = compraRepository.obtenerVendedor(UUID.fromString(datosChat.getIdCompra()));
+
+        Map<String, String> infoChat = new HashMap<>();
+        infoChat.put("idChat", datosChat.getIdChat());
+        if (!emailUsuario.equals(comprador.getCorreo())) {
+            infoChat.put("receptor", comprador.getNombre() + " " + comprador.getApellido());
+            if (!comprador.getWebToken().equals("")) {
+                Note notificacion = new Note("Se ha iniciado un nuevo chat", "Se ha iniciado una nueva instancia de chat en una de tus ventas.", infoChat, "");
+                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+            }
+            googleSMTP.enviarCorreo(emailUsuario, "Se ha creado una nueva instancia de chat en la venta " + compra.getId() + " realizada por " + comprador.getNombre() + " " + comprador.getApellido() + ".", "Nueva instancia de chat - ShopNow");
+        } else {
+            String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
+            infoChat.put("receptor", nombreParaMostrar);
+            Note notificacion = new Note("Se ha iniciado un nuevo chat", "Se ha iniciado una nueva instancia de chat por un reclamo no resuelto, realizado a " + nombreParaMostrar + ".", infoChat, "");
+            if (!comprador.getWebToken().equals("")) {
+                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+            }
+            if (!comprador.getMobileToken().equals("")) {
+                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+            }
+            googleSMTP.enviarCorreo(emailUsuario, "Se ha creado una nueva instancia de chat en la compra " + compra.getId() + " hecha a " + nombreParaMostrar, "Nueva instancia de chat por relcamo - ShopNow");
+        }
+    }
+
+    public void notificarNuevaRespuesta(UUID idCompra, UUID idUsuarioEmisor) throws FirebaseMessagingException, FirebaseAuthException {
+        Compra compra = compraRepository.findById(idCompra).orElseThrow(() -> new Excepcion("La compra no existe"));
+        Generico comprador = compraRepository.obtenerComprador(idCompra);
+        Generico vendedor = compraRepository.obtenerVendedor(idCompra);
+
+        Map<String, String> infoChat = new HashMap<>();
+        infoChat.put("idChat", compra.getIdChat());
+        if (idUsuarioEmisor.compareTo(comprador.getId()) == 0) { //Es el comprador el que envio
+            Note notificacion = new Note("Has recibido una nueva respuesta en uno de tus chat", "Respuesta recibida de " + comprador.getNombre() + " " + comprador.getApellido() + ".", infoChat, "");
+            infoChat.put("receptor", comprador.getNombre() + " " + comprador.getApellido());
+            if (!vendedor.getWebToken().equals("")) {
+                firebaseMessagingService.enviarNotificacion(notificacion, vendedor.getWebToken());
+            }
+            googleSMTP.enviarCorreo(vendedor.getCorreo(), "Has recibido una respuesta en el chat de la venta o reclamo " + compra.getId() + " realizada por " + comprador.getNombre() + " " + comprador.getApellido() + ".", "Nueva respuesta en el chat - ShopNow");
+
+        } else { //Es el vendedor el que envio
+            String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
+            Note notificacion = new Note("Has recibido una nueva respuesta en uno de tus chat", "Respuesta recibida de " + nombreParaMostrar + ".", infoChat, "");
+            infoChat.put("receptor", nombreParaMostrar);
+            if (!comprador.getWebToken().equals("")) {
+                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+            }
+            if (!comprador.getMobileToken().equals("")) {
+                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+            }
+            googleSMTP.enviarCorreo(comprador.getCorreo(), "Has recibido una respuesta en el chat de la compra o reclamo " + compra.getId() + " realizada a " + nombreParaMostrar + ".", "Nueva respuesta en el chat - ShopNow");
+
+        }
     }
 
     public String obtenerChat(String idCompra) {
-        Compra compra = (Compra) compraRepository.findById(UUID.fromString(idCompra)).get();
-        if (compra == null) {
-            throw new Excepcion("La compra no exite");
-        } else {
-            return compra.getIdChat();
-        }
-
+        Compra compra = compraRepository.findById(UUID.fromString(idCompra)).orElseThrow(() -> new Excepcion("La compra no existe"));
+        return compra.getIdChat();
     }
 
     public DtCompraDeshacer infoCompraParaReembolso(UUID idCompra) {

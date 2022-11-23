@@ -47,6 +47,8 @@ public class ComprasController {
             compraService.crearChat(datosChat, email);
         } catch (Excepcion e) {
             return new ResponseEntity<>("Error al inicar el chat", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (FirebaseMessagingException | FirebaseAuthException e) {
+            throw new RuntimeException(e);
         }
         return new ResponseEntity<>("Chat Iniciado", HttpStatus.OK);
     }
@@ -64,6 +66,13 @@ public class ComprasController {
             return new ResponseEntity<>("Error al obtener el chat", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @PutMapping("/chat/{idCompra}/mensajes")
+    public ResponseEntity<String> mensajeEnviado(@PathVariable(value = "idCompra") UUID idcompra,
+                                                 @RequestParam(value = "idUsuario") UUID idUsuario) throws FirebaseMessagingException, FirebaseAuthException {
+        compraService.notificarNuevaRespuesta(idcompra, idUsuario);
+        return new ResponseEntity<>("Mensaje nuevo notificado", HttpStatus.OK);
     }
 
     @GetMapping("/{idCompra}")

@@ -31,4 +31,6 @@ public class DtReclamo {
     private UUID idReclamo;
 
     private String descripcion;
+
+    private Boolean tieneChat;
 }

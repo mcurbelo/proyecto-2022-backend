@@ -51,4 +51,6 @@ public class DtCompraSlimComprador {
     private String direccionEntrega;
 
     private Boolean garantiaActiva;
+
+    private Boolean tieneChat;
 }

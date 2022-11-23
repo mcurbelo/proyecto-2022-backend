@@ -331,8 +331,9 @@ public class CompradorService {
                 puedeReclamar = false;
             }
         }
+        boolean tieneChat = compra.getIdChat() != null;
 
         return new DtCompraSlimComprador(compra.getId(), vendedor.getId(), nombreParaMostrar, nombreProducto, infoEntrega.getCantidad(), compra.getFecha(),
-                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar, fechaEntrega, infoEntrega.getDireccionEnvioORetiro().toString(), garantiaActiva);
+                compra.getEstado(), infoEntrega.getPrecioTotal(), infoEntrega.getPrecioUnitario(), imagen, infoEntrega.getEsEnvio(), puedeCompletar, puedeCalificar, puedeReclamar, fechaEntrega, infoEntrega.getDireccionEnvioORetiro().toString(), garantiaActiva, tieneChat);
     }
 }

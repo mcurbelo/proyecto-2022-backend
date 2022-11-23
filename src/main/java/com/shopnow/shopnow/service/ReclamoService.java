@@ -90,7 +90,7 @@ public class ReclamoService {
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
 
         if (!vendedor.getWebToken().equals("")) {
-            Note note = new Note("Nuevo reclamo", "Hay un nuevo reclamo sin resolver, ve hacia la sección 'Mis reclamos' para mas información", new HashMap<>(), "");
+            Note note = new Note("Nuevo reclamo", "Hay un nuevo reclamo sin resolver, ve hacia la sección 'Reclamos recibidos' para mas información", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(note, vendedor.getWebToken());
         }
         googleSMTP.enviarCorreo(vendedor.getCorreo(), "Hola, " + nombreParaMostrar + ".\nTiene un nuevo reclamo en una compra (identificador: " + compra.getId() + "). Visite el sitio y vaya a la sección 'Mis reclamos' para poder realizar acciones.", "Nuevo reclamo - " + reclamo.getId() + " - ShopNow");
@@ -121,7 +121,7 @@ public class ReclamoService {
             compra.setEstado(EstadoCompra.Devolucion);
             compraRepository.save(compra);
             if (!comprador.getWebToken().equals("")) {
-                notificacionComprador = new Note("Reclamo resuelto: Devolución", "Uno de tus reclamos ah sido marcado como resuelto, ve a 'Mis reclamos' para obtener mas información.", new HashMap<>(), "");
+                notificacionComprador = new Note("Reclamo resuelto: Devolución", "Uno de tus reclamos ah sido marcado como resuelto, ve a 'Reclamos recibidos' para obtener mas información.", new HashMap<>(), "");
                 firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
             }
             googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nEl reclamo hacia la compra (identificador:" + idVenta + ") ha sido marcado como resuelto vía devolución de dinero.", "Reclamo resuelto - " + reclamo.getId());
@@ -286,7 +286,10 @@ public class ReclamoService {
                 compra.getFecha(), compra.getEstado(), infoEntrega.getPrecioTotal(),
                 infoEntrega.getPrecioUnitario(),
                 fechaEntrega, infoEntrega.getDireccionEnvioORetiro().toString(), infoEntrega.getEsEnvio(), vendedor.getImagen(), comprador.getImagen(), producto.getImagenesURL().get(0).getUrl());
-        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido(), reclamo.getId(), reclamo.getDescripcion());
+
+        boolean tieneChat = compra.getIdChat() != null;
+
+        return new DtReclamo(infoCompra, reclamo.getTipo(), reclamo.getResuelto(), reclamo.getFecha(), comprador.getNombre() + " " + comprador.getApellido(), reclamo.getId(), reclamo.getDescripcion(), tieneChat);
     }
 
 }
