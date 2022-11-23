@@ -324,7 +324,7 @@ public class CompraService {
         Generico comprador = compraRepository.obtenerComprador(compra.getId());
         Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
         String nombreParaMostrar;
-        if (vendedor.getDatosVendedor().getNombreEmpresa().isBlank())
+        if (vendedor.getDatosVendedor().getNombreEmpresa() != null)
             nombreParaMostrar = vendedor.getDatosVendedor().getNombreEmpresa();
         else
             nombreParaMostrar = vendedor.getNombre() + " " + vendedor.getApellido();
