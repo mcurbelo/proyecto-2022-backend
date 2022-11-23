@@ -89,7 +89,7 @@ public class ReclamoService {
 
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
 
-        if (!vendedor.getWebToken().equals("")) {
+        if (vendedor.getWebToken() != null) {
             Note note = new Note("Nuevo reclamo", "Hay un nuevo reclamo sin resolver, ve hacia la sección 'Reclamos recibidos' para mas información", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(note, vendedor.getWebToken());
         }
@@ -120,7 +120,7 @@ public class ReclamoService {
             reclamoRepository.save(reclamo);
             compra.setEstado(EstadoCompra.Devolucion);
             compraRepository.save(compra);
-            if (!comprador.getWebToken().equals("")) {
+            if (comprador.getWebToken() != null) {
                 notificacionComprador = new Note("Reclamo resuelto: Devolución", "Uno de tus reclamos ah sido marcado como resuelto, ve a 'Reclamos recibidos' para obtener mas información.", new HashMap<>(), "");
                 firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
             }
@@ -152,7 +152,7 @@ public class ReclamoService {
 
         String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
 
-        if (!vendedor.getWebToken().equals("")) {
+        if (vendedor.getWebToken() != null) {
             Note note = new Note("Reclamo resuelto", "Uno de tus reclamos ha sido marcado como resuelto por el comprador. ve a 'Mis reclamos' para obtener mas información.", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(note, vendedor.getWebToken());
         }

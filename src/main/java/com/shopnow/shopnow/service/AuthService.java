@@ -90,14 +90,13 @@ public class AuthService {
                 .nombre(datosUsuario.getNombre())
                 .apellido(datosUsuario.getApellido()).correo(datosUsuario.getCorreo())
                 .estado(EstadoUsuario.Activo)
-                .imagen(urlImagen).mobileToken("")
-                .webToken("")
+                .imagen(urlImagen)
                 .password(encodedPass)
                 .telefono(datosUsuario.getTelefono())
                 .fechaRegistro(new Date())
                 .fechaNac(datosUsuario.getFechaNac())
-                .webToken(datosUsuario.getTokenWeb())
-                .mobileToken(datosUsuario.getTokenMobile())
+                .webToken((Objects.equals(datosUsuario.getTokenWeb(), "")) ? null : datosUsuario.getTokenWeb())
+                .mobileToken((Objects.equals(datosUsuario.getTokenMobile(), "")) ? null : datosUsuario.getTokenMobile())
                 .build();
         usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());

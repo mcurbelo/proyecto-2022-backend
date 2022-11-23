@@ -62,9 +62,9 @@ public class Scheduler {
             mensaje = "La compra hecha a " + nombreParaMostrar + " a sido cancelada (Identificador: " + compra.getId() + ")!!!\nMotivo:\nSe ha excedido el tiempo de espera para confirmación de 48hrs.\n\nPara más información ponerse en contacto con el vendedor:\nCorreo: " + vendedor.getCorreo() + ".";
             String mensajeVendedor = "La venta hecha a " + comprador.getNombre() + " " + comprador.getApellido() + " a sido cancelada (Identificador: " + compra.getId() + ")!!!\nMotivo:\n\nSe ha excedido el tiempo de espera para confirmación de 48hrs.\nSi ya no utiliza ShopNow por favor, cancele la visibilidad de sus productos.";
 
-            if (!comprador.getWebToken().equals(""))
+            if (comprador.getWebToken() != null)
                 firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
-            if (!comprador.getMobileToken().equals(""))
+            if (comprador.getMobileToken() != null)
                 firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
             googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, "Estado de compra actualizado");
             googleSMTP.enviarCorreo(vendedor.getCorreo(), mensajeVendedor, "Estado de venta actualizado");

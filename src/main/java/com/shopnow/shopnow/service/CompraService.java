@@ -201,7 +201,7 @@ public class CompraService {
         productoRepository.save(producto);
 
 
-        if (!vendedor.getWebToken().equals("")) {
+        if (vendedor.getWebToken() != null) {
             Note notificacionVendedor = new Note("Nueva venta registrada", "Se realizó una venta de uno de sus producto. Dirigase a 'Mis ventas' para realizar acciones.", new HashMap<>(), null);
             firebaseMessagingService.enviarNotificacion(notificacionVendedor, vendedor.getWebToken());
         }
@@ -302,9 +302,9 @@ public class CompraService {
             mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + venta.getId() + ")!!! Ve hacia 'Mis compras' para calificar al vendedor o realizar reclamos.\nDetalles de la compra:\n" + utilService.detallesCompra(venta, vendedor, comprador, venta.getInfoEntrega().getProducto(), venta.getInfoEntrega().getEsEnvio()) + "";
             asunto = "Compra completada";
         }
-        if (!comprador.getWebToken().equals(""))
+        if (comprador.getWebToken() != null)
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
-        if (!comprador.getMobileToken().equals(""))
+        if (comprador.getMobileToken() != null)
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
         googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
@@ -337,9 +337,9 @@ public class CompraService {
         Note noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", new HashMap<>(), null);
         String mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + compra.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()) + "";
         String asunto = "Compra completada";
-        if (!comprador.getWebToken().equals(""))
+        if (comprador.getWebToken() != null)
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
-        if (!comprador.getMobileToken().equals(""))
+        if (comprador.getMobileToken() != null)
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
         googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
@@ -356,7 +356,7 @@ public class CompraService {
         infoChat.put("idChat", datosChat.getIdChat());
         if (!emailUsuario.equals(comprador.getCorreo())) {
             infoChat.put("receptor", comprador.getNombre() + " " + comprador.getApellido());
-            if (!comprador.getWebToken().equals("")) {
+            if (comprador.getWebToken() != null) {
                 Note notificacion = new Note("Se ha iniciado un nuevo chat", "Se ha iniciado una nueva instancia de chat en una de tus ventas.", infoChat, "");
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
             }
@@ -365,10 +365,10 @@ public class CompraService {
             String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
             infoChat.put("receptor", nombreParaMostrar);
             Note notificacion = new Note("Se ha iniciado un nuevo chat", "Se ha iniciado una nueva instancia de chat por un reclamo no resuelto, realizado a " + nombreParaMostrar + ".", infoChat, "");
-            if (!comprador.getWebToken().equals("")) {
+            if (comprador.getWebToken() != null) {
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
             }
-            if (!comprador.getMobileToken().equals("")) {
+            if (comprador.getMobileToken() != null) {
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
             }
             googleSMTP.enviarCorreo(emailUsuario, "Se ha creado una nueva instancia de chat en la compra " + compra.getId() + " hecha a " + nombreParaMostrar, "Nueva instancia de chat por relcamo - ShopNow");
@@ -385,7 +385,7 @@ public class CompraService {
         if (idUsuarioEmisor.compareTo(comprador.getId()) == 0) { //Es el comprador el que envio
             Note notificacion = new Note("Has recibido una nueva respuesta en uno de tus chat", "Respuesta recibida de " + comprador.getNombre() + " " + comprador.getApellido() + ".", infoChat, "");
             infoChat.put("receptor", comprador.getNombre() + " " + comprador.getApellido());
-            if (!vendedor.getWebToken().equals("")) {
+            if (vendedor.getWebToken() != null) {
                 firebaseMessagingService.enviarNotificacion(notificacion, vendedor.getWebToken());
             }
             googleSMTP.enviarCorreo(vendedor.getCorreo(), "Has recibido una respuesta en el chat de la venta o reclamo " + compra.getId() + " realizada por " + comprador.getNombre() + " " + comprador.getApellido() + ".", "Nueva respuesta en el chat - ShopNow");
@@ -394,10 +394,10 @@ public class CompraService {
             String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
             Note notificacion = new Note("Has recibido una nueva respuesta en uno de tus chat", "Respuesta recibida de " + nombreParaMostrar + ".", infoChat, "");
             infoChat.put("receptor", nombreParaMostrar);
-            if (!comprador.getWebToken().equals("")) {
+            if (comprador.getWebToken() != null) {
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
             }
-            if (!comprador.getMobileToken().equals("")) {
+            if (comprador.getMobileToken() != null) {
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
             }
             googleSMTP.enviarCorreo(comprador.getCorreo(), "Has recibido una respuesta en el chat de la compra o reclamo " + compra.getId() + " realizada a " + nombreParaMostrar + ".", "Nueva respuesta en el chat - ShopNow");

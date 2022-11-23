@@ -220,17 +220,17 @@ public class AdministradorService {
         Generico comprador = compraRepository.obtenerComprador(compra.getId());
         Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
 
-        if (!comprador.getWebToken().equals("")) {
+        if (comprador.getWebToken() != null) {
             Note notificacionComprador = new Note("Compra reembolsada", "Una de tus compras ha sido reembolsada por un administrador.", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
         }
-        if (!comprador.getMobileToken().equals("")) {
+        if (comprador.getMobileToken() != null) {
             Note notificacionComprador = new Note("Compra reembolsada", "Una de tus compras ha sido reembolsada por un administrador.", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
         }
         googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nLa compra (identificador: " + compra.getId() + ") ha sido reembolsada por un administrador. Ya se ha iniciado la transacción de devolución de dinero. Detalles:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()), "Compra reembolsada - ShopNow");
 
-        if (!vendedor.getWebToken().equals("")) {
+        if (vendedor.getWebToken() != null) {
             Note notificacionVendedor = new Note("Venta reembolsada", "Una de tus ventas ha sido reembolsada por un administrador", new HashMap<>(), "");
             firebaseMessagingService.enviarNotificacion(notificacionVendedor, vendedor.getWebToken());
         }
