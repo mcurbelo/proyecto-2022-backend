@@ -132,7 +132,7 @@ public class AuthService {
                 response.put("rol", String.valueOf(Rol.ADM));
             else {
                 Generico generico = (Generico) usuario;
-                if (generico.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado)
+                if (generico.getDatosVendedor() != null && generico.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado)
                     response.put("rol", String.valueOf(Rol.Vendedor));
                 else
                     response.put("rol", String.valueOf(Rol.Comprador));

@@ -13,7 +13,7 @@ import java.util.Date;
 @SuperBuilder
 public class DtUsuario {
 
-    @JsonFormat(pattern = "DD/MM/yyyy")
+    @JsonFormat(pattern = "dd/MM/yyyy")
     public Date fechaNac;
     public DtImagen imagen;
     public DtDatosVendedor datosVendedor;
