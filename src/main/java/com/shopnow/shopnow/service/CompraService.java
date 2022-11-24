@@ -425,12 +425,13 @@ public class CompraService {
         boolean reclamoNoResuelto = reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto);
 
         boolean garantiaActiva = compra.getEstado() == EstadoCompra.Completada;
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(infoCompra.getHorarioRetiroLocal());
-        calendar.add(Calendar.DATE, infoCompra.getProducto().getDiasGarantia());
-        if (new Date().after(calendar.getTime()))
-            garantiaActiva = false;
-
+        if (garantiaActiva) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(infoCompra.getHorarioRetiroLocal());
+            calendar.add(Calendar.DATE, infoCompra.getProducto().getDiasGarantia());
+            if (new Date().after(calendar.getTime()))
+                garantiaActiva = false;
+        }
         return new DtCompraDeshacer(compra.getId(), comprador.getNombre() + " " + comprador.getApellido(), nombreVendedor, infoCompra.getProducto().getNombre(),
                 infoCompra.getCantidad(), compra.getFecha(), compra.getEstado(), infoCompra.getPrecioTotal(), infoCompra.getPrecioUnitario(), infoCompra.getEsEnvio(),
                 reclamoNoResuelto, infoCompra.getHorarioRetiroLocal(), infoCompra.getDireccionEnvioORetiro().toString(), garantiaActiva);
