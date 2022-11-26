@@ -53,13 +53,13 @@ public class CompradorController {
     }
 
     @DeleteMapping("/Direccion/{id}")
-    public ResponseEntity<Object> borrarDireccion(@PathVariable("id") String id) {
+    public ResponseEntity<Object> borrarDireccion(@PathVariable("id") String id, @RequestParam(value = "esLocal") Boolean esLocal) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (Objects.equals(email, ANONYMOUS_USER)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        try{
-            compradorService.borrarDireccion(id, email);
+        try {
+            compradorService.borrarDireccion(id, email, esLocal);
             return ResponseEntity.ok().build();
-        }catch(Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }

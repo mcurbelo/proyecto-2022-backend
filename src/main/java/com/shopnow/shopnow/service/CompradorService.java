@@ -81,32 +81,28 @@ public class CompradorService {
         }
     }
 
-    public String borrarDireccion(String id, String email) throws Exception {
-        Generico generico = (Generico) usuarioRepository.findByCorreo(email).get();
-        Direccion direccion = (Direccion) direccionRepository.findById(Integer.parseInt(id)).get();
-        if (direccion == null || generico == null) {
-            throw new Exception("Error al borrar");
+    public void borrarDireccion(String id, String email, Boolean esLocal) {
+        Generico generico = (Generico) usuarioRepository.findByCorreo(email).orElseThrow(() -> new Excepcion("No se encontro el usuario"));
+        direccionRepository.findById(Integer.parseInt(id)).orElseThrow(() -> new Excepcion("No se encontro la direccion"));
+        if (esLocal && generico.getDatosVendedor() != null) {
+            Map<Integer, Direccion> direccionesLocales = generico.getDatosVendedor().getLocales();
+            direccionesLocales.remove(Integer.parseInt(id));
+            generico.getDatosVendedor().setLocales(direccionesLocales);
         } else {
-            if (generico.getDatosVendedor() != null) {
-                Map<Integer, Direccion> direccionesLocales = generico.getDatosVendedor().getLocales();
-                direccionesLocales.remove(Integer.parseInt(id));
-                generico.getDatosVendedor().setLocales(direccionesLocales);
-            }
             Map<Integer, Direccion> direcciones = generico.getDireccionesEnvio();
             direcciones.remove(Integer.parseInt(id));
             generico.setDireccionesEnvio(direcciones);
-            usuarioRepository.save(generico);
-//            direccionRepository.delete(direccion);
-            return "Borrado con exito";
         }
+        usuarioRepository.save(generico);
     }
+
 
     public List<DtDireccion> obtenerDirecciones(String correoUsuario) {
         Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
 
         if (usuario.isEmpty()) throw new Excepcion("Algo ha salido mal");
         Generico usuarioCasteado = (Generico) usuario.get();
-        List<DtDireccion> direcciones = new ArrayList<DtDireccion>();
+        List<DtDireccion> direcciones = new ArrayList<>();
 
         boolean esVendedor = usuarioCasteado.getDatosVendedor() != null && usuarioCasteado.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado;
 
@@ -125,16 +121,15 @@ public class CompradorService {
         }
 
         for (Direccion direccion : usuarioCasteado.getDireccionesEnvio().values()) {
-            if (!direcciones.stream().anyMatch(dire -> dire.getId() == direccion.getId())) {
-                DtDireccion d = DtDireccion.builder()
-                        .calle(direccion.getCalle())
-                        .localidad(direccion.getLocalidad())
-                        .id(direccion.getId())
-                        .numero(direccion.getNumero())
-                        .notas(direccion.getNotas())
-                        .departamento(direccion.getDepartamento()).build();
-                direcciones.add(d);
-            }
+            DtDireccion d = DtDireccion.builder()
+                    .calle(direccion.getCalle())
+                    .localidad(direccion.getLocalidad())
+                    .id(direccion.getId())
+                    .numero(direccion.getNumero())
+                    .notas(direccion.getNotas())
+                    .departamento(direccion.getDepartamento()).build();
+            direcciones.add(d);
+
         }
         return direcciones;
 

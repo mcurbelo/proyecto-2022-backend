@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CompraRepository extends JpaRepository<Compra, UUID> {
@@ -58,4 +59,6 @@ public interface CompraRepository extends JpaRepository<Compra, UUID> {
 
     @Query(value = "select cast(id as varchar) from compra where estado='EsperandoConfirmacion' and round((EXTRACT(EPOCH FROM now()) - EXTRACT(EPOCH FROM compra.fecha))/3600) > 48", nativeQuery = true)
     List<UUID> comprasInactivas();
+
+    Optional<Compra> findByIdChat(String idChat);
 }

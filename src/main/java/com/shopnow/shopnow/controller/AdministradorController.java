@@ -47,12 +47,8 @@ public class AdministradorController {
 
     @PostMapping()
     public ResponseEntity<String> nuevoAdministrador(@Valid @RequestBody DtUsuarioSlim datos) throws NoSuchAlgorithmException {
-        try {
-            administradorService.crearAdministrador(datos);
-            return new ResponseEntity<>("Accion realizada con exito!!!", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Ocurrio un error al intentar crear el usuario", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        administradorService.crearAdministrador(datos);
+        return new ResponseEntity<>("Accion realizada con exito!!!", HttpStatus.OK);
     }
 
     @GetMapping("/solicitudes")

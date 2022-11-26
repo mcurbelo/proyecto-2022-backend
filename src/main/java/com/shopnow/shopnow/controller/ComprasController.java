@@ -68,10 +68,10 @@ public class ComprasController {
 
     }
 
-    @PutMapping("/chat/{idCompra}/mensajes")
-    public ResponseEntity<String> mensajeEnviado(@PathVariable(value = "idCompra") UUID idcompra,
+    @PutMapping("/chats/{idChat}/mensajes")
+    public ResponseEntity<String> mensajeEnviado(@PathVariable(value = "idChat") String idChat,
                                                  @RequestParam(value = "idUsuario") UUID idUsuario) throws FirebaseMessagingException, FirebaseAuthException {
-        compraService.notificarNuevaRespuesta(idcompra, idUsuario);
+        compraService.notificarNuevaRespuesta(idChat, idUsuario);
         return new ResponseEntity<>("Mensaje nuevo notificado", HttpStatus.OK);
     }
 

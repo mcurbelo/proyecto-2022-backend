@@ -375,10 +375,10 @@ public class CompraService {
         }
     }
 
-    public void notificarNuevaRespuesta(UUID idCompra, UUID idUsuarioEmisor) throws FirebaseMessagingException, FirebaseAuthException {
-        Compra compra = compraRepository.findById(idCompra).orElseThrow(() -> new Excepcion("La compra no existe"));
-        Generico comprador = compraRepository.obtenerComprador(idCompra);
-        Generico vendedor = compraRepository.obtenerVendedor(idCompra);
+    public void notificarNuevaRespuesta(String idChat, UUID idUsuarioEmisor) throws FirebaseMessagingException, FirebaseAuthException {
+        Compra compra = compraRepository.findByIdChat(idChat).orElseThrow(() -> new Excepcion("La compra no existe"));
+        Generico comprador = compraRepository.obtenerComprador(compra.getId());
+        Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
 
         Map<String, String> infoChat = new HashMap<>();
         infoChat.put("idChat", compra.getIdChat());

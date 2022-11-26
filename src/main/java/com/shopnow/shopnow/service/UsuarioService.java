@@ -65,7 +65,7 @@ public class UsuarioService {
         }
 
         /*     Informacion de la parte vendedor    */
-        if (usuario.getDatosVendedor() != null) {
+        if (usuario.getDatosVendedor() != null && usuario.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado) {
             Map<UUID, Compra> ventas = usuario.getVentas();
             float sumaCalificacionVendedor = 0, calificacionVendedor = 0;
             if (ventas.size() != 0) {
