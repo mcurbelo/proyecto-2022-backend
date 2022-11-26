@@ -154,8 +154,6 @@ public class CompraService {
         Direccion direccion = resDire.get();
 
         //TODO Revisar si hay evento promocional activo
-        //TODO Falso todo los eventos no tienen descuento, nos falto eso :(((
-
 
         //Logica del CU
 
@@ -309,7 +307,7 @@ public class CompraService {
         googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
 
-    public void confirmarEntregaoReciboProducto(UUID idCompra) throws FirebaseMessagingException, FirebaseAuthException {
+    public void confirmarEntregaoReciboProducto(UUID idCompra, String correo) throws FirebaseMessagingException, FirebaseAuthException {
         Compra compra = compraRepository.findById(idCompra).orElseThrow();
 
         if (!compra.getInfoEntrega().getEsEnvio()) {
@@ -326,6 +324,12 @@ public class CompraService {
 
         Generico comprador = compraRepository.obtenerComprador(compra.getId());
         Generico vendedor = compraRepository.obtenerVendedor(compra.getId());
+
+        if (!comprador.getCorreo().equals(correo) && !vendedor.getCorreo().equals(correo)) {
+            throw new Excepcion("Usuario no perteneciente al a compra/venta");
+        }
+
+
         String nombreParaMostrar;
         if (vendedor.getDatosVendedor().getNombreEmpresa() != null)
             nombreParaMostrar = vendedor.getDatosVendedor().getNombreEmpresa();
@@ -337,9 +341,9 @@ public class CompraService {
         Note noteComprador = new Note("Compra completada", "La compra hecha a " + nombreParaMostrar + " a sido completada!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.", new HashMap<>(), null);
         String mensaje = "La compra hecha a " + nombreParaMostrar + " a sido completada (Identificador: +" + compra.getId() + ")!!! Ve hacia 'Historial de compras' para calificar al vendedor o realizar reclamos.\n Detalles de la compra:\n" + utilService.detallesCompra(compra, vendedor, comprador, compra.getInfoEntrega().getProducto(), compra.getInfoEntrega().getEsEnvio()) + "";
         String asunto = "Compra completada";
-        if (comprador.getWebToken() != null)
+        if (correo.equals(vendedor.getCorreo()) && comprador.getWebToken() != null)
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getWebToken());
-        if (comprador.getMobileToken() != null)
+        if (correo.equals(vendedor.getCorreo()) && comprador.getMobileToken() != null)
             firebaseMessagingService.enviarNotificacion(noteComprador, comprador.getMobileToken());
         googleSMTP.enviarCorreo(comprador.getCorreo(), mensaje, asunto);
     }
@@ -351,6 +355,10 @@ public class CompraService {
 
         Generico comprador = compraRepository.obtenerComprador(UUID.fromString(datosChat.getIdCompra()));
         Generico vendedor = compraRepository.obtenerVendedor(UUID.fromString(datosChat.getIdCompra()));
+
+        if (!comprador.getCorreo().equals(emailUsuario) && !vendedor.getCorreo().equals(emailUsuario)) {
+            throw new Excepcion("Usuario no perteneciente al a compra/venta");
+        }
 
         Map<String, String> infoChat = new HashMap<>();
         infoChat.put("idChat", datosChat.getIdChat());
@@ -382,6 +390,10 @@ public class CompraService {
 
         Map<String, String> infoChat = new HashMap<>();
         infoChat.put("idChat", compra.getIdChat());
+
+        if (idUsuarioEmisor.compareTo(comprador.getId()) != 0 && idUsuarioEmisor.compareTo(vendedor.getId()) == 0)
+            throw new Excepcion("Usuario no perteneciente al a compra/venta");
+
         if (idUsuarioEmisor.compareTo(comprador.getId()) == 0) { //Es el comprador el que envio
             Note notificacion = new Note("Has recibido una nueva respuesta en uno de tus chat", "Respuesta recibida de " + comprador.getNombre() + " " + comprador.getApellido() + ".", infoChat, "");
             infoChat.put("receptor", comprador.getNombre() + " " + comprador.getApellido());

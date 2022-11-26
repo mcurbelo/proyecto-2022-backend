@@ -164,8 +164,7 @@ public class CompradorService {
             throw new Excepcion("Ya existen los datos ingresados de la empresa");
 
 
-        //TODO
-/*                            Validaciones de largo y que sean numericos
+        /*TODO Validaciones de largo y que sean numericos
 
         if (esEmpresa && datos.getRut().length() != 12 || datos.getRut().matches("[+-]?\\d*(\\.\\d+)?")) {
             throw new Excepcion("Valor RUT invalido");
@@ -319,7 +318,8 @@ public class CompradorService {
             calendar.setTime(fechaEntrega);
             calendar.add(Calendar.DATE, producto.getDiasGarantia());
             if (new Date().after(calendar.getTime())) {
-                puedeReclamar = false;
+                if (compra.getEstado() == EstadoCompra.Completada)
+                    puedeReclamar = false;
                 garantiaActiva = false;
             }
             if (reclamoRepository.existsByCompraAndResuelto(compra, TipoResolucion.NoResuelto)) {

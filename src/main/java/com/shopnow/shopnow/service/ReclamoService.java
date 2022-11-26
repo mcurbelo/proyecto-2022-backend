@@ -46,9 +46,14 @@ public class ReclamoService {
     @Autowired
     BraintreeUtils braintreeUtils;
 
-    public void iniciarReclamo(DtAltaReclamo datos, UUID idCompra, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
+    public void iniciarReclamo(DtAltaReclamo datos, UUID idCompra, UUID idComprador, String correoComprador) throws FirebaseMessagingException, FirebaseAuthException {
 
         Generico comprador = (Generico) usuarioRepository.findByIdAndEstado(idComprador, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("Usuario inhabilitado"));
+
+        if (!correoComprador.equals(comprador.getCorreo())) {
+            throw new Excepcion("Usuario invalido");
+        }
+
         if (idComprador.compareTo(comprador.getId()) != 0) {
             throw new Excepcion("Usuario invalido");
         }
@@ -77,7 +82,7 @@ public class ReclamoService {
         cal.setTime(ObjectUtils.firstNonNull(compra.getInfoEntrega().getHorarioRetiroLocal(), compra.getInfoEntrega().getTiempoEstimadoEnvio()));
         cal.add(Calendar.DATE, diasGarantia);
         Date fechaLimite = cal.getTime();
-        if (new Date().after(fechaLimite)) {
+        if (new Date().after(fechaLimite) && compra.getEstado() == EstadoCompra.Completada) {
             throw new Excepcion("No se puede realizar un reclamo porque vencio el plazo de garantia");
         }
 
@@ -131,10 +136,14 @@ public class ReclamoService {
         }
     }
 
-    public void marcarComoResuelto(UUID idCompra, UUID idReclamo, UUID idComprador) throws FirebaseMessagingException, FirebaseAuthException {
+    public void marcarComoResuelto(UUID idCompra, UUID idReclamo, UUID idComprador, String correoComprador) throws FirebaseMessagingException, FirebaseAuthException {
         Reclamo reclamo = reclamoRepository.findById(idReclamo).orElseThrow(() -> new Excepcion("No existe el reclamo"));
         Generico vendedor = compraRepository.obtenerVendedor(idCompra);
         Generico comprador = compraRepository.obtenerComprador(idCompra);
+
+        if (!correoComprador.equals(comprador.getCorreo())) {
+            throw new Excepcion("Usuario invalido");
+        }
 
         if (idComprador.compareTo(comprador.getId()) != 0) {
             throw new Excepcion("Usuario invalido");

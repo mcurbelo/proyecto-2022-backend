@@ -103,15 +103,15 @@ public class CompradorController {
 
     @PostMapping("/{id}/compras/{idCompra}/reclamos")
     public ResponseEntity<String> iniciarReclamo(@PathVariable(value = "id") UUID idComprador, @PathVariable(value = "idCompra") UUID idCompra, @RequestBody DtAltaReclamo datos) throws FirebaseMessagingException, FirebaseAuthException {
-        //TODO Verificar que coincidan los id
-        reclamoService.iniciarReclamo(datos, idCompra, idComprador);
+        String correoComprador = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        reclamoService.iniciarReclamo(datos, idCompra, idComprador, correoComprador);
         return new ResponseEntity<>("Reclamo realizado con exito!!!", HttpStatus.OK);
     }
 
     @PutMapping("/{id}/compras/{idCompra}/reclamos/{idReclamo}")
     public ResponseEntity<String> reclamoResuelto(@PathVariable(value = "id") UUID idComprador, @PathVariable(value = "idCompra") UUID idCompra, @PathVariable(value = "idReclamo") UUID idReclamo) throws FirebaseMessagingException, FirebaseAuthException {
-        //TODO Verificar que coincidan los id
-        reclamoService.marcarComoResuelto(idCompra, idReclamo, idComprador);
+        String correoComprador = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        reclamoService.marcarComoResuelto(idCompra, idReclamo, idComprador, correoComprador);
         return new ResponseEntity<>("Reclamo resuelto con exito!!!", HttpStatus.OK);
     }
 

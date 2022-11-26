@@ -12,7 +12,6 @@ import com.shopnow.shopnow.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,11 +38,6 @@ public class UsuarioController {
 
     @PutMapping("/{id}/perfil")
     public ResponseEntity<String> modificarPerfil(@PathVariable(value = "id") UUID id, @RequestBody DtModificarUsuario datos) throws IOException {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        //TODO Para cuando utilicemos 100% los token
-        //   if(!email.equals(correo)){
-        //      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        //}
         usuarioService.modificarDatosUsuario(id, datos);
         return new ResponseEntity<>("Perfil editado con exito!!!", HttpStatus.OK);
     }
