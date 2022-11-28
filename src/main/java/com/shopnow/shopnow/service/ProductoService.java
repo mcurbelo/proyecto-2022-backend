@@ -166,16 +166,16 @@ public class ProductoService {
         response.put("totalPages", productos.getTotalPages());
 
         //Si se quiere obtener info de evento activo
-        if (filtros != null && filtros.getRecibirInfoEventoActivo() != null && filtros.getRecibirInfoEventoActivo()) {
-            Optional<EventoPromocional> eventoActivo = eventoPromocionalRepository.eventoActivo();
-            if (eventoActivo.isPresent()) {
-                EventoPromocional eventoInfo = eventoActivo.get();
-                response.put("EventoPromocionalActivo", generarDtEventoInfo(eventoInfo));
-            } else {
-                response.put("EventoPromocionalActivo", null);
-            }
-
-        }
+//        if (filtros != null && filtros.getRecibirInfoEventoActivo() != null && filtros.getRecibirInfoEventoActivo()) {
+//            Optional<EventoPromocional> eventoActivo = eventoPromocionalRepository.eventoActivo();
+//            if (eventoActivo.isPresent()) {
+//                EventoPromocional eventoInfo = eventoActivo.get();
+//                response.put("EventoPromocionalActivo", generarDtEventoInfo(eventoInfo));
+//            } else {
+//                response.put("EventoPromocionalActivo", null);
+//            }
+//
+//        }
 
         return response;
 
