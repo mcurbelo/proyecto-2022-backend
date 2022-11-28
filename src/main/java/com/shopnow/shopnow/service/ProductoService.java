@@ -315,16 +315,14 @@ public class ProductoService {
 
         }
 
-        if (imagenes != null) {
-            String idImagen = UUID.randomUUID().toString();
-            int i = 0;
-            for (MultipartFile imagen : imagenes) {
-                if (imagen.getSize() > 0 && !imagen.getName().equals(""))
-                    producto.getImagenesURL().add(i, new URLimagen(firebaseStorageService.uploadFile(imagen, idImagen + "--img" + i)));
-                i++;
-            }
-
+        String idImagen = UUID.randomUUID().toString();
+        int i = 0;
+        for (MultipartFile imagen : imagenes) {
+            if (imagen.getSize() > 0 && !imagen.getName().equals(""))
+                producto.getImagenesURL().add(i, new URLimagen(firebaseStorageService.uploadFile(imagen, idImagen + "--img" + i)));
+            i++;
         }
+
 
         if (nuevosDatos.getPermiteEnvio() != null) {
             producto.setPermiteEnvio(nuevosDatos.getPermiteEnvio());

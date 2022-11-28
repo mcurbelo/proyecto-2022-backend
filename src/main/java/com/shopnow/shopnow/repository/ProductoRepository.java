@@ -17,7 +17,7 @@ import java.util.UUID;
 public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     List<Producto> findByNombreContainingIgnoreCaseAndEstado(String nombre, EstadoProducto estado);
 
-    @Query(value = "select cast(id as varchar) from producto where estado='Activo' and stock>0 and COALESCE(fecha_fin,now())>=now() and nombre like %?1%", nativeQuery = true)
+    @Query(value = "select cast(id as varchar) from producto where estado='Activo' and stock>0 and COALESCE(fecha_fin,now())>=now() and nombre ilike %?1%", nativeQuery = true)
     List<UUID> productosContenganNombre(String nombre);
 
     @Modifying
@@ -48,7 +48,7 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
     @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and p.estado=?2", nativeQuery = true)
     List<UUID> misProductosPorEstado(UUID id, String estado);
 
-    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and p.nombre like %?2%", nativeQuery = true)
+    @Query(value = "select cast(p.id as varchar) from usuario_productos up join producto p on p.id=up.productos_key where up.generico_id=?1 and p.nombre ilike %?2%", nativeQuery = true)
     List<UUID> misProductosConNombre(UUID id, String estado);
 
     @Query(value = "select cast(p.id as varchar) from (usuario_productos up join producto p on p.id=up.productos_key) join categoria_productos cp on p.id=cp.productos_id where up.generico_id=?1 and cp.categoria_nombre=?2", nativeQuery = true)
