@@ -38,12 +38,12 @@ public class SecurityConfig {
                 .antMatchers("/api/compradores/**").hasAnyRole("COMPRADOR", "VENDEDOR")
                 .antMatchers("/api/compras/enviadas/{id}", "/api/compras/calificaciones/{id}",
                         "/api/compras/iniciarChat", "/api/compras/chat/{idcompra}", "/api/compras/chats/{idChat}/mensajes").hasAnyRole("COMPRADOR", "VENDEDOR")
-                .antMatchers("/api/compras/{idCompra}").hasRole("ADM")
                 .antMatchers(HttpMethod.POST, "/api/productos").hasRole("VENDEDOR")
                 .antMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADM")
                 .antMatchers("/api/usuarios/{uuid}/infoUsuario").hasAnyRole("ADM", "COMPRADOR", "VENDEDOR")
                 .antMatchers("/api/usuarios/**").hasAnyRole("COMPRADOR", "VENDEDOR")
                 .antMatchers("/api/vendedores/**").hasRole("VENDEDOR")
+                .antMatchers(HttpMethod.GET, "/api/compras/{idCompra}").hasRole("ADM")
                 .and()
                 .userDetailsService(uds)
                 .exceptionHandling()

@@ -362,11 +362,11 @@ public class CompraService {
 
         Map<String, String> infoChat = new HashMap<>();
         infoChat.put("idChat", datosChat.getIdChat());
-        if (!emailUsuario.equals(comprador.getCorreo())) {
+        if (emailUsuario.equals(comprador.getCorreo())) {
             infoChat.put("receptor", comprador.getNombre() + " " + comprador.getApellido());
             if (comprador.getWebToken() != null) {
                 Note notificacion = new Note("Se ha iniciado un nuevo chat", "Se ha iniciado una nueva instancia de chat en una de tus ventas.", infoChat, "");
-                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+                firebaseMessagingService.enviarNotificacion(notificacion, vendedor.getWebToken());
             }
             googleSMTP.enviarCorreo(emailUsuario, "Se ha creado una nueva instancia de chat en la venta " + compra.getId() + " realizada por " + comprador.getNombre() + " " + comprador.getApellido() + ".", "Nueva instancia de chat - ShopNow");
         } else {
@@ -377,7 +377,7 @@ public class CompraService {
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
             }
             if (comprador.getMobileToken() != null) {
-                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getMobileToken());
             }
             googleSMTP.enviarCorreo(emailUsuario, "Se ha creado una nueva instancia de chat en la compra " + compra.getId() + " hecha a " + nombreParaMostrar, "Nueva instancia de chat por relcamo - ShopNow");
         }
