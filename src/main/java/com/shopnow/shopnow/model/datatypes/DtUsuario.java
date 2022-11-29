@@ -2,6 +2,7 @@ package com.shopnow.shopnow.model.datatypes;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.shopnow.shopnow.model.enumerados.Rol;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -10,6 +11,7 @@ import java.util.Date;
 
 @Getter
 @RequiredArgsConstructor
+@AllArgsConstructor
 @SuperBuilder
 public class DtUsuario {
 

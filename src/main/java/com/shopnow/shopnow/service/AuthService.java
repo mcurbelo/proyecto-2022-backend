@@ -98,7 +98,7 @@ public class AuthService {
                 .webToken((Objects.equals(datosUsuario.getTokenWeb(), "")) ? null : datosUsuario.getTokenWeb())
                 .mobileToken((Objects.equals(datosUsuario.getTokenMobile(), "")) ? null : datosUsuario.getTokenMobile())
                 .build();
-        usuarioRepo.save(usuario);
+        usuario = usuarioRepo.save(usuario);
         String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getId().toString());
         return new RegistrarUsuarioResponse(true, token, "", usuario.getId().toString(), Rol.Comprador);
     }
