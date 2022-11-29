@@ -33,7 +33,7 @@ public class DtInfoCompra {
 
     private Float montoUnitario;
 
-    @JsonFormat(pattern = "dd/MM/yyyy")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private Date fechaEntrega;
 
     private String direccionEntrega;

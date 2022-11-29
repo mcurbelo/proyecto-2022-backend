@@ -54,6 +54,7 @@ public class FirebaseStorageService {
 
 
     private File convertMultiPartToFile(MultipartFile file) throws IOException {
+        //  File convertedFile = new File("/tmp/" + Objects.requireNonNull(file.getOriginalFilename()));
         File convertedFile = new File(Objects.requireNonNull(file.getOriginalFilename()));
         FileOutputStream fos = new FileOutputStream(convertedFile);
         fos.write(file.getBytes());

@@ -49,4 +49,6 @@ public class DtCompraSlimVendedor {
     private String direccionEntrega;
 
     private float calificacionComprador;
+
+    private boolean tieneChat;
 }

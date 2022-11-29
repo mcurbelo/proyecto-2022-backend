@@ -117,4 +117,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     @Query("SELECT COUNT(u) FROM Usuario u")
     Integer totalUsuarios();
+
+    @Query(value = "SELECT u FROM Usuario u where TYPE(u) = Administrador and estado='Activo' and webToken!=null")
+    List<Administrador> administradoresActivosConToken();
 }
