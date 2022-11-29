@@ -45,7 +45,7 @@ class CompraServiceTest {
     @Mock
     private DireccionRepository direccionRepository;
 
-    @InjectMocks
+    @Mock
     FirebaseMessagingService firebaseMessagingService;
 
     @Mock
@@ -157,7 +157,7 @@ class CompraServiceTest {
         doReturn(comprador).when(usuarioRepository).save(comprador);
         doReturn(vendedor).when(usuarioRepository).save(vendedor);
         doReturn(new Producto()).when(productoRepository).save(any());
-
+        doNothing().when(firebaseMessagingService).enviarNotificacion(any(), any());
         doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
 
         when(utilService.detallesCompra(any(), any(), any(),any(), any())).thenReturn("DetalleCompra");
