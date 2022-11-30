@@ -410,7 +410,7 @@ public class CompraService {
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
             }
             if (comprador.getMobileToken() != null) {
-                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getWebToken());
+                firebaseMessagingService.enviarNotificacion(notificacion, comprador.getMobileToken());
             }
             googleSMTP.enviarCorreo(comprador.getCorreo(), "Has recibido una respuesta en el chat de la compra o reclamo " + compra.getId() + " realizada a " + nombreParaMostrar + ".", "Nueva respuesta en el chat - ShopNow");
 

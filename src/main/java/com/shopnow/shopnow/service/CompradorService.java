@@ -1,5 +1,7 @@
 package com.shopnow.shopnow.service;
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtCompraSlimComprador;
@@ -51,6 +53,9 @@ public class CompradorService {
 
     @Autowired
     ReclamoRepository reclamoRepository;
+
+    @Autowired
+    FirebaseMessagingService firebaseMessagingService;
 
     public void agregarDireccion(DtDireccion datos, String correoUsuario) {
         Optional<Usuario> usuario = usuarioRepository.findByCorreoAndEstado(correoUsuario, EstadoUsuario.Activo);
@@ -155,7 +160,7 @@ public class CompradorService {
             throw new Excepcion("Dirección ya existente");
     }
 
-    public void crearSolicitud(DtSolicitud datos, MultipartFile[] imagenes, String email) throws IOException {
+    public void crearSolicitud(DtSolicitud datos, MultipartFile[] imagenes, String email) throws IOException, FirebaseMessagingException, FirebaseAuthException {
         boolean esEmpresa = contieneDatosEmpresa(datos.getNombreEmpresa(), datos.getRut(), datos.getTelefonoEmpresa());
         if (esEmpresa && !datosEmpresaValidos(datos.getNombreEmpresa(), datos.getRut(), datos.getTelefonoEmpresa())) {
             throw new Excepcion("Los datos de la empresa no estan completos");
@@ -223,6 +228,12 @@ public class CompradorService {
         usuario.setDatosVendedor(solicitud);
         usuarioRepository.save(usuario);
         googleSMTP.enviarCorreo("proyecto.tecnologo.2022@gmail.com", "Hay una nueva solicitud pendiente para ser vendedor (" + usuario.getNombre() + " " + usuario.getApellido() + ").", "Solicitud rol vendedor");
+
+        Note noteADM = new Note("Nueva solicitud de vendedor", "Hay una nueva solicitud de vendedor pendiente de revisión", new HashMap<>(), "");
+        List<Administrador> administradores = usuarioRepository.administradoresActivosConToken();
+        for (Administrador administrador : administradores) {
+            firebaseMessagingService.enviarNotificacion(noteADM, administrador.getWebToken());
+        }
     }
 
 

@@ -233,11 +233,21 @@ public class VendedorService {
                 calificacion = sumaCalificacion / ventasCalificacion;
         }
 
+        boolean puedeIrAlchat = ((compra.getEstado() == EstadoCompra.Completada || compra.getEstado() == EstadoCompra.Confirmada) && fechaEntrega != null);
+        if (puedeIrAlchat) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(fechaEntrega);
+            calendar.add(Calendar.DATE, producto.getDiasGarantia());
+            if (new Date().after(calendar.getTime())) {
+                puedeIrAlchat = false;
+            }
+        }
+        boolean tieneChat = compra.getIdChat() != null && puedeIrAlchat;
 
         return new DtCompraSlimVendedor(compra.getId(), comprador.getId(), comprador.getNombre() + " " + comprador.getApellido(),
                 compra.getInfoEntrega().getProducto().getNombre(),
                 compra.getInfoEntrega().getCantidad(), compra.getFecha(),
-                compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), imagen, fechaEntrega, puedeCalificar, puedeCompletar, infoEntrega.getEsEnvio(), infoEntrega.getDireccionEnvioORetiro().toString(), calificacion);
+                compra.getEstado(), compra.getInfoEntrega().getPrecioTotal(), compra.getInfoEntrega().getPrecioUnitario(), imagen, fechaEntrega, puedeCalificar, puedeCompletar, infoEntrega.getEsEnvio(), infoEntrega.getDireccionEnvioORetiro().toString(), calificacion, tieneChat);
     }
 }
 
