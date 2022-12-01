@@ -292,7 +292,7 @@ public class CompraService {
             mensaje = "La compra hecha ha " + nombreParaMostrar + " ha sido confirmada (Identificador: " + venta.getId() + ")!!! Ve hacia 'Mis compras' en la pagina web o en tu dispositivo movil para obtener más información de la entrega/retiro.";
             asunto = "Estado de compra actualizado";
         } else if (nuevoEstado == EstadoCompra.Cancelada) {
-            noteComprador = new Note("Compra cancelada", "La compra hecha a " + nombreParaMostrar + " ha sido cancelada!!! Revisa tu correo para conocer el motivo." + vendedor.getCorreo() + "", new HashMap<>(), null);
+            noteComprador = new Note("Compra cancelada", "La compra hecha a " + nombreParaMostrar + " ha sido cancelada!!! Revisa tu correo para conocer el motivo.", new HashMap<>(), null);
             mensaje = "La compra hecha ha " + nombreParaMostrar + " ha sido cancelada (Identificador: " + venta.getId() + ")!!!\nMotivo:\n" + datosEntregaRetiro.getMotivo() + "\nPara más información ponerse en contacto con el vendedor:\nCorreo: " + vendedor.getCorreo() + ".";
             asunto = "Estado de compra actualizado";
         } else {
