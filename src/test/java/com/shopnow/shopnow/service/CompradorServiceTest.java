@@ -1,10 +1,12 @@
 package com.shopnow.shopnow.service;
 
-import com.shopnow.shopnow.model.DatosVendedor;
-import com.shopnow.shopnow.model.Direccion;
-import com.shopnow.shopnow.model.Generico;
-import com.shopnow.shopnow.model.Tarjeta;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.shopnow.shopnow.model.*;
+import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
 import com.shopnow.shopnow.model.datatypes.DtDireccion;
+import com.shopnow.shopnow.model.datatypes.DtSolicitud;
+import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.*;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,7 +40,7 @@ public class CompradorServiceTest {
     @Mock
     DireccionRepository direccionRepository;
 
-    @InjectMocks
+    @Mock
     GoogleSMTP googleSMTP;
 
     @Mock
@@ -52,10 +55,16 @@ public class CompradorServiceTest {
     @Mock
     ReclamoRepository reclamoRepository;
 
-    @InjectMocks
+    @Mock
     FirebaseMessagingService firebaseMessagingService;
 
     private Generico vendedor;
+
+    private Tarjeta tarjeta;
+    private Usuario comprador;
+    private Administrador admin;
+    private Producto producto1, producto2;
+    private Map<UUID, Producto> productos = new HashMap<>();
 
     private Direccion direccion1;
 
@@ -83,6 +92,65 @@ public class CompradorServiceTest {
                 .direccionesEnvio(direccionesEnvio)
                 .datosVendedor(new DatosVendedor(80, "Empresa test", "123456789012", "12345678", EstadoSolicitud.Aceptado, direcionesLocales))
                 .tarjetas(tarjetas).build();
+
+        tarjeta = new Tarjeta("4111111111111111", "12/2023", "", "1111", "1");
+        direccion1 = Direccion.builder().id(100).calle("Bulevar").numero("100").localidad("Montevideo").departamento("Montevideo").notas("").build();
+        Map<String, Tarjeta> tarjetas2 = new HashMap<>();
+        tarjetas.put(tarjeta.getIdTarjeta(), tarjeta);
+        comprador = Generico.builder().id(UUID.fromString("37894b62-ae0a-475f-a425-ffd489effbc1")).fechaNac(new Date())
+                .reclamos(new HashMap<>())
+                .ventas(new HashMap<>())
+                .productos(new HashMap<>())
+                .compras(new HashMap<>())
+                .correo("comprador@shopnow.com")
+                .braintreeCustomerId("123")
+                .password("aa")
+                .calificaciones(new HashMap<>())
+                .direccionesEnvio(direccionesEnvio)
+                .tarjetas(tarjetas2).build();
+        admin = Administrador.builder().id(UUID.fromString("37894b62-ae0a-475f-a425-ffd489effbc1"))
+                .webToken("asdasd")
+                .mobileToken("aaaa")
+                .estado(EstadoUsuario.Activo)
+                .password("aa")
+                .correo("comprador@shopnow.com").build();
+        List<URLimagen> imagenes = new ArrayList<URLimagen>();
+        imagenes.add(new URLimagen("urldeimagen"));
+        producto1 =  Producto.builder()
+                .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d25"))
+                .nombre("Television")
+                .stock(200)
+                .imagenesURL(imagenes)
+                .descripcion("50 pulgadas")
+                .fechaInicio(new Date())
+                .fechaFin(new Date(2022, 12, 10))
+                .estado(EstadoProducto.Activo)
+                .precio(Float.parseFloat("10000"))
+                .diasGarantia(60)
+                .permiteEnvio(true)
+                .reportes(new HashMap<>())
+                .comentarios(new HashMap<>()).build();
+        producto2 =  Producto.builder()
+                .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d30"))
+                .nombre("Playstation 5")
+                .stock(200)
+                .imagenesURL(imagenes)
+                .descripcion("Splim")
+                .fechaInicio(new Date())
+                .fechaFin(new Date(2022, 12, 10))
+                .estado(EstadoProducto.Activo)
+                .precio(Float.parseFloat("20000"))
+                .diasGarantia(180)
+                .permiteEnvio(true)
+                .reportes(new HashMap<>())
+                .comentarios(new HashMap<>()).build();
+
+        productos.put(producto1.getId(), producto1);
+        productos.put(producto2.getId(), producto2);
+
+//        productosLista.add(producto1);
+//        productosLista.add(producto2);
+
     }
 
     @Test
@@ -138,6 +206,29 @@ public class CompradorServiceTest {
         DtDireccion dtDireccion = new DtDireccion(80, "CalleEditada", "456", "Montevideo", "Montevideo", null, true);
         compradorService.editarDireccion(dtDireccion);
         verify(direccionRepository).save(any());
+    }
+
+    @Test
+    void crearSolicitud() throws IOException, FirebaseMessagingException, FirebaseAuthException {
+        when(datosVendedorRepository.existsByRutOrNombreEmpresaOrTelefonoEmpresa(any(), any(), any())).thenReturn(false);
+        when(usuarioRepository.findByCorreo(comprador.getCorreo())).thenReturn(Optional.of(comprador));
+        doNothing().when(productoService).agregarProducto(any(), any(), any(), anyBoolean());
+        doReturn(direccion1).when(direccionRepository).saveAndFlush(any());
+        //doReturn(Optional.of(direccion1)).when(direccionRepository).findById(direccion1.getId());
+        doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
+        doReturn(comprador).when(usuarioRepository).save(any());
+        List<Administrador> administradores = new ArrayList<Administrador>();
+        administradores.add((Administrador) admin);
+        when(usuarioRepository.administradoresActivosConToken()).thenReturn(administradores);
+        doNothing().when(firebaseMessagingService).enviarNotificacion(any(), any());
+        //doReturn(false).when(direccionRepository).yaPerteneceAUnaEmpresa(any());
+        List<String> categorias = new ArrayList<>();
+        categorias.add("Tecnologia");
+        DtAltaProducto altaProducto = new DtAltaProducto("Producto", 10, "", new Date(2023, 12, 30), Float.parseFloat("3000"), 180, false, categorias);
+        DtDireccion local = DtDireccion.builder().esLocal(true).localidad("Montevideo").calle("").numero("a").departamento("").notas("").id(direccion1.getId()).build();
+        DtSolicitud solicitud = new DtSolicitud("Cr", "11", "00", altaProducto, local, null);
+        compradorService.crearSolicitud(solicitud, null, comprador.getCorreo());
+        verify(usuarioRepository).save(any());
     }
 
     //Eliminar direccion de retiro no puede ser y validar direccion cuando se edite que no se igual a otra que ya tiene
