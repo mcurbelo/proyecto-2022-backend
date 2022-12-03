@@ -1,17 +1,15 @@
 package com.shopnow.shopnow.service;
 
-import com.shopnow.shopnow.controller.responsetypes.RegistrarUsuarioResponse;
 import com.shopnow.shopnow.model.Direccion;
 import com.shopnow.shopnow.model.Generico;
 import com.shopnow.shopnow.model.Tarjeta;
 import com.shopnow.shopnow.model.Usuario;
-import com.shopnow.shopnow.model.datatypes.DtImagen;
 import com.shopnow.shopnow.model.datatypes.DtUsuario;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.model.enumerados.Rol;
 import com.shopnow.shopnow.repository.UsuarioRepository;
 import com.shopnow.shopnow.security.JWTUtil;
-import org.aspectj.weaver.ast.Instanceof;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,9 +18,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,6 +47,9 @@ class AuthServiceTest {
 
     @Mock
     AuthenticationManager authManager;
+
+    @Mock
+    GoogleSMTP googleSMTP;
 
     private Usuario comprador, comprador2;
 
@@ -97,7 +98,7 @@ class AuthServiceTest {
         doReturn("aa").when(passwordEncoder).encode(any());
         doReturn("aa").when(jwtUtil).generateToken(any(), any());
         //when(generico.getId()).thenReturn(UUID.fromString("37894b62-ae0a-475f-a425-ffd489effbc1"));
-        assertNotNull( authService.registrarUsuario(dtUsuario));
+        assertNotNull(authService.registrarUsuario(dtUsuario));
 
     }
 
@@ -113,4 +114,49 @@ class AuthServiceTest {
         authService.iniciarSesion("comprador@shopnow.com", "aa", "", "");
         assertThrows(RuntimeException.class, () -> authService.iniciarSesion("comprador2@shopnow.com", "aa", "", ""));
     }
+
+    @Test
+    void recuperarContrasena() throws NoSuchAlgorithmException {
+        when(usuarioRepository.findByCorreoAndEstado(any(), any())).thenReturn(Optional.of(comprador));
+        doReturn(comprador).when(usuarioRepository).save(comprador);
+        doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
+        authService.recuperarContrasena("comprador@shopnow.com");
+        verify(googleSMTP).enviarCorreo(any(), any(), any());
+    }
+
+    @Test
+    void recuperarContrasenaNullUser() throws NoSuchAlgorithmException {
+        when(usuarioRepository.findByCorreoAndEstado(any(), any())).thenReturn(Optional.empty());
+        authService.recuperarContrasena("comprador@shopnow.comm");
+        verify(googleSMTP, never()).enviarCorreo(any(), any(), any());
+    }
+
+    @Test
+    void reiniciarContrasena() throws NoSuchAlgorithmException {
+        comprador.setExpiracionPasswordToken(DateUtils.addHours(new Date(), 1));
+        when(usuarioRepository.findByResetPasswordToken(any())).thenReturn(Optional.of(comprador));
+        authService.reiniciarContrasena("KHJLSDFdfkj", "NuevaContra123");
+        verify(usuarioRepository).save(any());
+    }
+
+    @Test
+    void reiniciarContrasenaTokenFail() throws NoSuchAlgorithmException {
+        comprador.setExpiracionPasswordToken(DateUtils.addHours(new Date(), -1));
+        when(usuarioRepository.findByResetPasswordToken(any())).thenReturn(Optional.of(comprador));
+        assertThrowsExactly(com.shopnow.shopnow.controller.responsetypes.Excepcion.class, () -> authService.reiniciarContrasena("KHJLSDFdfkj", "NuevaContra123"));
+    }
+
+    @Test
+    void verificarCodigo() throws NoSuchAlgorithmException {
+        comprador.setExpiracionPasswordToken(DateUtils.addHours(new Date(), 1));
+        assertThrowsExactly(com.shopnow.shopnow.controller.responsetypes.Excepcion.class, () -> authService.verificarCodigo("KHJLSDFdfkj"));
+    }
+
+    @Test
+    void verificarCodigoFail() throws NoSuchAlgorithmException {
+        comprador.setExpiracionPasswordToken(DateUtils.addHours(new Date(), -1));
+        assertThrowsExactly(com.shopnow.shopnow.controller.responsetypes.Excepcion.class, () -> authService.verificarCodigo("KHJLSDFdfkj"));
+    }
+
+
 }

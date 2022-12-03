@@ -3,9 +3,8 @@ package com.shopnow.shopnow.service;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.model.*;
-import com.shopnow.shopnow.model.datatypes.DtAltaProducto;
-import com.shopnow.shopnow.model.datatypes.DtDireccion;
-import com.shopnow.shopnow.model.datatypes.DtSolicitud;
+import com.shopnow.shopnow.model.datatypes.*;
+import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
@@ -17,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import java.io.IOException;
 import java.util.*;
@@ -68,6 +69,8 @@ public class CompradorServiceTest {
 
     private Direccion direccion1;
 
+    private Generico compradorCompras;
+
 
     @BeforeEach
     void setup() {
@@ -116,7 +119,7 @@ public class CompradorServiceTest {
                 .correo("comprador@shopnow.com").build();
         List<URLimagen> imagenes = new ArrayList<URLimagen>();
         imagenes.add(new URLimagen("urldeimagen"));
-        producto1 =  Producto.builder()
+        producto1 = Producto.builder()
                 .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d25"))
                 .nombre("Television")
                 .stock(200)
@@ -130,7 +133,7 @@ public class CompradorServiceTest {
                 .permiteEnvio(true)
                 .reportes(new HashMap<>())
                 .comentarios(new HashMap<>()).build();
-        producto2 =  Producto.builder()
+        producto2 = Producto.builder()
                 .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d30"))
                 .nombre("Playstation 5")
                 .stock(200)
@@ -150,6 +153,23 @@ public class CompradorServiceTest {
 
 //        productosLista.add(producto1);
 //        productosLista.add(producto2);
+
+
+        CompraProducto infoEntrega = new CompraProducto(987, new Date(), null, true, new Direccion(), 80.00f, 2, 160.00f, producto1, new ArrayList<>());
+        Compra compra1 = new Compra(UUID.fromString("6e91c407-717c-4e8a-9adc-ffc412475a0c"), new Date(), EstadoCompra.Completada, tarjeta, infoEntrega, null, "T1", null);
+        Map<UUID, Compra> comprasList = new HashMap<>();
+        comprasList.put(compra1.getId(), compra1);
+        compradorCompras = Generico.builder().id(UUID.fromString("37894b62-ae0a-475f-a425-ffd489effbc8")).fechaNac(new Date())
+                .reclamos(new HashMap<>())
+                .ventas(new HashMap<>())
+                .productos(new HashMap<>())
+                .compras(comprasList)
+                .correo("compradorCompras@shopnow.com")
+                .braintreeCustomerId("123")
+                .password("12")
+                .calificaciones(new HashMap<>())
+                .direccionesEnvio(direccionesEnvio)
+                .tarjetas(tarjetas).build();
 
     }
 
@@ -231,8 +251,37 @@ public class CompradorServiceTest {
         verify(usuarioRepository).save(any());
     }
 
-    //Eliminar direccion de retiro no puede ser y validar direccion cuando se edite que no se igual a otra que ya tiene
 
+    @Test
+    void historialComprasFiltros() {
+        DtFiltrosCompras filtros = new DtFiltrosCompras(new Date(), "vendedor", "Television", EstadoCompra.Completada);
+        List<UUID> result = new ArrayList<>();
+        result.add(UUID.fromString("6e91c407-717c-4e8a-9adc-ffc412475a0c"));
+        when(compraRepository.comprasPorFechaYIdusuario(any(), any())).thenReturn(result);
+        when(compraRepository.comprasPorEstadoYIdusuario(any(), any())).thenReturn(result);
+        when(compraRepository.comprasPorIdUsuarioYNombreVendedor(any(), any())).thenReturn(result);
+        when(compraRepository.comprasPorIdUsuarioYNombreProducto(any(), any())).thenReturn(result);
+
+        Page<Compra> pageResponse = new PageImpl(Arrays.asList(compradorCompras.getCompras().values().toArray()));
+        when(compraRepository.findByIdIn(any(), any())).thenReturn(pageResponse);
+        when(compraRepository.obtenerVendedor(any())).thenReturn(vendedor);
+        Map<String, Object> historial = compradorService.historialDeCompras(0, 20, "fecha", "asc", filtros, UUID.fromString("37894b62-ae0a-475f-a425-ffd489effbc8"));
+
+        List<DtCompraSlimComprador> compras = (List<DtCompraSlimComprador>) historial.get("compras");
+        assertEquals(1, compras.size());
+    }
+
+    @Test
+    void historialComprasSinFiltros() {
+        Page<Compra> pageResponse = new PageImpl(Arrays.asList(compradorCompras.getCompras().values().toArray()));
+        when(compraRepository.comprasPorIdUsuario(any(), any())).thenReturn(pageResponse);
+        when(compraRepository.obtenerVendedor(any())).thenReturn(vendedor);
+        Map<String, Object> historial = compradorService.historialDeCompras(0, 20, "fecha", "asc", null, UUID.fromString("37894b62-ae0a-475f-a425-ffd489effbc8"));
+        List<DtCompraSlimComprador> compras = (List<DtCompraSlimComprador>) historial.get("compras");
+        assertEquals(1, compras.size());
+    }
+
+    //Eliminar direccion de retiro no puede ser y validar direccion cuando se edite que no se igual a otra que ya tiene
 }
 
 
