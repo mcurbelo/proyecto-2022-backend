@@ -10,6 +10,8 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.shopnow.shopnow.controller.responsetypes.Excepcion;
 import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.DtCompra;
+import com.shopnow.shopnow.model.datatypes.DtConfirmarCompra;
+import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
 import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
@@ -76,6 +78,8 @@ class CompraServiceTest {
     private DatosVendedor datosVendedor;
 
     private Producto producto;
+    private Compra compra;
+
 
     @BeforeEach
     void setUp(){
@@ -116,17 +120,21 @@ class CompraServiceTest {
         Map<UUID, Producto> productos = new HashMap<>();
         productos.put(producto.getId(), producto);
 
+        CompraProducto compraProducto = new CompraProducto(1, new Date(2023, 11, 15), new Date(2023, 11, 15), false, direccion1, Float.parseFloat("1000"), 1, Float.parseFloat("1000"), producto, null);
+        compra = Compra.builder().id(UUID.fromString("f998d287-9b75-4de2-9a39-ef43c8ab6de2")).fecha(new Date(2023, 11, 10)).estado(EstadoCompra.Confirmada).tarjetaPago(tarjeta).infoEntrega(compraProducto).cuponAplicado(null).idTransaccion("00").build();
+
+        Map<UUID, Compra> ventas = new HashMap<>();
+        ventas.put(compra.getId(), compra);
+
         vendedor = Generico.builder().id(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5")).fechaNac(new Date())
                 .reclamos(new HashMap<>())
-                .ventas(new HashMap<>())
+                .ventas(ventas)
                 .productos(productos)
                 .webToken("")
                 .compras(new HashMap<>())
                 .calificaciones(new HashMap<>())
                 .direccionesEnvio(new HashMap<>())
                 .tarjetas(new HashMap<>()).datosVendedor(datosVendedor).build();
-
-
 
 
     }
@@ -165,5 +173,16 @@ class CompraServiceTest {
 //        when(productoRepository.save(any())).thenReturn("");
         DtCompra dtcompra = new DtCompra(vendedor.getId(), producto.getId(), 1, null, tarjeta.getIdTarjeta(), true, direccion1.getId(), null);
         assertNotNull(compraService.nuevaCompra(dtcompra, comprador.getId()));
+    }
+    @Test
+    void cambiarEstadoVenta() throws FirebaseMessagingException, FirebaseAuthException {
+        when(usuarioRepository.findByIdAndEstado(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5"), EstadoUsuario.Activo)).thenReturn(Optional.of(vendedor));
+        when(compraRepository.findById(compra.getId())).thenReturn(Optional.of(compra));
+        when(compraRepository.obtenerComprador(compra.getId())).thenReturn((Generico) comprador);
+        doReturn(compra).when(compraRepository).save(compra);
+        doNothing().when(firebaseMessagingService).enviarNotificacion(any(), any());
+        doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
+        DtConfirmarCompra dtConfirmarCompra = new DtConfirmarCompra(new Date(2023, 11, 10), new Date(2023, 11, 20), "");
+        compraService.cambiarEstadoVenta(vendedor.getId(), compra.getId(), EstadoCompra.Completada, dtConfirmarCompra);
     }
 }

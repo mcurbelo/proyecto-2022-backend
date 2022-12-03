@@ -117,6 +117,13 @@ class ReclamoServiceTest {
         productosLista.add(producto1);
         productosLista.add(producto2);
 
+
+        CompraProducto compraProducto = new CompraProducto(1, new Date(2023, 11, 15), new Date(2023, 11, 15), false, direccion1, Float.parseFloat("1000"), 1, Float.parseFloat("1000"), producto1, null);
+        compra = Compra.builder().id(UUID.fromString("f998d287-9b75-4de2-9a39-ef43c8ab6de2")).fecha(new Date(2023, 11, 10)).estado(EstadoCompra.Confirmada).tarjetaPago(tarjeta).infoEntrega(compraProducto).cuponAplicado(null).idTransaccion("00").build();
+
+        Map<String, Compra> ventas = new HashMap<>();
+        ventas.put(compra.getIdChat(), compra);
+
         vendedor = Generico.builder().id(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5")).fechaNac(new Date())
                 .reclamos(new HashMap<>())
                 .ventas(new HashMap<>())
@@ -129,8 +136,6 @@ class ReclamoServiceTest {
                 .tarjetas(new HashMap<>()).datosVendedor(datosVendedor).build();
         categoria = Categoria.builder().productos(productos).nombre("Tecnologia").build();
 
-        CompraProducto compraProducto = new CompraProducto(1, new Date(2023, 11, 15), new Date(2023, 11, 15), false, direccion1, Float.parseFloat("1000"), 1, Float.parseFloat("1000"), producto1, null);
-        compra = Compra.builder().id(UUID.fromString("f998d287-9b75-4de2-9a39-ef43c8ab6de2")).fecha(new Date(2023, 11, 10)).estado(EstadoCompra.Confirmada).tarjetaPago(tarjeta).infoEntrega(compraProducto).cuponAplicado(null).idTransaccion("00").build();
     }
 
     @Test
