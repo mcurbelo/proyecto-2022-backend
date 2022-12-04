@@ -1,6 +1,7 @@
 package com.shopnow.shopnow.service;
 
 import com.shopnow.shopnow.model.*;
+import com.shopnow.shopnow.model.datatypes.DtUsuarioSlim;
 import com.shopnow.shopnow.model.enumerados.EstadoCompra;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
@@ -14,7 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +46,9 @@ class AdministradorServiceTest {
     @Mock
     DatosVendedorRepository datosVendedorRepository;
 
+    @Mock
+    PasswordEncoder passwordEncoder;
+
     private Tarjeta tarjeta;
 
     private Direccion direccion1;
@@ -58,7 +64,7 @@ class AdministradorServiceTest {
     private Map<UUID, Producto> productos = new HashMap<>();
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         tarjeta = new Tarjeta("4111111111111111", "12/2023", "", "1111", "1");
         direccion1 = Direccion.builder().id(100).calle("Bulevar").numero("100").localidad("Montevideo").departamento("Montevideo").notas("").build();
@@ -70,7 +76,7 @@ class AdministradorServiceTest {
 
         List<URLimagen> imagenes = new ArrayList<URLimagen>();
         imagenes.add(new URLimagen("urldeimagen"));
-        producto1 =  Producto.builder()
+        producto1 = Producto.builder()
                 .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d25"))
                 .nombre("Television")
                 .stock(200)
@@ -84,7 +90,7 @@ class AdministradorServiceTest {
                 .permiteEnvio(true)
                 .reportes(new HashMap<>())
                 .comentarios(new HashMap<>()).build();
-        producto2 =  Producto.builder()
+        producto2 = Producto.builder()
                 .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d30"))
                 .nombre("Playstation 5")
                 .stock(200)
@@ -188,7 +194,7 @@ class AdministradorServiceTest {
     }
 
     @Test
-    void respuestaSolicitud(){
+    void respuestaSolicitud() {
         when(usuarioRepository.findByIdAndEstado(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5"), EstadoUsuario.Activo)).thenReturn(Optional.of(vendedor));
         when(usuarioRepository.findByIdAndEstado(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c6"), EstadoUsuario.Activo)).thenReturn(Optional.of(vendedor2));
         doReturn(vendedor2).when(usuarioRepository).save(vendedor2);
@@ -203,6 +209,14 @@ class AdministradorServiceTest {
         doNothing().when(datosVendedorRepository).deleteById(vendedor.getDatosVendedor().getId());
         administradorService.respuestaSolicitud(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5"), false, "");
         administradorService.respuestaSolicitud(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c6"), true, "");
+    }
 
+    @Test
+    void crearOtroAdministrador() throws NoSuchAlgorithmException {
+        when(usuarioRepository.save(any())).thenReturn(null);
+        doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
+        when(passwordEncoder.encode(anyString())).thenReturn("PasswordEncodeada");
+        administradorService.crearAdministrador(new DtUsuarioSlim(null, "nuevoadm@shopnow.com", "Admin1", "DelSistema", null));
+        verify(googleSMTP).enviarCorreo(any(), any(), any());
     }
 }
