@@ -16,7 +16,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -39,6 +38,9 @@ class ReclamoServiceTest {
     @Mock
     GoogleSMTP googleSMTP;
 
+    @Mock
+    private BraintreeUtils braintreeUtils;
+
     private Usuario comprador;
 
     private Usuario vendedor;
@@ -60,7 +62,7 @@ class ReclamoServiceTest {
     private Compra compra;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         tarjeta = new Tarjeta("4111111111111111", "12/2023", "", "1111", "1");
         direccion1 = Direccion.builder().id(100).calle("Bulevar").numero("100").localidad("Montevideo").departamento("Montevideo").notas("").build();
@@ -83,7 +85,7 @@ class ReclamoServiceTest {
 
         List<URLimagen> imagenes = new ArrayList<URLimagen>();
         imagenes.add(new URLimagen("urldeimagen"));
-        producto1 =  Producto.builder()
+        producto1 = Producto.builder()
                 .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d25"))
                 .nombre("Television")
                 .stock(200)
@@ -97,7 +99,7 @@ class ReclamoServiceTest {
                 .permiteEnvio(true)
                 .reportes(new HashMap<>())
                 .comentarios(new HashMap<>()).build();
-        producto2 =  Producto.builder()
+        producto2 = Producto.builder()
                 .id(UUID.fromString("2c72e1b3-07c4-4d9d-b1f0-a21e0b291d30"))
                 .nombre("Playstation 5")
                 .stock(200)
@@ -123,6 +125,7 @@ class ReclamoServiceTest {
 
         Map<String, Compra> ventas = new HashMap<>();
         ventas.put(compra.getIdChat(), compra);
+
 
         vendedor = Generico.builder().id(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5")).fechaNac(new Date())
                 .reclamos(new HashMap<>())
@@ -153,5 +156,21 @@ class ReclamoServiceTest {
         doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
         DtAltaReclamo dtAltaReclamo = new DtAltaReclamo("", TipoReclamo.Otro);
         reclamoService.iniciarReclamo(dtAltaReclamo, compra.getId(), comprador.getId(), "ss");
+    }
+
+    @Test
+    void reclamoResueltoPorDevolucion() throws FirebaseMessagingException, FirebaseAuthException {
+        Reclamo reclamo = new Reclamo(UUID.fromString("1cf8f86d-6fba-48d9-aa9f-5dead3c2bed0"), TipoReclamo.Otro, new Date(), "Descripcion prueba", TipoResolucion.NoResuelto, compra);
+        when(reclamoRepository.findById(any())).thenReturn(Optional.of(reclamo));
+        when(compraRepository.findById(any())).thenReturn(Optional.of(compra));
+        when(usuarioRepository.findByIdAndEstado(any(), any())).thenReturn(Optional.of(vendedor));
+        when(compraRepository.obtenerComprador(any())).thenReturn((Generico) comprador);
+        when(braintreeUtils.devolverDinero(any())).thenReturn(true);
+        when(reclamoRepository.save(any())).thenReturn(reclamo);
+        when(compraRepository.save(any())).thenReturn(compra);
+        doNothing().when(firebaseMessagingService).enviarNotificacion(any(), any());
+        doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
+        reclamoService.gestionReclamo(compra.getId(), UUID.fromString("1cf8f86d-6fba-48d9-aa9f-5dead3c2bed0"), vendedor.getId(), TipoResolucion.Devolucion);
+        verify(googleSMTP).enviarCorreo(any(), any(), any());
     }
 }
