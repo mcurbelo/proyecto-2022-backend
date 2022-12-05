@@ -41,7 +41,7 @@ class ReclamoServiceTest {
     @Mock
     private BraintreeUtils braintreeUtils;
 
-    private Usuario comprador;
+    private Generico comprador;
 
     private Usuario vendedor;
 
@@ -161,6 +161,7 @@ class ReclamoServiceTest {
     @Test
     void reclamoResueltoPorDevolucion() throws FirebaseMessagingException, FirebaseAuthException {
         Reclamo reclamo = new Reclamo(UUID.fromString("1cf8f86d-6fba-48d9-aa9f-5dead3c2bed0"), TipoReclamo.Otro, new Date(), "Descripcion prueba", TipoResolucion.NoResuelto, compra);
+        comprador.getReclamos().put(reclamo.getId(), reclamo);
         when(reclamoRepository.findById(any())).thenReturn(Optional.of(reclamo));
         when(compraRepository.findById(any())).thenReturn(Optional.of(compra));
         when(usuarioRepository.findByIdAndEstado(any(), any())).thenReturn(Optional.of(vendedor));
@@ -172,5 +173,19 @@ class ReclamoServiceTest {
         doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
         reclamoService.gestionReclamo(compra.getId(), UUID.fromString("1cf8f86d-6fba-48d9-aa9f-5dead3c2bed0"), vendedor.getId(), TipoResolucion.Devolucion);
         verify(googleSMTP).enviarCorreo(any(), any(), any());
+    }
+
+    @Test
+    void marcarReclamoResuelto() throws FirebaseMessagingException, FirebaseAuthException {
+        Reclamo reclamo = new Reclamo(UUID.fromString("dfd5a8df-c524-4808-b2d5-aceb02b11486"), TipoReclamo.Otro, new Date(), "Descripcion prueba", TipoResolucion.NoResuelto, compra);
+        comprador.getReclamos().put(reclamo.getId(), reclamo);
+        when(reclamoRepository.findById(any())).thenReturn(Optional.of(reclamo));
+        when(compraRepository.obtenerVendedor(any())).thenReturn((Generico) vendedor);
+        when(compraRepository.obtenerComprador(any())).thenReturn(comprador);
+        doNothing().when(firebaseMessagingService).enviarNotificacion(any(), any());
+        doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());
+        reclamoService.marcarComoResuelto(compra.getId(), reclamo.getId(), comprador.getId(), comprador.getCorreo());
+        verify(googleSMTP).enviarCorreo(any(), any(), any());
+
     }
 }

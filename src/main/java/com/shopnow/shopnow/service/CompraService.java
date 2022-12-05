@@ -308,7 +308,7 @@ public class CompraService {
     }
 
     public void confirmarEntregaoReciboProducto(UUID idCompra, String correo) throws FirebaseMessagingException, FirebaseAuthException {
-        Compra compra = compraRepository.findById(idCompra).orElseThrow();
+        Compra compra = compraRepository.findById(idCompra).orElseThrow(() -> new Excepcion("No existe esa compra"));
 
         if (!compra.getInfoEntrega().getEsEnvio()) {
             throw new Excepcion("Esta compra no es del tipo envio");

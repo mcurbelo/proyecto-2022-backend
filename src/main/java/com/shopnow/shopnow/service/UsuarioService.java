@@ -105,7 +105,7 @@ public class UsuarioService {
     }
 
 
-    public void modificarInfoBasica(UUID uuid, DtUsuario usuario) throws IOException {
+    public void modificarInfoBasica(UUID uuid, DtUsuario usuario) {
 
         Generico usuarioBD;
         Optional<Usuario> res = usuarioRepository.findByIdAndEstado(uuid, EstadoUsuario.Activo);
@@ -114,7 +114,9 @@ public class UsuarioService {
         } else {
             usuarioBD = (Generico) res.get();
         }
-        if (usuario.getCorreo() != null && !usuario.getCorreo().equals(usuarioBD.getCorreo()) && usuarioRepository.existsByCorreoAndEstado(usuario.getCorreo(), EstadoUsuario.Activo))
+        if (usuario.getCorreo() != null && !usuario.getCorreo().equals(usuarioBD.getCorreo())
+                && (usuarioRepository.existsByCorreoAndEstado(usuario.getCorreo(), EstadoUsuario.Activo)
+                || usuarioRepository.existsByCorreoAndEstado(usuario.getCorreo(), EstadoUsuario.Bloqueado)))
             throw new Excepcion("El correo ya esta en uso");
 
         usuarioBD.setCorreo(usuario.getCorreo());
@@ -148,7 +150,7 @@ public class UsuarioService {
     }
 
 
-    public void modificarDatosUsuario(UUID id, DtModificarUsuario datos) throws IOException {
+    public void modificarDatosUsuario(UUID id, DtModificarUsuario datos) {
         Generico usuario;
         Optional<Usuario> res = usuarioRepository.findByIdAndEstado(id, EstadoUsuario.Activo);
         if (res.isEmpty()) {
@@ -157,7 +159,7 @@ public class UsuarioService {
             usuario = (Generico) res.get();
         }
         if (datos.getCorreo() != null) {
-            if (usuarioRepository.existsByCorreoAndEstado(datos.getCorreo(), EstadoUsuario.Activo)) {
+            if (usuarioRepository.existsByCorreoAndEstado(datos.getCorreo(), EstadoUsuario.Activo) || usuarioRepository.existsByCorreoAndEstado(datos.getCorreo(), EstadoUsuario.Bloqueado)) {
                 throw new Excepcion("El correo nuevo ya existe.");
             } else
                 usuario.setCorreo(datos.getCorreo());

@@ -5,6 +5,7 @@ import com.shopnow.shopnow.model.*;
 import com.shopnow.shopnow.model.datatypes.*;
 import com.shopnow.shopnow.model.enumerados.EstadoProducto;
 import com.shopnow.shopnow.model.enumerados.EstadoSolicitud;
+import com.shopnow.shopnow.model.enumerados.EstadoUsuario;
 import com.shopnow.shopnow.repository.CategoriaRepository;
 import com.shopnow.shopnow.repository.ProductoRepository;
 import com.shopnow.shopnow.repository.UsuarioRepository;
@@ -93,7 +94,7 @@ class ProductoServiceTest {
                 .imagenesURL(imagenes)
                 .descripcion("50 pulgadas")
                 .fechaInicio(new Date())
-                .fechaFin(new Date(2022, 12, 10))
+                .fechaFin(null)
                 .estado(EstadoProducto.Activo)
                 .precio(Float.parseFloat("10000"))
                 .diasGarantia(60)
@@ -128,6 +129,7 @@ class ProductoServiceTest {
                 .compras(new HashMap<>())
                 .calificaciones(new HashMap<>())
                 .direccionesEnvio(new HashMap<>())
+                .estado(EstadoUsuario.Activo)
                 .tarjetas(new HashMap<>()).datosVendedor(datosVendedor).build();
         categoria = Categoria.builder().productos(productos).nombre("Tecnologia").build();
     }
@@ -239,5 +241,14 @@ class ProductoServiceTest {
 
         List<DtMiProducto> productos = (List<DtMiProducto>) misProductos.get("misProductos");
         assertEquals(2, productos.size());
+    }
+
+    @Test
+    void infoProducto() {
+        when(productoRepository.findById(any())).thenReturn(Optional.of(producto1));
+        when(productoRepository.vendedorProducto(any())).thenReturn(vendedor);
+        DtProducto producto = productoService.obtenerProducto(producto1.getId());
+        assertTrue(producto.getIdProducto().compareTo(producto1.getId()) == 0 && producto.getIdVendedor().compareTo(vendedor.getId()) == 0);
+
     }
 }
