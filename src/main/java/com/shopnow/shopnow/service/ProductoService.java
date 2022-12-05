@@ -298,9 +298,10 @@ public class ProductoService {
         if (nuevosDatos.getFechaFin() != null)
             producto.setFechaFin(nuevosDatos.getFechaFin());
 
-        if (nuevosDatos.getFechaFin() != null) {
-            producto.setFechaFin(nuevosDatos.getFechaFin());
+        if (nuevosDatos.getStock() != null) {
+            producto.setStock(nuevosDatos.getStock());
         }
+
         if (nuevosDatos.getPrecio() != null) {
             producto.setPrecio(nuevosDatos.getPrecio());
         }

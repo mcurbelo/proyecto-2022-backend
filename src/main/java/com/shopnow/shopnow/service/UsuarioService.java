@@ -69,7 +69,7 @@ public class UsuarioService {
             Map<UUID, Compra> ventas = usuario.getVentas();
             float sumaCalificacionVendedor = 0, calificacionVendedor = 0;
             if (ventas.size() != 0) {
-                int ventasCalificacion = 1;
+                int ventasCalificacion = 0;
                 for (Compra venta : ventas.values()) {
                     if (venta.getInfoEntrega().getCalificaciones().isEmpty()) {
                         continue;
