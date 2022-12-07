@@ -99,7 +99,11 @@ public class AdministradorService {
     }
 
     public void respuestaSolicitud(UUID idUsuario, boolean aceptar, String motivo) {
-        Usuario usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
+        Usuario usuario;
+        if (aceptar)
+            usuario = usuarioRepository.findByIdAndEstado(idUsuario, EstadoUsuario.Activo).orElseThrow(() -> new Excepcion("El usuario no existe o no se encuentra en un estado valido"));
+        else
+            usuario = usuarioRepository.findById(idUsuario).orElseThrow(() -> new Excepcion("El usuario no existe"));
         if (usuario instanceof Administrador) {
             throw new Excepcion("El usuario no esta disponible para esta funcionalidad");
         }
