@@ -153,7 +153,6 @@ public class CompraService {
         }
         Direccion direccion = resDire.get();
 
-        //TODO Revisar si hay evento promocional activo
 
         //Logica del CU
 

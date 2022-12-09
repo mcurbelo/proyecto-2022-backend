@@ -228,7 +228,6 @@ public class ProductoService {
             else
                 calificacion = sumaCalificacion / ventasCalificacion;
         }
-        //TODO Descontar el precio si esta en un evento promocional
         return new DtProducto(id, usuario.getId(), linksImagenes, producto.getNombre(), producto.getDescripcion(), producto.getPrecio(), producto.getPermiteEnvio(), producto.getComentarios().values().stream().toList(), nombreVendedor, calificacion, usuario.getImagen(), datosVendedor.getLocales().values().stream().toList(), producto.getStock(), producto.getDiasGarantia());
     }
 

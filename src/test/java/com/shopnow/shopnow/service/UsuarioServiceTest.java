@@ -143,7 +143,7 @@ class UsuarioServiceTest {
         vendedor.getDatosVendedor().setEstadoSolicitud(EstadoSolicitud.Pendiente);
         when(usuarioRepository.findByIdAndEstado(any(), any())).thenReturn(Optional.of(vendedor));
         DtUsuario retorno = usuarioService.infoUsuario(vendedor.getId().toString());
-        assertTrue(Objects.equals(retorno.getCorreo(), vendedor.getCorreo()) && retorno.getDatosVendedor() == null);
+        assertTrue(Objects.equals(retorno.getCorreo(), vendedor.getCorreo()) && retorno.getDatosVendedor() != null && retorno.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Pendiente);
     }
 
     @Test

@@ -196,7 +196,6 @@ public class CompradorService {
             }
         }
 
-        productoService.agregarProducto(datos.getProducto(), imagenes, email, true);
 
         DtDireccion infoLocal = datos.getLocal();
         Integer idDireccion = datos.getIdDireccion();
@@ -225,6 +224,7 @@ public class CompradorService {
         else {
             solicitud = new DatosVendedor(null, null, null, null, EstadoSolicitud.Pendiente, locales);
         }
+        productoService.agregarProducto(datos.getProducto(), imagenes, email, true);
         usuario.setDatosVendedor(solicitud);
         usuarioRepository.save(usuario);
         googleSMTP.enviarCorreo("proyecto.tecnologo.2022@gmail.com", "Hay una nueva solicitud pendiente para ser vendedor (" + usuario.getNombre() + " " + usuario.getApellido() + ").", "Solicitud rol vendedor");

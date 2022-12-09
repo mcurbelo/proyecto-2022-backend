@@ -197,6 +197,7 @@ class AdministradorServiceTest {
     void respuestaSolicitud() {
         when(usuarioRepository.findByIdAndEstado(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5"), EstadoUsuario.Activo)).thenReturn(Optional.of(vendedor));
         when(usuarioRepository.findByIdAndEstado(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c6"), EstadoUsuario.Activo)).thenReturn(Optional.of(vendedor2));
+        when(usuarioRepository.findById(UUID.fromString("d652bd18-0d70-4f73-b72f-6627620bc5c5"))).thenReturn(Optional.of(vendedor));
         doReturn(vendedor2).when(usuarioRepository).save(vendedor2);
         doReturn(vendedor).when(usuarioRepository).saveAndFlush(vendedor);
         doNothing().when(googleSMTP).enviarCorreo(any(), any(), any());

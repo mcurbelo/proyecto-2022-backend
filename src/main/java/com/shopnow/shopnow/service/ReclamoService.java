@@ -131,8 +131,8 @@ public class ReclamoService {
             }
             googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nEl reclamo hacia la compra (identificador:" + idVenta + ") ha sido marcado como resuelto vía devolución de dinero.", "Reclamo resuelto - " + reclamo.getId());
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Funcionalidad no implementada");
-            //Todo Notificacion al comprador
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Funcionalidad equivocada");
+           
         }
     }
 

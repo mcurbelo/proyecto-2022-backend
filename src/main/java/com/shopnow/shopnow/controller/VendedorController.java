@@ -38,12 +38,6 @@ public class VendedorController {
 
     @PutMapping("/{idUsuario}/productos/{id}/estado")
     public ResponseEntity<String> cambiarEstado(@PathVariable(value = "idUsuario") UUID id, @PathVariable(value = "id") UUID idProducto, @RequestParam(value = "nuevoEstado") EstadoProducto nuevoEstado) {
-        /*TODO Utilizar cuando se utilicen al 100% los token
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!email.equals(correo)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        */
         vendedorService.cambiarEstadoProducto(idProducto, id, nuevoEstado);
         return new ResponseEntity<>("Producto cambiado de estado con exito", HttpStatus.OK);
     }

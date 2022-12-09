@@ -65,7 +65,7 @@ public class UsuarioService {
         }
 
         /*     Informacion de la parte vendedor    */
-        if (usuario.getDatosVendedor() != null && usuario.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado) {
+        if (usuario.getDatosVendedor() != null && (usuario.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Aceptado || usuario.getDatosVendedor().getEstadoSolicitud() == EstadoSolicitud.Pendiente)) {
             Map<UUID, Compra> ventas = usuario.getVentas();
             float sumaCalificacionVendedor = 0, calificacionVendedor = 0;
             if (ventas.size() != 0) {
@@ -93,6 +93,7 @@ public class UsuarioService {
                     .locales(usuario.getDatosVendedor().getLocales())
                     .estadoSolicitud(usuario.getDatosVendedor().getEstadoSolicitud()).calificacion(calificacionVendedor).build();
         }
+
 
         return DtUsuario.builder()
                 .nombre(usuario.getNombre())
