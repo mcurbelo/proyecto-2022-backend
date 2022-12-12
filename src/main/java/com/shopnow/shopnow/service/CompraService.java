@@ -363,11 +363,11 @@ public class CompraService {
         infoChat.put("idChat", datosChat.getIdChat());
         if (emailUsuario.equals(comprador.getCorreo())) {
             infoChat.put("receptor", comprador.getNombre() + " " + comprador.getApellido());
-            if (comprador.getWebToken() != null) {
+            if (vendedor.getWebToken() != null) {
                 Note notificacion = new Note("Se ha iniciado un nuevo chat", "Se ha iniciado una nueva instancia de chat en una de tus ventas.", infoChat, "");
                 firebaseMessagingService.enviarNotificacion(notificacion, vendedor.getWebToken());
             }
-            googleSMTP.enviarCorreo(emailUsuario, "Se ha creado una nueva instancia de chat en la venta " + compra.getId() + " realizada por " + comprador.getNombre() + " " + comprador.getApellido() + ".", "Nueva instancia de chat - ShopNow");
+            googleSMTP.enviarCorreo(vendedor.getCorreo(), "Se ha creado una nueva instancia de chat en la venta " + compra.getId() + " realizada por " + comprador.getNombre() + " " + comprador.getApellido() + ".", "Nueva instancia de chat - ShopNow");
         } else {
             String nombreParaMostrar = (vendedor.getDatosVendedor().getNombreEmpresa() != null) ? vendedor.getDatosVendedor().getNombreEmpresa() : vendedor.getNombre() + " " + vendedor.getApellido();
             infoChat.put("receptor", nombreParaMostrar);
@@ -378,7 +378,7 @@ public class CompraService {
             if (comprador.getMobileToken() != null) {
                 firebaseMessagingService.enviarNotificacion(notificacion, comprador.getMobileToken());
             }
-            googleSMTP.enviarCorreo(emailUsuario, "Se ha creado una nueva instancia de chat en la compra " + compra.getId() + " hecha a " + nombreParaMostrar, "Nueva instancia de chat por relcamo - ShopNow");
+            googleSMTP.enviarCorreo(comprador.getCorreo(), "Se ha creado una nueva instancia de chat en la compra " + compra.getId() + " hecha a " + nombreParaMostrar, "Nueva instancia de chat por relcamo - ShopNow");
         }
     }
 
