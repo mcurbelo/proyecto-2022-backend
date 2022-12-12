@@ -118,7 +118,7 @@ public class AdministradorService {
         if (aceptar) {
             ((Generico) usuario).getDatosVendedor().setEstadoSolicitud(EstadoSolicitud.Aceptado);
             usuarioRepository.save(usuario);
-            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ah sido aceptada con éxito, vuelva a iniciar sesión para obtener sus nuevas funcionalidades.\nAdemás su producto enviado en la solicitud se colocó a la venta", "Solicitud de vendedor aceptada");
+            googleSMTP.enviarCorreo(usuario.getCorreo(), "Su solicitud para convertirse en vendedor ha sido aceptada con éxito, vuelva a iniciar sesión para obtener sus nuevas funcionalidades.\nAdemás su producto enviado en la solicitud se colocó a la venta.", "Solicitud de vendedor aceptada");
             for (Producto producto : ((Generico) usuario).getProductos().values()) { //Solo seria uno.
                 producto.setEstado(EstadoProducto.Activo);
                 productoRepository.save(producto);

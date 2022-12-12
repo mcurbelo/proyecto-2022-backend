@@ -126,13 +126,13 @@ public class ReclamoService {
             compra.setEstado(EstadoCompra.Devolucion);
             compraRepository.save(compra);
             if (comprador.getWebToken() != null) {
-                notificacionComprador = new Note("Reclamo resuelto: Devolución", "Uno de tus reclamos ah sido marcado como resuelto, ve a 'Reclamos recibidos' para obtener mas información.", new HashMap<>(), "");
+                notificacionComprador = new Note("Reclamo resuelto: Devolución", "Uno de tus reclamos ha sido marcado como resuelto, ve a 'Reclamos recibidos' para obtener mas información.", new HashMap<>(), "");
                 firebaseMessagingService.enviarNotificacion(notificacionComprador, comprador.getWebToken());
             }
             googleSMTP.enviarCorreo(comprador.getCorreo(), "Hola, " + comprador.getNombre() + " " + comprador.getApellido() + ".\nEl reclamo hacia la compra (identificador:" + idVenta + ") ha sido marcado como resuelto vía devolución de dinero.", "Reclamo resuelto - " + reclamo.getId());
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Funcionalidad equivocada");
-           
+
         }
     }
 
